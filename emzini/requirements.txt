@@ -9,3 +9,4 @@ python-dotenv
 werkzeug
 pillow
 requests
+psycopg2-binary
