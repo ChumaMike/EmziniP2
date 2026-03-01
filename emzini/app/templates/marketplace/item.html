@@ -171,7 +171,7 @@
               <input type="radio" name="wants_delivery" value="1" class="hidden"/>
               <i class="fas fa-truck-fast text-sm text-zinc-400"></i>
               <span class="text-white text-xs font-semibold">Delivery</span>
-              <span class="text-[10px]" style="color:var(--teal-lt);">+R15
+              <span class="text-[10px]" style="color:var(--teal-lt);">+R10
                 {% if active_runners %}
                   <span class="w-1 h-1 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
                 {% endif %}
@@ -188,29 +188,7 @@
         <input type="hidden" name="wants_delivery" value="0"/>
         {% endif %}
 
-        <!-- Payment method -->
-        <div>
-          <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Payment</p>
-          <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border-2);">
-            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
-                   style="background:rgba(13,148,136,0.07);border-bottom:1px solid var(--border-2);">
-              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 flex-shrink-0"/>
-              <div class="flex-1 min-w-0">
-                <span class="text-white text-sm font-medium">App Rands</span>
-                <span class="font-mono text-[11px] text-zinc-400 ml-2">R{{ '%.2f'|format(current_user.wallet_balance) }}</span>
-              </div>
-            </label>
-            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
-                   style="border-bottom:1px solid var(--border-2);">
-              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 flex-shrink-0"/>
-              <span class="text-white text-sm font-medium">Cash</span>
-            </label>
-            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all">
-              <input type="radio" name="payment_method" value="card" class="accent-teal-500 flex-shrink-0"/>
-              <span class="text-white text-sm font-medium">Card</span>
-            </label>
-          </div>
-        </div>
+        <input type="hidden" name="payment_method" value="wallet"/>
 
         <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3">
           <i class="fas fa-bag-shopping mr-2"></i>
@@ -283,16 +261,6 @@ function selectDelivery(label, show) {
   if (lbl) lbl.textContent = show ? 'Buy + Request Delivery' : 'Buy Now';
 }
 
-// Payment row highlighting
-document.querySelectorAll('[name="payment_method"]').forEach(function(radio) {
-  radio.addEventListener('change', function() {
-    document.querySelectorAll('.payment-card').forEach(function(l) {
-      l.style.background = '';
-    });
-    var sel = radio.closest('label');
-    if (sel) sel.style.background = 'rgba(13,148,136,0.1)';
-  });
-});
 
 // Clear DM input after send
 var dmForm = document.getElementById('dm-form');

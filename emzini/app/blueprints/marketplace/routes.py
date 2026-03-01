@@ -13,8 +13,8 @@ marketplace_bp = Blueprint('marketplace', __name__)
 
 CATEGORIES = ['electronics', 'furniture', 'clothing', 'food', 'services', 'general']
 ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
-DELIVERY_REWARD = 15.0
-PLATFORM_FEE_PCT = 0.10
+DELIVERY_REWARD = 10.0
+PLATFORM_FEE_PCT = 0.01
 
 
 def _allowed(filename):

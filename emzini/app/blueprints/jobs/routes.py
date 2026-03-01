@@ -7,7 +7,7 @@ from app.services.logger_service import log_action
 
 jobs_bp = Blueprint('jobs', __name__)
 
-PLATFORM_FEE_PCT = 0.10
+PLATFORM_FEE_PCT = 0.01
 
 
 @jobs_bp.route('/jobs')
