@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.extensions import db, socketio
 from app.models import RunnerJob, JobNegotiation, RunnerProfile
-from app.services.escrow_service import lock_escrow, release_escrow, InsufficientFundsError
+from app.services.escrow_service import lock_escrow, release_escrow, credit_wallet, InsufficientFundsError
 from app.services.logger_service import log_action
 
 jobs_bp = Blueprint('jobs', __name__)
@@ -14,14 +14,21 @@ PLATFORM_FEE_PCT = 0.10
 @login_required
 def index():
     status_filter = request.args.get('status', 'open')
-    if status_filter not in ['open', 'claimed', 'completed', 'all']:
+    if status_filter not in ['open', 'claimed', 'pending_confirmation', 'completed', 'all']:
         status_filter = 'open'
 
     q = RunnerJob.query
     if status_filter != 'all':
         q = q.filter_by(status=status_filter)
     jobs = q.order_by(RunnerJob.created_at.desc()).all()
-    return render_template('jobs/index.html', jobs=jobs, status_filter=status_filter)
+
+    # Jobs the current user posted that are awaiting their confirmation
+    needs_confirmation = RunnerJob.query.filter_by(
+        poster_id=current_user.id, status='pending_confirmation'
+    ).all()
+
+    return render_template('jobs/index.html', jobs=jobs, status_filter=status_filter,
+                           needs_confirmation=needs_confirmation)
 
 
 @jobs_bp.route('/jobs/new', methods=['GET', 'POST'])
@@ -86,15 +93,34 @@ def claim_job(job_id):
     return redirect(url_for('jobs.index'))
 
 
-@jobs_bp.route('/jobs/<int:job_id>/complete', methods=['POST'])
+@jobs_bp.route('/jobs/<int:job_id>/mark_done', methods=['POST'])
 @login_required
-def complete_job(job_id):
+def mark_done(job_id):
     job = RunnerJob.query.get_or_404(job_id)
     if job.status != 'claimed':
         flash('Job not in claimed state.', 'danger')
         return redirect(url_for('jobs.index'))
-    if job.runner_id != current_user.id and job.poster_id != current_user.id and not current_user.is_admin:
-        flash('Not authorized.', 'danger')
+    if job.runner_id != current_user.id:
+        flash('Only the runner can mark a job as done.', 'danger')
+        return redirect(url_for('jobs.index'))
+
+    job.status = 'pending_confirmation'
+    db.session.commit()
+    log_action('job_mark_done', f'Runner @{current_user.username} marked job #{job.id} done — awaiting poster confirmation', current_user.id)
+    socketio.emit('job_pending_confirmation', {'id': job.id, 'runner': current_user.username})
+    flash('Job marked as done. Waiting for the poster to confirm.', 'success')
+    return redirect(url_for('jobs.index'))
+
+
+@jobs_bp.route('/jobs/<int:job_id>/complete', methods=['POST'])
+@login_required
+def complete_job(job_id):
+    job = RunnerJob.query.get_or_404(job_id)
+    if job.status not in ('pending_confirmation', 'claimed'):
+        flash('Job cannot be confirmed at this stage.', 'danger')
+        return redirect(url_for('jobs.index'))
+    if job.poster_id != current_user.id and not current_user.is_admin:
+        flash('Only the poster can confirm completion.', 'danger')
         return redirect(url_for('jobs.index'))
 
     job.status = 'completed'
@@ -128,7 +154,7 @@ def cancel_job(job_id):
     if job.poster_id != current_user.id and not current_user.is_admin:
         flash('Not authorized.', 'danger')
         return redirect(url_for('jobs.index'))
-    if job.status not in ('open', 'claimed'):
+    if job.status not in ('open', 'claimed', 'pending_confirmation'):
         flash('Cannot cancel this job.', 'danger')
         return redirect(url_for('jobs.index'))
 
@@ -245,6 +271,63 @@ def reject_offer(job_id, nid):
                current_user.id)
     flash('Offer rejected.', 'info')
     return redirect(url_for('jobs.index'))
+
+
+@jobs_bp.route('/jobs/<int:job_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_job(job_id):
+    job = RunnerJob.query.get_or_404(job_id)
+    if job.poster_id != current_user.id:
+        flash('Not authorised.', 'danger')
+        return redirect(url_for('jobs.index'))
+    if job.status not in ('open', 'claimed'):
+        flash('Cannot edit a completed or cancelled job.', 'danger')
+        return redirect(url_for('jobs.index'))
+
+    if request.method == 'POST':
+        title       = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        try:
+            new_reward = float(request.form.get('reward', job.reward))
+            if new_reward <= 0:
+                raise ValueError
+        except ValueError:
+            flash('Enter a valid reward amount.', 'danger')
+            return render_template('jobs/edit.html', job=job)
+
+        if not title or not description:
+            flash('Title and description are required.', 'danger')
+            return render_template('jobs/edit.html', job=job)
+
+        # Adjust escrow if reward changed
+        if job.escrow_locked and new_reward != job.reward:
+            diff = new_reward - job.reward
+            if diff > 0:
+                try:
+                    lock_escrow(current_user.id, diff, f'Job reward increase: {title}')
+                except InsufficientFundsError as e:
+                    flash(str(e), 'danger')
+                    return render_template('jobs/edit.html', job=job)
+            else:
+                credit_wallet(current_user.id, abs(diff), f'Job reward decrease: {title}')
+
+        job.title       = title
+        job.description = description
+        job.reward      = new_reward
+        db.session.commit()
+        log_action('job_edited', f'{current_user.username} edited job "{title}"', current_user.id)
+
+        socketio.emit('job_updated', {
+            'id':          job.id,
+            'title':       job.title,
+            'description': job.description,
+            'reward':      job.reward,
+        })
+
+        flash('Job updated.', 'success')
+        return redirect(url_for('jobs.index'))
+
+    return render_template('jobs/edit.html', job=job)
 
 
 # Legacy toggle route — now redirects to runner blueprint

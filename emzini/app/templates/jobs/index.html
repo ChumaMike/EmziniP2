@@ -22,9 +22,32 @@
   </div>
 </div>
 
+<!-- Needs confirmation banner -->
+{% if needs_confirmation %}
+<div class="mb-5 rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 space-y-3">
+  <p class="text-amber-400 font-mono text-xs uppercase font-bold tracking-widest">
+    <i class="fas fa-triangle-exclamation mr-2"></i>{{ needs_confirmation|length }} job{{ 's' if needs_confirmation|length > 1 }} waiting for your confirmation
+  </p>
+  {% for j in needs_confirmation %}
+  <div class="flex items-center justify-between gap-4 rounded bg-amber-900/20 px-3 py-2">
+    <div>
+      <span class="text-white text-sm font-semibold">{{ j.title }}</span>
+      <span class="font-mono text-[10px] text-amber-300 ml-2">RUNNER: @{{ j.runner.username }}</span>
+      <span class="font-mono text-[10px] text-green-400 ml-2">R{{ '%.2f'|format(j.reward) }}</span>
+    </div>
+    <form method="POST" action="/jobs/{{ j.id }}/complete">
+      <button type="submit" class="btn-primary text-xs px-4 py-1.5">
+        <i class="fas fa-check mr-1"></i>CONFIRM COMPLETE
+      </button>
+    </form>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Status Filter -->
 <div class="flex gap-2 mb-6 flex-wrap">
-  {% for s in ['open', 'claimed', 'completed', 'all'] %}
+  {% for s in ['open', 'claimed', 'pending_confirmation', 'completed', 'all'] %}
   <a href="/jobs?status={{ s }}"
      class="font-mono text-xs px-3 py-1.5 rounded border transition uppercase
             {{ 'bg-teal-900/30 border-teal-600 text-teal-400' if status_filter == s else 'border-slate-700 text-slate-500 hover:border-slate-500' }}">
@@ -36,11 +59,13 @@
 <!-- Jobs List -->
 <div class="space-y-4" id="jobs-list">
   {% for job in jobs %}
-  <div class="card p-5 hover:border-teal-800 transition" id="job-{{ job.id }}">
+  <div class="card p-5 hover:border-teal-800 transition" id="job-{{ job.id }}"
+       data-poster-id="{{ job.poster_id }}"
+       data-runner-id="{{ job.runner_id or '' }}">
     <div class="flex items-start justify-between gap-4">
       <div class="flex-1 min-w-0">
         <div class="flex items-center gap-2 flex-wrap mb-2">
-          <h3 class="text-white font-bold">{{ job.title }}</h3>
+          <h3 class="text-white font-bold job-title">{{ job.title }}</h3>
           <span class="badge-{{ job.status }} font-mono text-[10px] px-2 py-0.5 rounded uppercase">{{ job.status }}</span>
           {% if job.job_type == 'delivery' %}
           <span class="text-[10px] font-mono px-2 py-0.5 rounded"
@@ -49,7 +74,7 @@
           </span>
           {% endif %}
         </div>
-        <p class="text-slate-400 text-sm mb-2">{{ job.description }}</p>
+        <p class="text-slate-400 text-sm mb-2 job-desc">{{ job.description }}</p>
         {% if job.delivery_address %}
         <p class="text-xs font-mono text-slate-500 mb-2">
           <i class="fas fa-location-dot mr-1" style="color:var(--teal-lt);"></i>
@@ -62,8 +87,8 @@
           {% if job.runner %}
           <span class="font-mono text-[10px] text-blue-400">RUNNER: @{{ job.runner.username }}</span>
           {% endif %}
-          <!-- Private chat button (poster ↔ runner, claimed jobs) -->
-          {% if job.status == 'claimed' and job.runner and (job.runner_id == current_user.id or job.poster_id == current_user.id) %}
+          <!-- Chat button (poster ↔ runner, claimed jobs) -->
+          {% if job.status in ['claimed', 'pending_confirmation'] and job.runner and (job.runner_id == current_user.id or job.poster_id == current_user.id) %}
           <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="inline">
             {% if current_user.id == job.poster_id %}
             <input type="hidden" name="other_user_id" value="{{ job.runner_id }}"/>
@@ -72,7 +97,7 @@
             {% endif %}
             <input type="hidden" name="context_type" value="job"/>
             <input type="hidden" name="context_id" value="{{ job.id }}"/>
-            <button class="font-mono text-[10px] text-teal-500 hover:text-teal-300 transition">
+            <button class="btn-primary text-[10px] px-3 py-1">
               <i class="fas fa-comment mr-1"></i>Chat
             </button>
           </form>
@@ -87,19 +112,34 @@
       </div>
 
       <div class="flex-shrink-0 text-right">
-        <span class="text-green-400 font-bold font-mono text-xl">R{{ '%.2f'|format(job.reward) }}</span>
-        <div class="mt-2 space-y-1">
+        <span class="text-green-400 font-bold font-mono text-xl job-reward">R{{ '%.2f'|format(job.reward) }}</span>
+        <div class="mt-2 space-y-1" id="job-actions-{{ job.id }}">
           {% if job.status == 'open' and job.poster_id != current_user.id %}
           <form method="POST" action="/jobs/{{ job.id }}/claim">
             <button type="submit" class="btn-primary text-xs px-4 py-1.5 w-full">CLAIM</button>
           </form>
           {% endif %}
-          {% if job.status == 'claimed' and (job.runner_id == current_user.id or job.poster_id == current_user.id or current_user.is_admin) %}
-          <form method="POST" action="/jobs/{{ job.id }}/complete">
+          {% if job.status == 'claimed' and job.runner_id == current_user.id %}
+          <form method="POST" action="/jobs/{{ job.id }}/mark_done">
             <button type="submit" class="btn-secondary text-xs px-4 py-1.5 w-full text-green-400">DONE</button>
           </form>
           {% endif %}
-          {% if job.status in ['open', 'claimed'] and (job.poster_id == current_user.id or current_user.is_admin) %}
+          {% if job.status == 'pending_confirmation' and job.runner_id == current_user.id %}
+          <span class="font-mono text-[10px] text-amber-400 block text-right mt-1">
+            <i class="fas fa-clock mr-1"></i>AWAITING CONFIRMATION
+          </span>
+          {% endif %}
+          {% if job.status == 'pending_confirmation' and (job.poster_id == current_user.id or current_user.is_admin) %}
+          <form method="POST" action="/jobs/{{ job.id }}/complete">
+            <button type="submit" class="btn-primary text-xs px-4 py-1.5 w-full">CONFIRM COMPLETE</button>
+          </form>
+          {% endif %}
+          {% if job.status == 'open' and job.poster_id == current_user.id %}
+          <a href="/jobs/{{ job.id }}/edit" class="btn-secondary text-xs px-4 py-1.5 w-full justify-center flex items-center">
+            <i class="fas fa-pen mr-1"></i>EDIT
+          </a>
+          {% endif %}
+          {% if job.status in ['open', 'claimed', 'pending_confirmation'] and (job.poster_id == current_user.id or current_user.is_admin) %}
           <form method="POST" action="/jobs/{{ job.id }}/cancel">
             <button type="submit" class="btn-secondary text-xs px-4 py-1.5 w-full text-red-400">CANCEL</button>
           </form>
@@ -108,14 +148,61 @@
       </div>
     </div>
 
+    <!-- Job progress tracker (poster + runner only) -->
+    {% if job.poster_id == current_user.id or job.runner_id == current_user.id %}
+    {% set s_order = {'open': 0, 'claimed': 1, 'pending_confirmation': 2, 'completed': 3} %}
+    {% set cur = s_order.get(job.status, 0) %}
+    <div class="mt-4 pt-3 border-t job-tracker" style="border-color:var(--border);" id="tracker-{{ job.id }}">
+      <p class="font-mono text-[9px] text-slate-600 uppercase mb-2 tracking-widest">Job Progress</p>
+      <div class="flex items-start">
+        {% for step_idx, icon, label in [(0,'fa-file-pen','Posted'),(1,'fa-person-running','Claimed'),(2,'fa-flag-checkered','Done'),(3,'fa-circle-check','Confirmed')] %}
+        <div class="flex flex-col items-center flex-shrink-0 w-14">
+          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[11px] transition-all
+                      {% if step_idx <= cur %}bg-teal-600 text-white{% else %}border border-slate-700 text-slate-600{% endif %}
+                      {% if step_idx == cur and job.status != 'completed' %} ring-2 ring-teal-400/40{% endif %}">
+            <i class="fas {{ icon }}"></i>
+          </div>
+          <span class="font-mono text-[8px] mt-1 text-center leading-tight
+                        {% if step_idx <= cur %}text-teal-400{% else %}text-slate-600{% endif %}">
+            {{ label }}
+          </span>
+        </div>
+        {% if not loop.last %}
+        <div class="flex-1 mt-3.5 h-px {% if step_idx < cur %}bg-teal-700{% else %}bg-slate-700{% endif %}"></div>
+        {% endif %}
+        {% endfor %}
+      </div>
+      {% if job.status == 'pending_confirmation' and job.poster_id == current_user.id %}
+      <p class="font-mono text-[10px] text-amber-400 mt-2">
+        <i class="fas fa-triangle-exclamation mr-1"></i>Runner says it's done — confirm above to release payment.
+      </p>
+      {% endif %}
+      {% if job.status == 'pending_confirmation' and job.runner_id == current_user.id %}
+      <p class="font-mono text-[10px] text-amber-300 mt-2">
+        <i class="fas fa-clock mr-1"></i>Waiting for the poster to confirm…
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
     <!-- Negotiation section (open jobs, non-poster) -->
     {% if job.status == 'open' and job.poster_id != current_user.id %}
     <div class="mt-3 pt-3 border-t" style="border-color:var(--border);">
-      <button type="button"
-              onclick="toggleOffer('offer-{{ job.id }}')"
-              class="text-xs font-mono text-slate-500 hover:text-teal-400 transition">
-        <i class="fas fa-handshake mr-1"></i>Make an Offer
-      </button>
+      <div class="flex items-center gap-3 flex-wrap">
+        <button type="button"
+                onclick="toggleOffer('offer-{{ job.id }}')"
+                class="text-xs font-mono text-slate-500 hover:text-teal-400 transition">
+          <i class="fas fa-handshake mr-1"></i>Make an Offer
+        </button>
+        <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="inline">
+          <input type="hidden" name="other_user_id" value="{{ job.poster_id }}"/>
+          <input type="hidden" name="context_type" value="job"/>
+          <input type="hidden" name="context_id" value="{{ job.id }}"/>
+          <button class="text-xs font-mono text-teal-500 hover:text-teal-300 transition">
+            <i class="fas fa-comment mr-1"></i>Message Poster
+          </button>
+        </form>
+      </div>
       <div id="offer-{{ job.id }}" class="hidden mt-2">
         <form method="POST" action="/jobs/{{ job.id }}/negotiate" class="flex items-end gap-2 flex-wrap">
           <div>
@@ -182,10 +269,107 @@
 
 {% block scripts %}
 <script>
+const currentUserId = {{ current_user.id }};
+
 function toggleOffer(id) {
   var el = document.getElementById(id);
   if (el) el.classList.toggle('hidden');
 }
+
+socket.on('job_pending_confirmation', function(d) {
+  var card = document.getElementById('job-' + d.id);
+  if (!card) return;
+
+  var posterId = parseInt(card.dataset.posterId);
+  var runnerId = parseInt(card.dataset.runnerId);
+
+  // Update badge
+  var badge = card.querySelector('[class*="badge-"]');
+  if (badge) {
+    badge.className = badge.className.replace(/badge-\S+/, 'badge-pending_confirmation');
+    badge.textContent = 'RUNNER DONE';
+  }
+
+  // Update tracker: advance to step 2 (index 2 = "Done")
+  var tracker = card.querySelector('.job-tracker');
+  if (tracker) {
+    var dots = tracker.querySelectorAll('.flex-col > div:first-child');
+    var labels = tracker.querySelectorAll('.flex-col > span');
+    var lines = tracker.querySelectorAll('.flex-1');
+    dots.forEach(function(dot, i) {
+      if (i <= 2) {
+        dot.classList.remove('border', 'border-slate-700', 'text-slate-600');
+        dot.classList.add('bg-teal-600', 'text-white');
+      }
+      dot.classList.remove('ring-2', 'ring-teal-400/40');
+      if (i === 2) dot.classList.add('ring-2', 'ring-teal-400/40');
+    });
+    labels.forEach(function(lbl, i) {
+      if (i <= 2) { lbl.classList.remove('text-slate-600'); lbl.classList.add('text-teal-400'); }
+    });
+    lines.forEach(function(line, i) {
+      if (i < 2) { line.classList.remove('bg-slate-700'); line.classList.add('bg-teal-700'); }
+    });
+    // Update hint text
+    var hint = tracker.querySelector('p.font-mono');
+    if (hint) hint.remove();
+    var msg = document.createElement('p');
+    msg.className = 'font-mono text-[10px] mt-2';
+    if (currentUserId === posterId) {
+      msg.classList.add('text-amber-400');
+      msg.innerHTML = '<i class="fas fa-triangle-exclamation mr-1"></i>Runner says it\'s done — confirm above to release payment.';
+    } else if (currentUserId === runnerId) {
+      msg.classList.add('text-amber-300');
+      msg.innerHTML = '<i class="fas fa-clock mr-1"></i>Waiting for the poster to confirm…';
+    }
+    tracker.appendChild(msg);
+  }
+
+  // Swap action buttons for runner: DONE → AWAITING
+  if (currentUserId === runnerId) {
+    var actions = document.getElementById('job-actions-' + d.id);
+    if (actions) {
+      var doneForm = actions.querySelector('form[action*="mark_done"]');
+      if (doneForm) {
+        var waiting = document.createElement('span');
+        waiting.className = 'font-mono text-[10px] text-amber-400 block text-right mt-1';
+        waiting.innerHTML = '<i class="fas fa-clock mr-1"></i>AWAITING CONFIRMATION';
+        doneForm.replaceWith(waiting);
+      }
+    }
+  }
+
+  // Swap action buttons for poster: add CONFIRM button
+  if (currentUserId === posterId) {
+    var actions = document.getElementById('job-actions-' + d.id);
+    if (actions) {
+      var confirmForm = document.createElement('form');
+      confirmForm.method = 'POST';
+      confirmForm.action = '/jobs/' + d.id + '/complete';
+      confirmForm.innerHTML = '<button type="submit" class="btn-primary text-xs px-4 py-1.5 w-full">CONFIRM COMPLETE</button>';
+      actions.prepend(confirmForm);
+    }
+
+    // Also inject into the top banner area
+    var banner = document.querySelector('.border-amber-700\\/50');
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.className = 'mb-5 rounded-lg border border-amber-700/50 bg-amber-900/20 p-4 space-y-3';
+      banner.innerHTML = '<p class="text-amber-400 font-mono text-xs uppercase font-bold tracking-widest"><i class="fas fa-triangle-exclamation mr-2"></i>Job awaiting your confirmation</p>';
+      var jobsList = document.getElementById('jobs-list');
+      jobsList.parentNode.insertBefore(banner, jobsList);
+    }
+    var row = document.createElement('div');
+    row.className = 'flex items-center justify-between gap-4 rounded bg-amber-900/20 px-3 py-2';
+    var titleEl = card.querySelector('.job-title');
+    var rewardEl = card.querySelector('.job-reward');
+    row.innerHTML = '<div><span class="text-white text-sm font-semibold">' + (titleEl ? titleEl.textContent : '') + '</span>'
+      + '<span class="font-mono text-[10px] text-amber-300 ml-2">RUNNER: @' + d.runner + '</span>'
+      + '<span class="font-mono text-[10px] text-green-400 ml-2">' + (rewardEl ? rewardEl.textContent : '') + '</span></div>'
+      + '<form method="POST" action="/jobs/' + d.id + '/complete"><button type="submit" class="btn-primary text-xs px-4 py-1.5"><i class="fas fa-check mr-1"></i>CONFIRM COMPLETE</button></form>';
+    banner.appendChild(row);
+  }
+});
 
 socket.on('new_job', function(d) {
   if ('{{ status_filter }}' !== 'open' && '{{ status_filter }}' !== 'all') return;
@@ -194,6 +378,17 @@ socket.on('new_job', function(d) {
   card.className = 'card p-5 hover:border-teal-800 transition';
   card.innerHTML = '<div class="flex items-start justify-between gap-4"><div class="flex-1"><div class="flex items-center gap-2 mb-2"><h3 class="text-white font-bold">' + d.title + '</h3><span class="badge-open font-mono text-[10px] px-2 py-0.5 rounded uppercase">OPEN</span></div><p class="font-mono text-[10px] text-slate-600">BY @' + d.poster + ' · just now</p></div><div class="flex-shrink-0 text-right"><span class="text-green-400 font-bold font-mono text-xl">R' + d.reward.toFixed(2) + '</span></div></div>';
   list.prepend(card);
+});
+
+socket.on('job_updated', function(d) {
+  var card = document.getElementById('job-' + d.id);
+  if (!card) return;
+  var titleEl = card.querySelector('.job-title');
+  var rewardEl = card.querySelector('.job-reward');
+  var descEl = card.querySelector('.job-desc');
+  if (titleEl)  titleEl.textContent = d.title;
+  if (rewardEl) rewardEl.textContent = 'R' + d.reward.toFixed(2);
+  if (descEl)   descEl.textContent  = d.description;
 });
 
 socket.on('new_delivery_job', function(d) {
