@@ -17,8 +17,12 @@ def index():
     if status_filter not in ['open', 'claimed', 'pending_confirmation', 'completed', 'all']:
         status_filter = 'open'
 
+    mine_only = request.args.get('mine') == '1'
+
     q = RunnerJob.query
-    if status_filter != 'all':
+    if mine_only:
+        q = q.filter_by(poster_id=current_user.id)
+    elif status_filter != 'all':
         q = q.filter_by(status=status_filter)
     jobs = q.order_by(RunnerJob.created_at.desc()).all()
 
@@ -30,7 +34,7 @@ def index():
     ).all()
 
     return render_template('jobs/index.html', jobs=jobs, status_filter=status_filter,
-                           needs_confirmation=needs_confirmation)
+                           needs_confirmation=needs_confirmation, mine_only=mine_only)
 
 
 @jobs_bp.route('/jobs/new', methods=['GET', 'POST'])

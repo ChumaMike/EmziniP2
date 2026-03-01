@@ -65,10 +65,17 @@
   {% for s in ['open', 'claimed', 'pending_confirmation', 'completed', 'all'] %}
   <a href="/jobs?status={{ s }}"
      class="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded-lg border transition
-       {{ 'bg-teal-900/30 border-teal-600/70 text-teal-400' if status_filter == s else 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300' }}">
+       {{ 'bg-teal-900/30 border-teal-600/70 text-teal-400' if status_filter == s and not mine_only else 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300' }}">
     <i class="fas {{ filter_icons[s] }} text-[9px]"></i>{{ filter_labels[s] }}
   </a>
   {% endfor %}
+
+  <!-- My posted jobs -->
+  <a href="/jobs?mine=1"
+     class="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded-lg border transition ml-auto
+       {{ 'bg-indigo-900/30 border-indigo-600/70 text-indigo-300' if mine_only else 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300' }}">
+    <i class="fas fa-inbox text-[9px]"></i>My Jobs
+  </a>
 </div>
 
 <!-- Jobs -->

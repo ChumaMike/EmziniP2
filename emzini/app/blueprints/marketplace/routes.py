@@ -236,8 +236,12 @@ def buy_item(item_id):
     log_action('market_purchase',
                f'{current_user.username} bought "{item.title}" for R{item.price:.2f} via {payment_method}',
                current_user.id)
-    flash(f'Bought "{item.title}" for R{item.price:.2f}! {"Delivery job posted." if wants_delivery and item.allows_delivery else ""}',
-          'success')
+
+    if wants_delivery and item.allows_delivery:
+        flash(f'Bought "{item.title}"! Delivery job posted — R10 for the runner. Track it below.', 'success')
+        return redirect(url_for('jobs.index'))
+
+    flash(f'Bought "{item.title}" for R{item.price:.2f}!', 'success')
     return redirect(url_for('marketplace.item_detail', item_id=item_id))
 
 
