@@ -2,250 +2,249 @@
 {% block title %}Market — Emzini{% endblock %}
 {% block content %}
 
-<!-- Header -->
-<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
+<!-- ── Header ─────────────────────────────────────────────────────────────────── -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
   <div>
-    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · PEER-TO-PEER</p>
-    <h1 class="text-2xl font-bold text-white mt-1">Resident Market</h1>
-    <p class="text-slate-400 text-sm mt-1">Buy, sell, and hire runners within the complex.</p>
+    <p class="text-[10px] font-mono uppercase tracking-widest" style="color:var(--teal-lt);">EMZINI RESIDENCE · PEER-TO-PEER</p>
+    <h1 class="text-2xl font-bold text-white mt-0.5">Resident Market</h1>
   </div>
-  <div class="flex-shrink-0">
-    {% if view == 'tasks' %}
-    <a href="/jobs/new" class="btn-primary text-sm w-full sm:w-auto justify-center">
-      <i class="fas fa-plus"></i> Post Task
-    </a>
-    {% else %}
-    <a href="/market/new" class="btn-primary text-sm w-full sm:w-auto justify-center">
-      <i class="fas fa-plus"></i> List Item
-    </a>
-    {% endif %}
-  </div>
+  {% if view == 'tasks' %}
+  <a href="/jobs/new" class="btn-primary flex-shrink-0"><i class="fas fa-plus mr-2"></i>Post Task</a>
+  {% else %}
+  <a href="/market/new" class="btn-primary flex-shrink-0"><i class="fas fa-plus mr-2"></i>List Item</a>
+  {% endif %}
 </div>
 
-<!-- View tabs: Items | Tasks -->
+<!-- ── View tabs ──────────────────────────────────────────────────────────────── -->
 <div class="flex gap-0.5 mb-5 p-1 rounded-xl w-fit" style="background:var(--card);border:1px solid var(--border-2);">
-  <a href="/market?view=items"
-     class="px-5 py-2 rounded-lg text-xs font-mono font-medium transition-all"
+  <a href="/market?view=items" class="px-5 py-2 rounded-lg text-xs font-mono font-medium transition-all"
      style="{{ 'background:var(--teal);color:#fff;' if view == 'items' else 'color:#64748b;' }}">
     <i class="fas fa-shop mr-1.5"></i>Items for Sale
   </a>
-  <a href="/market?view=tasks"
-     class="px-5 py-2 rounded-lg text-xs font-mono font-medium transition-all"
+  <a href="/market?view=tasks" class="px-5 py-2 rounded-lg text-xs font-mono font-medium transition-all"
      style="{{ 'background:var(--teal);color:#fff;' if view == 'tasks' else 'color:#64748b;' }}">
     <i class="fas fa-person-running mr-1.5"></i>Runner Tasks
   </a>
 </div>
 
-<!-- Runner Online Banner -->
+<!-- ── Runner Online Banner ───────────────────────────────────────────────────── -->
 {% if active_runners %}
-<div id="runner-banner"
-     class="flex items-center gap-3 rounded-lg px-4 py-3 mb-6 text-sm"
-     style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.35);">
+<div id="runner-banner" class="flex items-center gap-3 rounded-xl px-4 py-3 mb-5 text-sm"
+     style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.25);">
   <span class="w-2 h-2 rounded-full flex-shrink-0 pulse-dot" style="background:var(--teal-lt);"></span>
-  <div class="flex-1">
-    <span class="font-semibold" style="color:var(--teal-lt);">
-      {{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online
-    </span>
-    <span class="text-slate-400 text-xs ml-2">
-      —
-      {% for r in active_runners %}{{ r.username }}{% if not loop.last %}, {% endif %}{% endfor %}
-      available
-    </span>
-  </div>
-  <a href="/market?view=tasks" class="text-[11px] font-mono flex-shrink-0" style="color:var(--teal-lt);">Browse tasks →</a>
+  <span class="font-semibold text-sm" style="color:var(--teal-lt);">{{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online</span>
+  <span class="text-slate-500 text-xs">—
+    {% for r in active_runners %}{{ r.username }}{% if not loop.last %}, {% endif %}{% endfor %}
+  </span>
+  <a href="/market?view=tasks" class="text-[11px] font-mono ml-auto flex-shrink-0" style="color:var(--teal-lt);">Browse tasks →</a>
 </div>
 {% else %}
-<div id="runner-banner" class="hidden flex items-center gap-3 rounded-lg px-4 py-3 mb-6 text-sm"
-     style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.35);">
+<div id="runner-banner" class="hidden items-center gap-3 rounded-xl px-4 py-3 mb-5 text-sm"
+     style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.25);">
   <span class="w-2 h-2 rounded-full flex-shrink-0 pulse-dot" style="background:var(--teal-lt);"></span>
-  <div class="flex-1">
-    <span id="runner-banner-text" class="font-semibold" style="color:var(--teal-lt);"></span>
-    <span class="text-slate-400 text-xs ml-2">is now online as a runner</span>
-  </div>
+  <span id="runner-banner-text" class="font-semibold" style="color:var(--teal-lt);"></span>
+  <span class="text-slate-500 text-xs ml-1">is now online</span>
 </div>
 {% endif %}
 
 {% if view == 'items' %}
-<!-- ── Items view ─────────────────────────────────────────── -->
+<!-- ══ ITEMS VIEW ══════════════════════════════════════════════════════════════ -->
 
-<!-- Category Filter -->
+<!-- Category pills -->
 <div class="flex items-center gap-2 flex-wrap mb-6">
-  <a href="/market?view=items"
-     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all border"
-     style="{% if not active_cat %}background:var(--teal);border-color:var(--teal);color:#fff;{% else %}background:var(--card);border-color:var(--border-2);color:#94a3b8;{% endif %}">
-    All
-  </a>
-  {% for cat in categories %}
-  <a href="/market?view=items&cat={{ cat }}"
-     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all border capitalize"
-     style="{% if active_cat == cat %}background:var(--teal);border-color:var(--teal);color:#fff;{% else %}background:var(--card);border-color:var(--border-2);color:#94a3b8;{% endif %}">
-    {{ cat }}
-  </a>
-  {% endfor %}
-</div>
-
-<!-- Items Grid -->
-{% if items %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-  {% for item in items %}
-  <div class="card flex flex-col card-hover transition-all">
-
-    <!-- Photo or colour strip -->
-    {% if item.photo_filename %}
-    <div class="rounded-t-[0.875rem] overflow-hidden" style="height:180px;">
-      <img src="{{ url_for('marketplace.serve_photo', filename=item.photo_filename) }}"
-           alt="{{ item.title }}" class="w-full h-full object-cover">
-    </div>
-    {% else %}
-    <div class="h-1 rounded-t-[0.875rem]" style="background:var(--teal);opacity:0.5;"></div>
-    {% endif %}
-
-    <div class="p-5 flex flex-col flex-1">
-      <!-- Badges -->
-      <div class="flex items-center justify-between mb-3 flex-wrap gap-1">
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md capitalize"
-              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);">
-          {{ item.category }}
-        </span>
-        <div class="flex items-center gap-1">
-          {% if item.allows_delivery %}
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.25);color:#a5b4fc;">
-            <i class="fas fa-truck-fast"></i>
-          </span>
-          {% endif %}
-          {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
-          {% if stock > 0 %}
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.25);color:#34d399;">
-            {{ stock }} left
-          </span>
-          {% else %}
-          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
-                style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;">
-            OUT
-          </span>
-          {% endif %}
-        </div>
-      </div>
-      <h3 class="text-white font-semibold mb-1.5">{{ item.title }}</h3>
-      <p class="text-slate-400 text-sm flex-1 leading-relaxed mb-4">
-        {{ item.description[:110] }}{% if item.description|length > 110 %}…{% endif %}
-      </p>
-      <div class="flex items-end justify-between pt-3 border-t mt-auto" style="border-color:var(--border);">
-        <div>
-          <span class="text-xl font-bold font-mono" style="color:var(--teal-lt);">R{{ '%.2f'|format(item.price) }}</span>
-          <p class="text-[11px] font-mono text-slate-600 mt-0.5">
-            <i class="fas fa-user mr-1"></i>{{ item.seller.username }}
-          </p>
-        </div>
-        <a href="/market/{{ item.id }}" class="btn-primary text-sm py-2 px-5">View</a>
-      </div>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% else %}
-<div class="card p-16 text-center">
-  <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-       style="background:rgba(13,148,136,0.1);">
-    <i class="fas fa-shop text-2xl" style="color:var(--teal);"></i>
-  </div>
-  <p class="text-white font-semibold">No listings yet</p>
-  <p class="text-slate-500 text-sm mt-1">Be the first to list something in the complex</p>
-  <a href="/market/new" class="btn-primary mt-5">List an Item</a>
-</div>
-{% endif %}
-
-{% else %}
-<!-- ── Tasks view ─────────────────────────────────────────── -->
-
-<!-- Task type filter -->
-<div class="flex items-center gap-2 flex-wrap mb-6">
-  {% for t, label in [('', 'All Tasks'), ('general', 'General Tasks'), ('delivery', 'Deliveries')] %}
-  <a href="/market?view=tasks{% if t %}&type={{ t }}{% endif %}"
-     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all border"
-     style="{% if (request.args.get('type','') == t) %}background:var(--teal);border-color:var(--teal);color:#fff;{% else %}background:var(--card);border-color:var(--border-2);color:#94a3b8;{% endif %}">
-    {% if t == 'delivery' %}<i class="fas fa-truck-fast mr-1"></i>{% elif t == 'general' %}<i class="fas fa-list-check mr-1"></i>{% endif %}
+  {% for label, val in [('All', ''), ('Electronics', 'electronics'), ('Furniture', 'furniture'),
+      ('Clothing', 'clothing'), ('Food', 'food'), ('Services', 'services'), ('General', 'general')] %}
+  <a href="/market?view=items{% if val %}&cat={{ val }}{% endif %}"
+     class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all border"
+     style="{% if active_cat == val %}background:var(--teal);border-color:var(--teal);color:#fff;{% else %}background:var(--card);border-color:var(--border-2);color:#64748b;{% endif %}">
     {{ label }}
   </a>
   {% endfor %}
 </div>
 
+{% if items %}
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for item in items %}
+  <a href="/market/{{ item.id }}" class="card flex flex-col group transition-all hover:border-teal-700 overflow-hidden">
+
+    <!-- Photo / colour band -->
+    {% if item.photo_filename %}
+    <div class="relative overflow-hidden" style="height:190px;">
+      <img src="{{ url_for('marketplace.serve_photo', filename=item.photo_filename) }}"
+           alt="{{ item.title }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+      <!-- Price badge overlaid -->
+      <div class="absolute bottom-3 left-3">
+        <span class="font-bold font-mono text-sm px-3 py-1 rounded-lg"
+              style="background:rgba(6,12,11,0.85);color:#34d399;border:1px solid rgba(52,211,153,0.3);">
+          R{{ '%.2f'|format(item.price) }}
+        </span>
+      </div>
+      {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
+      {% if stock <= 0 %}
+      <div class="absolute inset-0 flex items-center justify-center" style="background:rgba(0,0,0,0.55);">
+        <span class="font-mono text-xs font-bold text-red-400 border border-red-800 px-3 py-1 rounded">SOLD OUT</span>
+      </div>
+      {% endif %}
+    </div>
+    {% else %}
+    <div class="relative flex items-center justify-center" style="height:100px;background:var(--border);">
+      <i class="fas fa-{% if item.category == 'electronics' %}microchip{% elif item.category == 'furniture' %}couch{% elif item.category == 'clothing' %}shirt{% elif item.category == 'food' %}utensils{% elif item.category == 'services' %}hand-sparkles{% else %}box{% endif %} text-3xl text-slate-700"></i>
+      <div class="absolute bottom-3 left-3">
+        <span class="font-bold font-mono text-sm px-3 py-1 rounded-lg"
+              style="background:rgba(6,12,11,0.9);color:#34d399;border:1px solid rgba(52,211,153,0.3);">
+          R{{ '%.2f'|format(item.price) }}
+        </span>
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="p-4 flex flex-col flex-1">
+      <!-- Category + badges row -->
+      <div class="flex items-center gap-1.5 mb-2 flex-wrap">
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded capitalize"
+              style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+          {{ item.category }}
+        </span>
+        {% if item.allows_delivery %}
+        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
+              style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.2);color:#a5b4fc;">
+          <i class="fas fa-truck-fast"></i> delivery
+        </span>
+        {% endif %}
+        {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
+        {% if stock > 1 %}
+        <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
+              style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:#34d399;">
+          {{ stock }} left
+        </span>
+        {% endif %}
+      </div>
+
+      <h3 class="text-white font-semibold text-sm mb-1 group-hover:text-teal-300 transition-colors">{{ item.title }}</h3>
+      <p class="text-slate-500 text-xs flex-1 leading-relaxed line-clamp-2">
+        {{ item.description[:100] }}{% if item.description|length > 100 %}…{% endif %}
+      </p>
+
+      <div class="flex items-center justify-between mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <span class="text-[11px] font-mono text-slate-600">
+          <i class="fas fa-user mr-1 opacity-60"></i>{{ item.seller.username }}
+        </span>
+        <span class="text-[10px] font-mono text-slate-600">{{ item.created_at.strftime('%d %b') }}</span>
+      </div>
+    </div>
+
+  </a>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card p-16 text-center">
+  <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+       style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);">
+    <i class="fas fa-shop text-2xl" style="color:var(--teal);"></i>
+  </div>
+  <p class="text-white font-semibold">No listings yet</p>
+  <p class="text-slate-500 text-sm mt-1">Be the first to list something in the complex</p>
+  <a href="/market/new" class="btn-primary mt-5 inline-flex">List an Item</a>
+</div>
+{% endif %}
+
+{% else %}
+<!-- ══ TASKS VIEW ══════════════════════════════════════════════════════════════ -->
+
+<div class="flex items-center gap-2 flex-wrap mb-6">
+  {% for t, label, icon in [('', 'All Tasks', ''), ('general', 'General', 'list-check'), ('delivery', 'Deliveries', 'truck-fast')] %}
+  <a href="/market?view=tasks{% if t %}&type={{ t }}{% endif %}"
+     class="px-3 py-1.5 rounded-lg text-xs font-mono font-medium transition-all border"
+     style="{% if request.args.get('type','') == t %}background:var(--teal);border-color:var(--teal);color:#fff;{% else %}background:var(--card);border-color:var(--border-2);color:#64748b;{% endif %}">
+    {% if icon %}<i class="fas fa-{{ icon }} mr-1.5"></i>{% endif %}{{ label }}
+  </a>
+  {% endfor %}
+</div>
+
 {% if tasks %}
-<div class="space-y-4" id="tasks-list">
+<div class="space-y-3" id="tasks-list">
   {% for job in tasks %}
-  <div class="card p-5 hover:border-teal-800 transition">
-    <div class="flex items-start justify-between gap-4">
+  <div class="card p-5 hover:border-teal-800 transition-all">
+    <div class="flex items-start gap-4">
+
+      <!-- Reward badge -->
+      <div class="flex-shrink-0 text-center pt-0.5">
+        <div class="rounded-xl px-3 py-2" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);">
+          <p class="text-green-400 font-bold font-mono text-lg leading-none">R{{ '%.0f'|format(job.reward) }}</p>
+          <p class="text-[9px] font-mono text-slate-600 mt-0.5">REWARD</p>
+        </div>
+      </div>
+
+      <!-- Content -->
       <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap mb-2">
-          <h3 class="text-white font-bold">{{ job.title }}</h3>
+        <div class="flex items-center gap-2 flex-wrap mb-1">
+          <h3 class="text-white font-semibold text-sm">{{ job.title }}</h3>
           {% if job.job_type == 'delivery' %}
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded"
-                style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;">
-            <i class="fas fa-truck-fast mr-1"></i>DELIVERY
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.25);color:#a5b4fc;">
+            <i class="fas fa-truck-fast mr-0.5"></i> delivery
           </span>
           {% else %}
-          <span class="text-[10px] font-mono px-2 py-0.5 rounded"
-                style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.3);color:var(--teal-lt);">
-            <i class="fas fa-list-check mr-1"></i>TASK
+          <span class="text-[10px] font-mono px-1.5 py-0.5 rounded"
+                style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+            <i class="fas fa-list-check mr-0.5"></i> task
           </span>
           {% endif %}
-          <span class="badge-open font-mono text-[10px] px-2 py-0.5 rounded uppercase">open</span>
         </div>
-        <p class="text-slate-400 text-sm mb-2">{{ job.description }}</p>
+        <p class="text-slate-400 text-xs leading-relaxed line-clamp-2 mb-2">{{ job.description }}</p>
         {% if job.delivery_address %}
         <p class="text-xs font-mono text-slate-500 mb-2">
           <i class="fas fa-location-dot mr-1" style="color:var(--teal-lt);"></i>
-          {{ job.delivery_address[:80] }}{% if job.delivery_address|length > 80 %}…{% endif %}
+          {{ job.delivery_address[:70] }}{% if job.delivery_address|length > 70 %}…{% endif %}
         </p>
         {% endif %}
         <div class="flex items-center gap-3 text-[10px] font-mono text-slate-600 flex-wrap">
-          <span>BY @{{ job.poster.username }}</span>
+          <span>@{{ job.poster.username }}</span>
           <span>{{ job.created_at.strftime('%d %b · %H:%M') }}</span>
           {% if job.payment_method and job.payment_method != 'wallet' %}
-          <span class="text-amber-500 uppercase"><i class="fas fa-{% if job.payment_method == 'cash' %}money-bill{% else %}credit-card{% endif %} mr-1"></i>{{ job.payment_method }}</span>
+          <span class="text-amber-500 uppercase">
+            <i class="fas fa-{% if job.payment_method == 'cash' %}money-bill{% else %}credit-card{% endif %} mr-1"></i>{{ job.payment_method }}
+          </span>
           {% endif %}
         </div>
       </div>
-      <div class="flex-shrink-0 text-right">
-        <p class="text-green-400 font-bold font-mono text-xl">R{{ '%.2f'|format(job.reward) }}</p>
-        {% if job.poster_id != current_user.id %}
-        <div class="mt-2 space-y-1">
-          <form method="POST" action="/jobs/{{ job.id }}/claim">
-            <button type="submit" class="btn-primary text-xs px-4 py-1.5 w-full">Claim</button>
-          </form>
-          <!-- Offer form toggle -->
-          <button type="button" onclick="toggleOffer('task-offer-{{ job.id }}')"
-                  class="text-[10px] font-mono text-slate-600 hover:text-teal-400 transition w-full">
-            Make offer
-          </button>
-        </div>
-        <div id="task-offer-{{ job.id }}" class="hidden mt-2 text-left">
+
+      <!-- Actions -->
+      {% if job.poster_id != current_user.id %}
+      <div class="flex-shrink-0 flex flex-col gap-1.5">
+        <form method="POST" action="/jobs/{{ job.id }}/claim">
+          <button type="submit" class="btn-primary text-xs px-4 py-2 w-full">Claim</button>
+        </form>
+        <button type="button" onclick="toggleOffer('offer-{{ job.id }}')"
+                class="text-[10px] font-mono text-slate-600 hover:text-teal-400 transition text-center w-full py-1">
+          Make offer
+        </button>
+        <div id="offer-{{ job.id }}" class="hidden mt-1 space-y-1" style="min-width:140px;">
           <form method="POST" action="/jobs/{{ job.id }}/negotiate" class="space-y-1">
-            <input type="number" name="proposed_reward" step="0.01" min="1"
-                   placeholder="Your price (R)" class="text-xs w-full"/>
-            <input type="text" name="message" placeholder="Why? (optional)" class="text-xs w-full"/>
-            <button type="submit" class="btn-primary text-[10px] px-3 py-1 w-full">Submit</button>
+            <input type="number" name="proposed_reward" step="0.01" min="1" placeholder="R amount" class="text-xs w-full"/>
+            <input type="text" name="message" placeholder="Note (optional)" class="text-xs w-full"/>
+            <button type="submit" class="btn-primary text-[10px] px-3 py-1.5 w-full">Submit</button>
           </form>
         </div>
-        {% else %}
-        <p class="text-slate-600 text-[10px] font-mono mt-2">Your task</p>
-        {% endif %}
       </div>
+      {% else %}
+      <span class="flex-shrink-0 text-[10px] font-mono text-slate-600 pt-1">Your task</span>
+      {% endif %}
+
     </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
 <div class="card p-16 text-center">
-  <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-       style="background:rgba(13,148,136,0.1);">
+  <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+       style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);">
     <i class="fas fa-person-running text-2xl" style="color:var(--teal);"></i>
   </div>
-  <p class="text-white font-semibold">No open tasks yet</p>
-  <p class="text-slate-500 text-sm mt-1">Post a task for a runner to pick up</p>
-  <a href="/jobs/new" class="btn-primary mt-5">Post a Task</a>
+  <p class="text-white font-semibold">No open tasks right now</p>
+  <p class="text-slate-500 text-sm mt-1">Post a task and a runner will pick it up</p>
+  <a href="/jobs/new" class="btn-primary mt-5 inline-flex">Post a Task</a>
 </div>
 {% endif %}
 
@@ -253,9 +252,7 @@
 
 <!-- Runner online toast -->
 <div id="runner-toast"
-     class="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 hidden
-            flex items-center gap-3 px-5 py-3 rounded-full shadow-2xl text-sm font-medium text-white
-            transition-all duration-300"
+     class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 hidden items-center gap-3 px-5 py-3 rounded-full shadow-2xl text-sm font-medium text-white"
      style="background:var(--teal);">
   <span class="w-2 h-2 rounded-full bg-green-300 pulse-dot flex-shrink-0"></span>
   <span id="runner-toast-text"></span>
@@ -298,23 +295,24 @@ function showRunnerBanner(username) {
 }
 
 socket.on('new_delivery_job', function(d) {
-  // If on tasks tab, prepend new delivery task
   if (window.location.search.includes('view=tasks')) {
     var list = document.getElementById('tasks-list');
     if (list) {
       var div = document.createElement('div');
-      div.className = 'card p-5 hover:border-teal-800 transition';
-      div.innerHTML = '<div class="flex items-center gap-2 mb-2">' +
-        '<span class="text-white font-bold">' + escHtml(d.title) + '</span>' +
-        '<span class="text-[10px] font-mono px-2 py-0.5 rounded" style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;"><i class="fas fa-truck-fast mr-1"></i>DELIVERY</span>' +
-        '</div><p class="text-[10px] font-mono text-slate-500">BY @' + escHtml(d.poster) + ' · just now · R' + d.reward.toFixed(2) + '</p>';
+      div.className = 'card p-5 hover:border-teal-800 transition-all';
+      div.innerHTML = '<div class="flex items-center gap-3">' +
+        '<div class="rounded-xl px-3 py-2 flex-shrink-0" style="background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);">' +
+        '<p class="text-green-400 font-bold font-mono text-lg leading-none">R' + d.reward.toFixed(0) + '</p>' +
+        '<p class="text-[9px] font-mono text-slate-600 mt-0.5">REWARD</p></div>' +
+        '<div><p class="text-white font-semibold text-sm">' + escHtml(d.title) + '</p>' +
+        '<p class="text-[10px] font-mono text-slate-600 mt-1">@' + escHtml(d.poster) + ' · just now</p></div></div>';
       list.prepend(div);
     }
   }
 });
 
 function escHtml(s) {
-  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 </script>
 {% endblock %}

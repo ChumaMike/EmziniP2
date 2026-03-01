@@ -22,9 +22,11 @@ def index():
         q = q.filter_by(status=status_filter)
     jobs = q.order_by(RunnerJob.created_at.desc()).all()
 
-    # Jobs the current user posted that are awaiting their confirmation
-    needs_confirmation = RunnerJob.query.filter_by(
-        poster_id=current_user.id, status='pending_confirmation'
+    # Jobs the current user posted that have an active runner and need confirmation
+    needs_confirmation = RunnerJob.query.filter(
+        RunnerJob.poster_id == current_user.id,
+        RunnerJob.status.in_(['claimed', 'pending_confirmation']),
+        RunnerJob.runner_id.isnot(None),
     ).all()
 
     return render_template('jobs/index.html', jobs=jobs, status_filter=status_filter,
@@ -82,6 +84,12 @@ def claim_job(job_id):
         return redirect(url_for('jobs.index'))
     if job.poster_id == current_user.id:
         flash("Can't claim your own job.", 'danger')
+        return redirect(url_for('jobs.index'))
+
+    # Must be an approved runner to claim
+    approved = RunnerProfile.query.filter_by(user_id=current_user.id, status='approved').first()
+    if not approved:
+        flash('You need an approved runner profile to claim jobs. Apply at /runner/register.', 'danger')
         return redirect(url_for('jobs.index'))
 
     job.runner_id = current_user.id

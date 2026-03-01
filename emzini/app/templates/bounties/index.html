@@ -1,89 +1,171 @@
 {% extends 'base.html' %}
-{% block title %}BOUNTIES — EMZINI.SYS{% endblock %}
+{% block title %}Bounties — Emzini{% endblock %}
 {% block content %}
 
+<!-- Header -->
 <div class="flex items-center justify-between mb-6">
   <div>
     <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI // LOST & FOUND GRID</p>
-    <h1 class="text-2xl font-bold text-white mt-1"><i class="fas fa-crosshairs text-red-500 mr-2"></i>BOUNTY GRID</h1>
+    <h1 class="text-2xl font-bold text-white mt-1">
+      <i class="fas fa-crosshairs text-red-500 mr-2"></i>Bounty Grid
+    </h1>
   </div>
-  <a href="/bounties/new" class="btn-primary"><i class="fas fa-plus mr-2"></i>POST BOUNTY</a>
+  <a href="/bounties/new" class="btn-primary text-xs px-4 py-2">
+    <i class="fas fa-plus mr-1.5"></i>Post Bounty
+  </a>
 </div>
 
-<!-- Filter -->
-<div class="flex gap-2 mb-6">
+<!-- Status Filter -->
+<div class="flex gap-2 mb-6 flex-wrap">
+  {% set filter_labels = {'open': 'Open', 'claimed': 'Claimed', 'verified': 'Verified', 'all': 'All'} %}
+  {% set filter_icons  = {'open': 'fa-crosshairs', 'claimed': 'fa-magnifying-glass', 'verified': 'fa-circle-check', 'all': 'fa-list'} %}
   {% for s in ['open', 'claimed', 'verified', 'all'] %}
-  <a href="/bounties?status={{ s }}" class="font-mono text-xs px-3 py-1.5 rounded border transition uppercase
-    {% if status_filter == s %}bg-red-900/30 border-red-600 text-red-400{% else %}border-zinc-700 text-zinc-500 hover:border-zinc-500{% endif %}">
-    {{ s }}
+  <a href="/bounties?status={{ s }}"
+     class="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded-lg border transition
+       {{ 'bg-red-900/30 border-red-600/70 text-red-400' if status_filter == s else 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300' }}">
+    <i class="fas {{ filter_icons[s] }} text-[9px]"></i>{{ filter_labels[s] }}
   </a>
   {% endfor %}
 </div>
 
+<!-- Grid -->
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {% for bounty in bounties %}
-  <div class="card p-5 hover:border-red-800 transition flex flex-col">
+
+  {# Status color tokens #}
+  {% if bounty.status == 'open' %}
+    {% set s_text = 'text-red-400' %}{% set s_bg = 'bg-red-950/50' %}{% set s_border = 'border-red-700/50' %}{% set s_bar = 'bg-red-700/40' %}
+  {% elif bounty.status == 'claimed' %}
+    {% set s_text = 'text-blue-400' %}{% set s_bg = 'bg-blue-950/50' %}{% set s_border = 'border-blue-600/50' %}{% set s_bar = 'bg-blue-600/40' %}
+  {% elif bounty.status == 'verified' %}
+    {% set s_text = 'text-green-400' %}{% set s_bg = 'bg-green-950/50' %}{% set s_border = 'border-green-700/50' %}{% set s_bar = 'bg-green-700/40' %}
+  {% else %}
+    {% set s_text = 'text-zinc-400' %}{% set s_bg = 'bg-zinc-900/50' %}{% set s_border = 'border-zinc-700/50' %}{% set s_bar = 'bg-zinc-700/40' %}
+  {% endif %}
+
+  <div class="card p-0 overflow-hidden hover:border-red-900/60 transition flex flex-col">
+
+    <!-- Status accent bar -->
+    <div class="h-[3px] {{ s_bar }} w-full flex-shrink-0"></div>
+
+    <!-- Photo or placeholder -->
     {% if bounty.photo_url %}
-    <img src="/bounties/photos/{{ bounty.photo_url }}" alt="{{ bounty.title }}"
-         class="w-full h-36 object-cover rounded-lg mb-3 border border-zinc-700"/>
-    {% endif %}
-    <div class="flex items-start justify-between mb-3">
-      <span class="badge-{{ bounty.status }} font-mono text-[10px] px-2 py-0.5 rounded uppercase">{{ bounty.status }}</span>
-      <span class="text-red-400 font-bold font-mono text-lg">R{{ '%.2f'|format(bounty.reward) }}</span>
+    <div class="relative overflow-hidden flex-shrink-0" style="height:160px;">
+      <img src="/bounties/photos/{{ bounty.photo_url }}" alt="{{ bounty.title }}"
+           class="w-full h-full object-cover"/>
+      <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(6,12,11,0.8) 0%, transparent 50%);"></div>
+      <!-- Reward badge overlaid -->
+      <div class="absolute top-3 right-3">
+        <span class="font-bold font-mono text-base px-3 py-1 rounded-lg text-green-300"
+              style="background:rgba(6,12,11,0.85);border:1px solid rgba(34,197,94,0.3);">
+          R{{ '%.2f'|format(bounty.reward) }}
+        </span>
+      </div>
+      <!-- Status badge overlaid -->
+      <div class="absolute top-3 left-3">
+        <span class="font-mono text-[9px] px-2.5 py-0.5 rounded-full {{ s_bg }} {{ s_border }} border {{ s_text }} uppercase tracking-wider">
+          {{ bounty.status }}
+        </span>
+      </div>
     </div>
-    <h3 class="text-white font-bold text-base mb-2">{{ bounty.title }}</h3>
-    <p class="text-zinc-400 text-sm flex-1 mb-3">{{ bounty.description[:120] }}{% if bounty.description|length > 120 %}...{% endif %}</p>
-
-    {% if bounty.proof_photo %}
-    <div class="mb-3">
-      <p class="text-[10px] font-mono text-slate-500 mb-1.5">FINDER'S PROOF</p>
-      <img src="/bounties/proofs/{{ bounty.proof_photo }}" alt="Proof"
-           class="w-full h-28 object-cover rounded-lg border border-zinc-700"/>
+    {% else %}
+    <!-- No photo — icon placeholder -->
+    <div class="relative flex items-center justify-center flex-shrink-0"
+         style="height:100px;background:rgba(239,68,68,0.04);">
+      <i class="fas fa-crosshairs text-4xl" style="color:rgba(239,68,68,0.15);"></i>
+      <!-- Reward badge -->
+      <div class="absolute top-3 right-3">
+        <span class="font-bold font-mono text-base px-3 py-1 rounded-lg text-green-300"
+              style="background:rgba(6,12,11,0.9);border:1px solid rgba(34,197,94,0.3);">
+          R{{ '%.2f'|format(bounty.reward) }}
+        </span>
+      </div>
+      <!-- Status badge -->
+      <div class="absolute top-3 left-3">
+        <span class="font-mono text-[9px] px-2.5 py-0.5 rounded-full {{ s_bg }} {{ s_border }} border {{ s_text }} uppercase tracking-wider">
+          {{ bounty.status }}
+        </span>
+      </div>
     </div>
     {% endif %}
 
-    {% if bounty.ai_verdict_msg %}
-    <div class="rounded-lg px-3 py-2 mb-3 text-xs
-      {% if bounty.ai_verified == true %}bg-teal-950 border border-teal-800
-      {% elif bounty.ai_verified == false %}bg-red-950 border border-red-900
-      {% else %}bg-zinc-900 border border-zinc-700{% endif %}">
-      <p class="font-mono text-[10px] uppercase tracking-wider mb-0.5
-        {% if bounty.ai_verified == true %}text-teal-400
-        {% elif bounty.ai_verified == false %}text-red-400
-        {% else %}text-slate-500{% endif %}">
-        <i class="fas fa-robot mr-1"></i>AI Verdict
+    <!-- Card body -->
+    <div class="p-4 flex flex-col flex-1">
+      <h3 class="text-white font-bold text-sm mb-1.5 leading-snug">{{ bounty.title }}</h3>
+      <p class="text-zinc-400 text-xs leading-relaxed mb-3 flex-1">
+        {{ bounty.description[:120] }}{% if bounty.description|length > 120 %}…{% endif %}
       </p>
-      <p class="{% if bounty.ai_verified == true %}text-teal-300{% elif bounty.ai_verified == false %}text-red-300{% else %}text-slate-400{% endif %}">
-        {{ bounty.ai_verdict_msg }}
-      </p>
-    </div>
-    {% endif %}
 
-    <div class="border-t border-zinc-800 pt-3 mt-auto">
-      <div class="flex items-center justify-between">
-        <span class="font-mono text-[10px] text-zinc-600">BY {{ bounty.poster.username|upper }}</span>
-        <div class="flex gap-2">
-          {% if bounty.status == 'open' and bounty.poster_id != current_user.id %}
-          <a href="/bounties/{{ bounty.id }}/claim" class="btn-primary text-xs px-3 py-1.5">CLAIM</a>
-          {% endif %}
-          {% if bounty.status == 'claimed' and (bounty.poster_id == current_user.id or current_user.is_admin) %}
-          <form method="POST" action="/bounties/{{ bounty.id }}/verify">
-            <button type="submit" class="btn-secondary text-xs px-3 py-1.5 text-green-400">VERIFY & PAY</button>
-          </form>
-          {% endif %}
+      <!-- Finder's proof photo -->
+      {% if bounty.proof_photo %}
+      <div class="mb-3">
+        <p class="font-mono text-[9px] text-zinc-600 uppercase tracking-wider mb-1.5">
+          <i class="fas fa-camera mr-1"></i>Finder's Proof
+        </p>
+        <img src="/bounties/proofs/{{ bounty.proof_photo }}" alt="Proof"
+             class="w-full h-24 object-cover rounded-lg border border-zinc-800"/>
+      </div>
+      {% endif %}
+
+      <!-- AI verdict -->
+      {% if bounty.ai_verdict_msg %}
+      <div class="rounded-lg px-3 py-2 mb-3 text-xs
+        {% if bounty.ai_verified == true %}bg-teal-950/60 border border-teal-800/60
+        {% elif bounty.ai_verified == false %}bg-red-950/60 border border-red-900/60
+        {% else %}bg-zinc-900/60 border border-zinc-800{% endif %}">
+        <p class="font-mono text-[9px] uppercase tracking-wider mb-1 flex items-center gap-1
+          {% if bounty.ai_verified == true %}text-teal-400
+          {% elif bounty.ai_verified == false %}text-red-400
+          {% else %}text-zinc-500{% endif %}">
+          <i class="fas fa-robot text-[8px]"></i>AI Verdict
+        </p>
+        <p class="leading-relaxed
+          {% if bounty.ai_verified == true %}text-teal-300/80
+          {% elif bounty.ai_verified == false %}text-red-300/80
+          {% else %}text-zinc-400{% endif %}">
+          {{ bounty.ai_verdict_msg }}
+        </p>
+      </div>
+      {% endif %}
+
+      <!-- Footer -->
+      <div class="pt-3 border-t mt-auto" style="border-color:var(--border);">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <span class="font-mono text-[10px] text-zinc-600">BY @{{ bounty.poster.username|upper }}</span>
+            {% if bounty.claimer %}
+            <p class="font-mono text-[10px] text-blue-400 mt-0.5">
+              <i class="fas fa-magnifying-glass text-[8px] mr-0.5"></i>CLAIMED BY @{{ bounty.claimer.username|upper }}
+            </p>
+            {% endif %}
+          </div>
+          <div class="flex gap-2 flex-shrink-0">
+            {% if bounty.status == 'open' and bounty.poster_id != current_user.id %}
+            <a href="/bounties/{{ bounty.id }}/claim" class="btn-primary text-xs px-3 py-1.5">CLAIM</a>
+            {% endif %}
+            {% if bounty.status == 'claimed' and (bounty.poster_id == current_user.id or current_user.is_admin) %}
+            <form method="POST" action="/bounties/{{ bounty.id }}/verify">
+              <button type="submit" class="btn-secondary text-xs px-3 py-1.5 text-green-400">VERIFY & PAY</button>
+            </form>
+            {% endif %}
+          </div>
         </div>
       </div>
-      {% if bounty.claimer %}
-      <p class="font-mono text-[10px] text-blue-400 mt-1">CLAIMED BY {{ bounty.claimer.username|upper }}</p>
-      {% endif %}
     </div>
   </div>
   {% else %}
-  <div class="col-span-3 card p-12 text-center">
-    <i class="fas fa-crosshairs text-zinc-700 text-4xl mb-4"></i>
-    <p class="text-zinc-500 font-mono">NO BOUNTIES FOUND</p>
-    <a href="/bounties/new" class="btn-primary mt-4 inline-block">POST FIRST BOUNTY</a>
+  <div class="col-span-3 card p-16 text-center rounded-2xl">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+         style="background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);">
+      <i class="fas fa-crosshairs text-2xl text-red-500/40"></i>
+    </div>
+    <p class="text-zinc-500 font-mono text-sm mb-1">No bounties found</p>
+    <p class="text-zinc-700 font-mono text-xs mb-5">Lost something? Post a reward and let the community help</p>
+    <a href="/bounties/new" class="btn-primary inline-flex">
+      <i class="fas fa-plus mr-2"></i>Post First Bounty
+    </a>
   </div>
   {% endfor %}
 </div>
+
 {% endblock %}

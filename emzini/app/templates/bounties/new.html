@@ -1,34 +1,69 @@
 {% extends 'base.html' %}
-{% block title %}POST BOUNTY — EMZINI.SYS{% endblock %}
+{% block title %}Post Bounty — Emzini{% endblock %}
 {% block content %}
 <div class="max-w-xl mx-auto">
+
   <div class="mb-6">
-    <a href="/bounties" class="font-mono text-[10px] text-zinc-600 hover:text-zinc-400 transition">← BACK TO BOUNTIES</a>
-    <h1 class="text-2xl font-bold text-white mt-3"><i class="fas fa-crosshairs text-red-500 mr-2"></i>POST A BOUNTY</h1>
+    <a href="/bounties" class="text-xs font-mono text-zinc-600 hover:text-zinc-400 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i>Back to Bounties
+    </a>
+    <h1 class="text-2xl font-bold text-white mt-4">
+      <i class="fas fa-crosshairs text-red-500 mr-2"></i>Post a Bounty
+    </h1>
     <p class="text-zinc-500 text-sm mt-1">Lost something? Post a reward — the community will help find it.</p>
   </div>
-  <div class="card p-6">
-    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+
+  <div class="card p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,#ef4444,transparent);"></div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
       <div>
-        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">What was lost</label>
-        <input type="text" name="title" placeholder="e.g. Set of keys — Toyota key fob + house keys" required maxlength="200"/>
+        <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-2">What was lost</label>
+        <input type="text" name="title" placeholder="e.g. Set of keys — Toyota key fob + house keys"
+               required maxlength="200"/>
       </div>
+
       <div>
-        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Full Description</label>
-        <textarea name="description" rows="4" placeholder="Describe in detail: colour, size, where you last saw it, any unique identifiers..." required></textarea>
+        <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-2">Full Description</label>
+        <textarea name="description" rows="4"
+                  placeholder="Describe in detail: colour, size, where you last saw it, any unique identifiers…"
+                  required></textarea>
       </div>
+
       <div>
-        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Reward (R)</label>
+        <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-2">Reward (R)</label>
         <input type="number" name="reward" min="1" step="0.01" placeholder="100.00" required/>
-        <p class="font-mono text-[10px] text-zinc-600 mt-1">Locked in escrow — paid out when you verify the finder.</p>
+        <p class="font-mono text-[10px] text-zinc-600 mt-1.5">
+          Locked in escrow — released when you verify the finder.
+        </p>
       </div>
+
       <div>
-        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Photo (optional)</label>
+        <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-widest mb-2">
+          Photo <span class="text-zinc-600 normal-case tracking-normal">(optional — helps recognition)</span>
+        </label>
         <input type="file" name="photo" accept="image/*"
-               class="w-full text-sm text-zinc-400 file:mr-3 file:py-1.5 file:px-3 file:rounded file:border-0 file:font-mono file:text-xs file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer"/>
-        <p class="font-mono text-[10px] text-zinc-600 mt-1">Helps the community recognise what you lost.</p>
+               class="w-full text-sm text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:font-mono file:text-xs file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer"/>
       </div>
-      <button type="submit" class="btn-primary w-full"><i class="fas fa-crosshairs mr-2"></i>POST BOUNTY</button>
+
+      <!-- Info box -->
+      <div class="rounded-xl p-4 text-xs" style="background:rgba(239,68,68,0.05);border:1px solid rgba(239,68,68,0.18);">
+        <p class="font-mono text-[10px] uppercase tracking-wider mb-2 text-red-400">
+          <i class="fas fa-circle-info mr-1.5"></i>How it works
+        </p>
+        <ul class="space-y-1 text-zinc-400">
+          <li><i class="fas fa-check text-[10px] mr-1.5 text-red-500/60"></i>Community members look out for your lost item</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5 text-red-500/60"></i>A finder submits a proof photo — AI verifies it first</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5 text-red-500/60"></i>You review the proof and confirm — escrow releases the reward</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5 text-red-500/60"></i>Cancel any time for a full refund</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="btn-primary w-full justify-center py-3">
+        <i class="fas fa-crosshairs mr-2"></i>Post Bounty & Lock Escrow
+      </button>
     </form>
   </div>
 </div>

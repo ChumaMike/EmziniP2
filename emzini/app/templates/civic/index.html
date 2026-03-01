@@ -3,97 +3,123 @@
 {% block content %}
 
 <!-- Header -->
-<div class="flex items-start justify-between mb-7">
+<div class="flex items-start justify-between mb-6">
   <div>
-    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · COMMUNITY BOARD</p>
+    <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI RESIDENCE · COMMUNITY BOARD</p>
     <h1 class="text-2xl font-bold text-white mt-1">Community Issues</h1>
-    <p class="text-slate-400 text-sm mt-1">Report and track maintenance, infrastructure & safety issues.</p>
+    <p class="text-zinc-500 text-sm mt-1">Report and track maintenance, infrastructure & safety problems.</p>
   </div>
-  <a href="/civic/report" class="btn-primary flex-shrink-0">
-    <i class="fas fa-plus"></i> Report Issue
+  <a href="/civic/report" class="btn-primary flex-shrink-0 text-xs px-4 py-2">
+    <i class="fas fa-plus mr-1.5"></i>Report Issue
   </a>
 </div>
 
-<!-- Status Filter Tabs -->
+<!-- Status Filter -->
 <div class="flex items-center gap-2 mb-6 flex-wrap">
-  {% for label, val in [('All', 'all'), ('Open', 'open'), ('In Progress', 'in_progress'), ('Resolved', 'resolved')] %}
-  <a href="/civic?status={{ val }}"
-     class="px-4 py-1.5 rounded-lg text-sm font-medium transition-all border
-     {% if status_filter == val %}text-white border-transparent
-     {% else %}text-slate-400 hover:text-white{% endif %}"
-     style="{% if status_filter == val %}background:var(--teal);border-color:var(--teal);{% else %}background:var(--card);border-color:var(--border-2);{% endif %}">
-    {{ label }}
+  {% set filter_labels = {'all': 'All', 'open': 'Open', 'in_progress': 'In Progress', 'resolved': 'Resolved'} %}
+  {% set filter_icons  = {'all': 'fa-list', 'open': 'fa-circle-dot', 'in_progress': 'fa-spinner', 'resolved': 'fa-circle-check'} %}
+  {% for s in ['all', 'open', 'in_progress', 'resolved'] %}
+  <a href="/civic?status={{ s }}"
+     class="flex items-center gap-1.5 font-mono text-xs px-3 py-1.5 rounded-lg border transition
+       {{ 'border-transparent text-white' if status_filter == s else 'border-zinc-800 text-zinc-500 hover:border-zinc-600 hover:text-zinc-300' }}"
+     style="{% if status_filter == s %}background:var(--teal);{% else %}background:var(--card);{% endif %}">
+    <i class="fas {{ filter_icons[s] }} text-[9px]"></i>{{ filter_labels[s] }}
   </a>
   {% endfor %}
 </div>
 
-<!-- Reports List -->
+<!-- Reports -->
 <div class="space-y-3">
   {% for report in reports %}
-  <div class="card p-5 transition-all" style="hover:border-color:var(--teal-dim)">
-    <div class="flex items-start justify-between gap-4">
 
-      <!-- Content -->
-      <div class="flex-1 min-w-0">
-        <!-- Tags row -->
-        <div class="flex items-center gap-2 flex-wrap mb-2">
-          <!-- Status -->
-          <span class="badge-{{ report.status|replace('_','-') }} font-mono text-[10px] px-2 py-0.5 rounded-md">
-            {{ report.status|replace('_', ' ')|upper }}
-          </span>
-          <!-- Severity -->
-          <span class="sev-{{ report.severity }} font-mono text-[10px] px-2 py-0.5 rounded-md">
-            {{ report.severity|upper }}
-          </span>
-          <!-- Category -->
-          <span class="text-[10px] font-mono text-slate-500 capitalize">
-            <i class="fas fa-tag mr-1 opacity-60"></i>{{ report.category|replace('_',' ') }}
-          </span>
+  {# Status accent colors #}
+  {% if report.status == 'open' %}
+    {% set s_bar = 'bg-teal-600/40' %}
+  {% elif report.status == 'in_progress' %}
+    {% set s_bar = 'bg-amber-600/40' %}
+  {% else %}
+    {% set s_bar = 'bg-indigo-600/40' %}
+  {% endif %}
+
+  {# Severity left-indicator #}
+  {% if report.severity == 'critical' %}
+    {% set sv_dot = 'bg-red-500' %}
+  {% elif report.severity == 'high' %}
+    {% set sv_dot = 'bg-orange-500' %}
+  {% elif report.severity == 'medium' %}
+    {% set sv_dot = 'bg-yellow-500' %}
+  {% else %}
+    {% set sv_dot = 'bg-zinc-500' %}
+  {% endif %}
+
+  <div class="card p-0 overflow-hidden hover:border-teal-800/50 transition">
+    <div class="h-[3px] {{ s_bar }} w-full"></div>
+    <div class="p-5">
+      <div class="flex items-start justify-between gap-4">
+
+        <!-- Content -->
+        <div class="flex-1 min-w-0">
+          <!-- Badge row -->
+          <div class="flex items-center gap-2 flex-wrap mb-2.5">
+            <span class="badge-{{ report.status|replace('_','-') }} font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              {{ report.status|replace('_', ' ') }}
+            </span>
+            <span class="sev-{{ report.severity }} font-mono text-[9px] px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+              {{ report.severity }}
+            </span>
+            <span class="font-mono text-[10px] text-zinc-600 flex items-center gap-1 capitalize">
+              <i class="fas fa-tag text-[8px] opacity-50"></i>{{ report.category|replace('_', ' ') }}
+            </span>
+          </div>
+
+          <h3 class="text-white font-semibold mb-1.5 leading-snug">{{ report.title }}</h3>
+          <p class="text-zinc-400 text-sm leading-relaxed mb-3">{{ report.description }}</p>
+
+          <div class="flex items-center gap-4 text-[10px] font-mono text-zinc-600">
+            <span class="flex items-center gap-1">
+              <i class="fas fa-user text-[8px] opacity-50"></i>{{ report.reporter.username }}
+            </span>
+            <span>{{ report.created_at.strftime('%d %b %Y · %H:%M') }}</span>
+          </div>
         </div>
 
-        <h3 class="text-white font-semibold mb-1.5">{{ report.title }}</h3>
-        <p class="text-slate-400 text-sm leading-relaxed mb-3">{{ report.description }}</p>
+        <!-- Right: upvote + admin control -->
+        <div class="flex flex-col items-center gap-3 flex-shrink-0">
+          <form method="POST" action="/civic/{{ report.id }}/upvote">
+            <button type="submit"
+              class="flex flex-col items-center gap-1 px-3.5 py-2.5 rounded-xl border transition-all"
+              style="{% if report.id in user_upvotes %}background:rgba(13,148,136,0.12);border-color:rgba(13,148,136,0.5);color:var(--teal-lt);{% else %}background:rgba(255,255,255,0.03);border-color:var(--border-2);color:#64748b;{% endif %}">
+              <i class="fas fa-chevron-up text-sm"></i>
+              <span class="font-mono font-bold text-sm leading-none">{{ report.upvotes }}</span>
+            </button>
+          </form>
 
-        <div class="flex items-center gap-4 text-[11px] font-mono text-slate-600">
-          <span><i class="fas fa-user mr-1 opacity-60"></i>{{ report.reporter.username }}</span>
-          <span>{{ report.created_at.strftime('%d %b %Y · %H:%M') }}</span>
+          {% if current_user.is_admin %}
+          <form method="POST" action="/civic/{{ report.id }}/status">
+            <select name="status" onchange="this.form.submit()"
+              class="font-mono text-[10px] rounded-lg px-2 py-1.5 cursor-pointer">
+              <option value="open"        {% if report.status == 'open' %}selected{% endif %}>Open</option>
+              <option value="in_progress" {% if report.status == 'in_progress' %}selected{% endif %}>In Progress</option>
+              <option value="resolved"    {% if report.status == 'resolved' %}selected{% endif %}>Resolved</option>
+            </select>
+          </form>
+          {% endif %}
         </div>
+
       </div>
-
-      <!-- Right: upvote + admin -->
-      <div class="flex flex-col items-center gap-2 flex-shrink-0">
-        <form method="POST" action="/civic/{{ report.id }}/upvote">
-          <button type="submit"
-            class="flex flex-col items-center gap-1 px-3 py-2 rounded-lg border transition-all"
-            style="{% if report.id in user_upvotes %}background:rgba(13,148,136,0.12);border-color:var(--teal);color:var(--teal-lt);{% else %}background:var(--border);border-color:var(--border-2);color:#64748b;{% endif %}">
-            <i class="fas fa-chevron-up text-sm"></i>
-            <span class="font-mono font-bold text-xs">{{ report.upvotes }}</span>
-          </button>
-        </form>
-
-        {% if current_user.is_admin %}
-        <form method="POST" action="/civic/{{ report.id }}/status">
-          <select name="status" onchange="this.form.submit()"
-            class="text-[10px] font-mono rounded-md px-1 py-1" style="width:auto;">
-            <option value="open"        {% if report.status == 'open' %}selected{% endif %}>Open</option>
-            <option value="in_progress" {% if report.status == 'in_progress' %}selected{% endif %}>In Progress</option>
-            <option value="resolved"    {% if report.status == 'resolved' %}selected{% endif %}>Resolved</option>
-          </select>
-        </form>
-        {% endif %}
-      </div>
-
     </div>
   </div>
   {% else %}
-  <div class="card p-16 text-center">
-    <div class="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-         style="background:rgba(13,148,136,0.1);">
-      <i class="fas fa-check text-2xl" style="color:var(--teal);"></i>
+  <div class="card p-16 text-center rounded-2xl">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+         style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.15);">
+      <i class="fas fa-check text-2xl" style="color:var(--teal-lt);"></i>
     </div>
-    <p class="text-white font-semibold">No issues found</p>
-    <p class="text-slate-500 text-sm mt-1">The community board is clear</p>
-    <a href="/civic/report" class="btn-primary mt-5">Report an Issue</a>
+    <p class="text-white font-semibold mb-1">All clear</p>
+    <p class="text-zinc-500 text-sm mb-5">No issues matching this filter</p>
+    <a href="/civic/report" class="btn-primary inline-flex">
+      <i class="fas fa-plus mr-2"></i>Report an Issue
+    </a>
   </div>
   {% endfor %}
 </div>

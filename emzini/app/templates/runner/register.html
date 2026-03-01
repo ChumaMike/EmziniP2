@@ -62,11 +62,6 @@
       </div>
 
       <div>
-        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">SA ID Number</label>
-        <input type="text" name="id_number" placeholder="13-digit ID number" required maxlength="20"/>
-      </div>
-
-      <div>
         <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Mode of Transport</label>
         <div class="grid grid-cols-2 gap-2">
           {% for v, icon, label in [('foot','fa-person-walking','On foot'),('bicycle','fa-bicycle','Bicycle'),('motorbike','fa-motorcycle','Motorbike'),('car','fa-car','Car')] %}
@@ -94,7 +89,6 @@
           <i class="fas fa-circle-info mt-0.5 flex-shrink-0" style="color:var(--teal-lt);"></i>
           <p class="text-slate-400 leading-relaxed">
             A 10% platform fee is deducted from delivery job payouts. You keep 90% of each delivery reward.
-            Your ID number is used for verification and stored securely.
           </p>
         </div>
       </div>

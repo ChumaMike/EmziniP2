@@ -4,53 +4,76 @@
 <div class="max-w-xl mx-auto">
 
   <div class="mb-6">
-    <a href="/bounties" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
-      <i class="fas fa-arrow-left text-[10px]"></i> Back to Bounties
+    <a href="/bounties" class="text-xs font-mono text-zinc-600 hover:text-zinc-400 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i>Back to Bounties
     </a>
     <h1 class="text-2xl font-bold text-white mt-4">
       <i class="fas fa-crosshairs text-red-500 mr-2"></i>Claim Bounty
     </h1>
-    <p class="text-slate-400 text-sm mt-1">Submit proof you found it. Our AI will verify your photo against the description.</p>
+    <p class="text-zinc-400 text-sm mt-1">
+      Submit proof you found it. Our AI will verify your photo against the description.
+    </p>
   </div>
 
   <!-- Bounty Summary -->
-  <div class="card p-5 mb-5" style="border-color:rgba(239,68,68,0.3);">
-    <div class="flex items-start justify-between gap-4 mb-3">
-      <h2 class="text-white font-bold text-lg">{{ bounty.title }}</h2>
-      <span class="text-red-400 font-bold font-mono text-xl flex-shrink-0">R{{ '%.2f'|format(bounty.reward) }}</span>
-    </div>
-    <p class="text-slate-400 text-sm leading-relaxed mb-3">{{ bounty.description }}</p>
+  <div class="card p-0 overflow-hidden mb-5">
+    <div class="h-[3px] bg-red-700/40 w-full"></div>
     {% if bounty.photo_url %}
-    <img src="/bounties/photos/{{ bounty.photo_url }}" alt="Original photo"
-         class="w-full h-40 object-cover rounded-lg border border-zinc-700"/>
-    <p class="text-[10px] font-mono text-slate-600 mt-1">Original photo posted by owner</p>
+    <div class="relative overflow-hidden" style="height:180px;">
+      <img src="/bounties/photos/{{ bounty.photo_url }}" alt="{{ bounty.title }}"
+           class="w-full h-full object-cover"/>
+      <div class="absolute inset-0" style="background:linear-gradient(to top, rgba(6,12,11,0.85) 0%, transparent 55%);"></div>
+      <div class="absolute bottom-0 left-0 right-0 p-4">
+        <h2 class="text-white font-bold text-lg leading-snug">{{ bounty.title }}</h2>
+        <p class="font-mono text-[10px] text-zinc-400 mt-0.5">Posted by @{{ bounty.poster.username }}</p>
+      </div>
+      <div class="absolute top-3 right-3">
+        <span class="font-bold font-mono text-lg px-3 py-1 rounded-lg text-green-300"
+              style="background:rgba(6,12,11,0.88);border:1px solid rgba(34,197,94,0.3);">
+          R{{ '%.2f'|format(bounty.reward) }}
+        </span>
+      </div>
+    </div>
+    <div class="p-4">
+      <p class="text-zinc-400 text-sm leading-relaxed">{{ bounty.description }}</p>
+    </div>
+    {% else %}
+    <div class="p-5">
+      <div class="flex items-start justify-between gap-4 mb-3">
+        <h2 class="text-white font-bold text-lg leading-snug">{{ bounty.title }}</h2>
+        <span class="font-bold font-mono text-xl text-green-400 flex-shrink-0">R{{ '%.2f'|format(bounty.reward) }}</span>
+      </div>
+      <p class="text-zinc-400 text-sm leading-relaxed mb-2">{{ bounty.description }}</p>
+      <p class="font-mono text-[10px] text-zinc-600">Posted by @{{ bounty.poster.username }}</p>
+    </div>
     {% endif %}
-    <p class="text-[11px] font-mono text-slate-600 mt-2">Posted by @{{ bounty.poster.username }}</p>
   </div>
 
   <!-- Claim Form -->
   <div class="card p-6 relative overflow-hidden">
-    <div class="absolute top-0 left-8 right-8 h-px" style="background:linear-gradient(90deg,transparent,#ef4444,transparent);"></div>
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,#ef4444,transparent);"></div>
 
     <form method="POST" enctype="multipart/form-data" class="space-y-5">
 
       <div>
-        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+        <label class="block text-xs font-mono text-zinc-400 uppercase tracking-wider mb-2">
           Proof Photo <span class="text-red-400">*</span>
         </label>
         <input type="file" name="proof_photo" accept="image/*" required
-               class="w-full text-sm text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:font-mono file:text-xs file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer"/>
-        <p class="font-mono text-[10px] text-slate-600 mt-1.5">
-          <i class="fas fa-robot mr-1" style="color:var(--teal-lt);"></i>
-          Emzini AI will scan your photo against the description before notifying the poster.
+               class="w-full text-sm text-zinc-400 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:font-mono file:text-xs file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer"/>
+        <p class="font-mono text-[10px] text-zinc-600 mt-1.5">
+          Clear, well-lit photo of the item — AI compares it against the description.
         </p>
       </div>
 
-      <!-- AI verification info box -->
-      <div class="rounded-lg p-4 text-xs" style="background:rgba(13,148,136,0.06);border:1px solid rgba(13,148,136,0.2);">
-        <p class="font-mono text-[10px] uppercase tracking-wider mb-2" style="color:var(--teal-lt);">How AI Verification Works</p>
-        <ul class="space-y-1 text-slate-400">
-          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>You upload a clear photo of the found item</li>
+      <!-- AI verification info -->
+      <div class="rounded-xl p-4 text-xs" style="background:rgba(13,148,136,0.06);border:1px solid rgba(13,148,136,0.2);">
+        <p class="font-mono text-[10px] uppercase tracking-wider mb-2" style="color:var(--teal-lt);">
+          <i class="fas fa-robot mr-1.5"></i>How AI Verification Works
+        </p>
+        <ul class="space-y-1.5 text-zinc-400">
+          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>Upload a clear photo of the found item</li>
           <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>Gemini AI compares it against the original description</li>
           <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>The AI verdict is shown to the poster alongside your proof</li>
           <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>Poster makes the final call — then escrow releases R{{ '%.2f'|format(bounty.reward) }} to you</li>
@@ -62,5 +85,6 @@
       </button>
     </form>
   </div>
+
 </div>
 {% endblock %}

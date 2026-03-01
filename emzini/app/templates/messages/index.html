@@ -2,27 +2,29 @@
 {% block title %}Connect — Emzini{% endblock %}
 {% block content %}
 
+<!-- Header -->
 <div class="flex items-start justify-between mb-5">
   <div>
-    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · COMMUNITY HUB</p>
+    <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI RESIDENCE · COMMUNITY HUB</p>
     <h1 class="text-2xl font-bold text-white mt-1">Connect</h1>
-    <p class="text-slate-400 text-sm mt-1">Community channels, runner board, and private conversations.</p>
+    <p class="text-zinc-500 text-sm mt-1">Community channels, runner board, and private conversations.</p>
   </div>
   {% if unread_total %}
-  <span class="text-xs font-mono px-2 py-1 rounded-full"
-        style="background:rgba(13,148,136,0.15);border:1px solid var(--teal);color:var(--teal-lt);">
+  <span class="font-mono text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5"
+        style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.3);color:var(--teal-lt);">
+    <span class="w-1.5 h-1.5 bg-teal-400 rounded-full pulse-dot"></span>
     {{ unread_total }} unread
   </span>
   {% endif %}
 </div>
 
 <!-- Tab bar -->
-<div class="flex gap-0.5 mb-6 p-1 rounded-xl" style="background:var(--card);border:1px solid var(--border-2);">
+<div class="flex gap-1 mb-6 p-1 rounded-xl" style="background:var(--card);border:1px solid var(--border-2);">
   {% for t, icon, label in [
-      ('community', 'fa-people-group',    'Community'),
-      ('runners',   'fa-person-running',  'Runners'),
-      ('providers', 'fa-store',           'Providers'),
-      ('chats',     'fa-lock',            'My Chats'),
+      ('community', 'fa-people-group',   'Community'),
+      ('runners',   'fa-person-running', 'Runners'),
+      ('providers', 'fa-store',          'Providers'),
+      ('chats',     'fa-lock',           'My Chats'),
   ] %}
   <a href="{{ url_for('messages.index', tab=t) }}"
      class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all"
@@ -34,40 +36,40 @@
 </div>
 
 {% if tab in ['community', 'runners', 'providers'] %}
-<!-- Public channel view -->
+<!-- ── Public channel ── -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-  <!-- Post form -->
+  <!-- Post form (sidebar) -->
   <div class="lg:col-span-1">
-    <div class="card p-5 sticky top-20">
-      <h2 class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-3">
-        Post to #{{ tab }}
+    <div class="card p-5 relative overflow-hidden sticky top-20">
+      <div class="absolute top-0 left-6 right-6 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+      <h2 class="text-xs font-mono text-zinc-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <i class="fas fa-hashtag text-[10px]" style="color:var(--teal-lt);"></i>
+        {{ tab }}
         {% if tab == 'runners' %}
-        <span class="ml-1 text-[10px] text-slate-600">(runners only)</span>
+        <span class="font-mono text-[9px] text-zinc-600 normal-case tracking-normal">(runners only)</span>
         {% endif %}
       </h2>
+
       <form method="POST" action="{{ url_for('messages.post') }}">
         <input type="hidden" name="channel" value="{{ tab }}"/>
-        <textarea name="content" rows="4"
-                  placeholder="{% if tab == 'community' %}Share something with the community…
-{% elif tab == 'runners' %}Announce your availability, rates, or areas you cover…
-{% else %}Promote your products or services…{% endif %}"
-                  class="text-sm mb-3" required></textarea>
+        <textarea name="content" rows="4" class="text-sm mb-3" required
+                  placeholder="{% if tab == 'community' %}Share something with the community…{% elif tab == 'runners' %}Announce your availability, rates, or areas you cover…{% else %}Promote your products or services…{% endif %}"></textarea>
         <button type="submit" class="btn-primary w-full justify-center text-sm">
           <i class="fas fa-paper-plane mr-2"></i>Post
         </button>
       </form>
 
-      <!-- Channel description -->
-      <div class="mt-4 pt-4 border-t text-xs text-slate-500 leading-relaxed" style="border-color:var(--border);">
+      <div class="mt-4 pt-4 border-t text-xs text-zinc-500 leading-relaxed flex items-start gap-1.5"
+           style="border-color:var(--border);">
+        <i class="fas fa-circle-info mt-0.5 flex-shrink-0" style="color:var(--teal-lt);"></i>
         {% if tab == 'community' %}
-        <i class="fas fa-circle-info mr-1" style="color:var(--teal-lt);"></i>
-        Open noticeboard for all residents. Share news, announcements, or just say hi.
+        Open noticeboard for all residents — share news, announcements, or just say hi.
         {% elif tab == 'runners' %}
-        <i class="fas fa-circle-info mr-1" style="color:var(--teal-lt);"></i>
         Runners announce availability, rates, and delivery areas here.
         {% else %}
-        <i class="fas fa-circle-info mr-1" style="color:var(--teal-lt);"></i>
         Sellers and service providers can promote their listings here.
         {% endif %}
       </div>
@@ -77,33 +79,42 @@
   <!-- Posts feed -->
   <div class="lg:col-span-2 space-y-3" id="posts-feed">
     {% for post in posts %}
-    <div class="card p-4">
-      <div class="flex items-center gap-2 mb-2">
-        <div class="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0"
-             style="background:var(--border-2);color:var(--teal-lt);">
+    <div class="card p-4 hover:border-teal-800/40 transition">
+      <div class="flex items-center gap-2.5 mb-2.5">
+        <div class="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0"
+             style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
           {{ post.user.username[:2].upper() }}
         </div>
-        <span class="font-mono text-xs" style="color:var(--teal-lt);">@{{ post.user.username }}</span>
-        {% if post.user.is_runner and post.user.runner_active %}
-        <span class="w-1.5 h-1.5 rounded-full pulse-dot flex-shrink-0" style="background:var(--teal-lt);"></span>
-        {% endif %}
-        <span class="ml-auto text-[10px] font-mono text-slate-600">{{ post.created_at.strftime('%d %b · %H:%M') }}</span>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-1.5">
+            <span class="font-mono text-xs" style="color:var(--teal-lt);">@{{ post.user.username }}</span>
+            {% if post.user.is_runner and post.user.runner_active %}
+            <span class="w-1.5 h-1.5 rounded-full pulse-dot flex-shrink-0 bg-teal-400"></span>
+            {% endif %}
+          </div>
+        </div>
+        <span class="text-[10px] font-mono text-zinc-600 flex-shrink-0">
+          {{ post.created_at.strftime('%d %b · %H:%M') }}
+        </span>
       </div>
-      <p class="text-slate-300 text-sm leading-relaxed">{{ post.content | e }}</p>
-      <!-- Message this user (if not yourself) -->
+      <p class="text-zinc-300 text-sm leading-relaxed">{{ post.content | e }}</p>
       {% if post.user_id != current_user.id %}
-      <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="mt-2">
+      <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="mt-2.5">
         <input type="hidden" name="other_user_id" value="{{ post.user_id }}"/>
-        <button class="text-[11px] font-mono text-slate-600 hover:text-teal-400 transition">
-          <i class="fas fa-comment mr-1"></i>Message @{{ post.user.username }}
+        <button class="font-mono text-[10px] text-zinc-600 hover:text-teal-400 transition flex items-center gap-1">
+          <i class="fas fa-comment text-[9px]"></i>Message @{{ post.user.username }}
         </button>
       </form>
       {% endif %}
     </div>
     {% else %}
-    <div class="card p-12 text-center">
-      <i class="fas fa-{% if tab == 'runners' %}person-running{% elif tab == 'providers' %}store{% else %}people-group{% endif %} text-3xl text-slate-700 mb-3 block"></i>
-      <p class="text-slate-500 text-sm">No posts yet in #{{ tab }}. Be the first!</p>
+    <div class="card p-16 text-center rounded-2xl">
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+           style="background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.14);">
+        <i class="fas fa-{% if tab == 'runners' %}person-running{% elif tab == 'providers' %}store{% else %}people-group{% endif %} text-2xl" style="color:var(--teal-lt);opacity:0.5;"></i>
+      </div>
+      <p class="text-zinc-500 text-sm font-mono">No posts in #{{ tab }} yet</p>
+      <p class="text-zinc-700 text-xs font-mono mt-1">Be the first to say something</p>
     </div>
     {% endfor %}
   </div>
@@ -111,53 +122,61 @@
 </div>
 
 {% else %}
-<!-- Private chats view -->
+<!-- ── Private chats ── -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
   <!-- Conversation list -->
   <div class="lg:col-span-1 space-y-2">
-    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-3">Your Conversations</p>
+    <p class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-3">Your Conversations</p>
     {% for c in convs %}
     {% set other = c.other_user(current_user.id) %}
     {% set last = c.last_message() %}
     {% set unread = c.messages | selectattr('sender_id', '!=', current_user.id) | selectattr('is_read', 'eq', false) | list | length %}
     <a href="{{ url_for('messages.conversation', conv_id=c.id) }}"
-       class="card p-3 flex items-start gap-3 hover:border-teal-700 transition block">
-      <div class="w-9 h-9 rounded-lg flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0"
-           style="background:var(--border-2);color:var(--teal-lt);">
+       class="card p-3 flex items-start gap-3 hover:border-teal-700/60 transition">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold font-mono flex-shrink-0"
+           style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.18);color:var(--teal-lt);">
         {{ other.username[:2].upper() }}
       </div>
       <div class="flex-1 min-w-0">
-        <div class="flex items-center justify-between">
+        <div class="flex items-center justify-between gap-2">
           <span class="font-mono text-xs text-white">@{{ other.username }}</span>
-          {% if unread %}<span class="text-[10px] font-mono font-bold rounded-full px-1.5 py-0.5"
-                               style="background:var(--teal);color:#fff;">{{ unread }}</span>{% endif %}
+          {% if unread %}
+          <span class="text-[9px] font-mono font-bold rounded-full px-1.5 py-0.5 flex-shrink-0"
+                style="background:var(--teal);color:#fff;">{{ unread }}</span>
+          {% endif %}
         </div>
         {% if c.context_type %}
-        <p class="text-[10px] font-mono text-slate-600 truncate">
-          <i class="fas fa-{% if c.context_type == 'item' %}box{% else %}person-running{% endif %} mr-1"></i>
+        <p class="font-mono text-[9px] text-zinc-600 mt-0.5 flex items-center gap-1">
+          <i class="fas fa-{% if c.context_type == 'item' %}box{% else %}person-running{% endif %} text-[8px]"></i>
           {% if c.context_type == 'item' %}Item chat{% else %}Job chat{% endif %}
         </p>
         {% endif %}
         {% if last %}
-        <p class="text-xs text-slate-500 truncate mt-0.5">{{ last.content[:50] }}</p>
+        <p class="text-xs text-zinc-500 truncate mt-0.5 leading-snug">{{ last.content[:50] }}</p>
         {% endif %}
       </div>
     </a>
     {% else %}
-    <div class="card p-8 text-center">
-      <i class="fas fa-comment-slash text-slate-700 text-2xl mb-2 block"></i>
-      <p class="text-slate-500 text-xs">No conversations yet.</p>
-      <p class="text-slate-600 text-xs mt-1">Message a seller from their item page, or a runner from a job.</p>
+    <div class="card p-10 text-center rounded-2xl">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
+           style="background:rgba(100,116,139,0.07);border:1px solid rgba(100,116,139,0.14);">
+        <i class="fas fa-comment-slash text-lg text-zinc-600"></i>
+      </div>
+      <p class="text-zinc-500 text-xs font-mono">No conversations yet</p>
+      <p class="text-zinc-700 text-xs font-mono mt-1">Message a seller from their item page</p>
     </div>
     {% endfor %}
   </div>
 
-  <!-- Select a chat prompt -->
-  <div class="lg:col-span-2 card flex items-center justify-center" style="min-height:320px;">
+  <!-- Placeholder when no chat selected -->
+  <div class="lg:col-span-2 card flex items-center justify-center rounded-2xl" style="min-height:340px;">
     <div class="text-center">
-      <i class="fas fa-comment-dots text-4xl text-slate-700 mb-3 block"></i>
-      <p class="text-slate-500 text-sm">Select a conversation to open it</p>
+      <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+           style="background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.14);">
+        <i class="fas fa-comment-dots text-2xl" style="color:var(--teal-lt);opacity:0.5;"></i>
+      </div>
+      <p class="text-zinc-500 text-sm">Select a conversation to open it</p>
     </div>
   </div>
 
@@ -168,27 +187,26 @@
 
 {% block scripts %}
 <script>
-// Real-time community posts
 {% if tab in ['community', 'runners', 'providers'] %}
 socket.on('community_{{ tab }}', function(d) {
   var feed = document.getElementById('posts-feed');
   var div  = document.createElement('div');
-  div.className = 'card p-4';
+  div.className = 'card p-4 hover:border-teal-800/40 transition';
   div.innerHTML =
-    '<div class="flex items-center gap-2 mb-2">' +
-      '<div class="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0" style="background:var(--border-2);color:var(--teal-lt);">' +
+    '<div class="flex items-center gap-2.5 mb-2.5">' +
+      '<div class="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0" style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">' +
         d.username.substring(0,2).toUpperCase() +
       '</div>' +
       '<span class="font-mono text-xs" style="color:var(--teal-lt);">@' + escHtml(d.username) + '</span>' +
-      '<span class="ml-auto text-[10px] font-mono text-slate-600">' + d.time + '</span>' +
+      '<span class="ml-auto text-[10px] font-mono text-zinc-600">' + d.time + '</span>' +
     '</div>' +
-    '<p class="text-slate-300 text-sm leading-relaxed">' + escHtml(d.content) + '</p>';
-  if (feed.firstChild && feed.firstChild.classList && feed.firstChild.classList.contains('card')) {
-    feed.insertBefore(div, feed.firstChild);
-  } else {
+    '<p class="text-zinc-300 text-sm leading-relaxed">' + escHtml(d.content) + '</p>';
+  // Replace empty state if present, else prepend
+  var firstChild = feed.firstElementChild;
+  if (firstChild && !firstChild.querySelector('p')) {
     feed.innerHTML = '';
-    feed.appendChild(div);
   }
+  feed.insertBefore(div, feed.firstChild);
 });
 {% endif %}
 
