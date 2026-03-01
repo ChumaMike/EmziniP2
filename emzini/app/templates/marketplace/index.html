@@ -9,7 +9,14 @@
     <h1 class="text-2xl font-bold text-white mt-0.5">Resident Market</h1>
   </div>
   {% if view == 'tasks' %}
-  <a href="/jobs/new" class="btn-primary flex-shrink-0"><i class="fas fa-plus mr-2"></i>Post Task</a>
+  <div class="flex items-center gap-2 flex-shrink-0">
+    <a href="/jobs/mine" class="btn-secondary text-xs px-4 py-2">
+      <i class="fas fa-inbox mr-1.5"></i>My Jobs
+    </a>
+    <a href="/jobs/new" class="btn-primary text-xs px-4 py-2">
+      <i class="fas fa-plus mr-1.5"></i>Post Task
+    </a>
+  </div>
   {% else %}
   <a href="/market/new" class="btn-primary flex-shrink-0"><i class="fas fa-plus mr-2"></i>List Item</a>
   {% endif %}
