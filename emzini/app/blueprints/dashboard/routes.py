@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from flask import Blueprint, render_template
 from flask_login import login_required, current_user
-from app.models import CivicReport, User, Goal, NetworkAlert, NetworkContact, ChatMessage
+from app.models import CivicReport, User, Goal, NetworkAlert, NetworkContact, ChatMessage, RunnerJob, MarketItem, Bounty
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
@@ -51,6 +51,11 @@ def index():
                     .order_by(ChatMessage.created_at.asc())
                     .limit(20).all())
 
+    # Personal economy stats
+    open_jobs_count     = RunnerJob.query.filter_by(status='open').count()
+    my_listings_count   = MarketItem.query.filter_by(seller_id=current_user.id, status='available').count()
+    open_bounties_count = Bounty.query.filter_by(status='open').count()
+
     return render_template('dashboard/index.html',
         total_residents=total_residents,
         open_issues=open_issues,
@@ -63,4 +68,7 @@ def index():
         upcoming_alerts=upcoming_alerts,
         contacts_total=contacts_total,
         chat_history=chat_history,
+        open_jobs_count=open_jobs_count,
+        my_listings_count=my_listings_count,
+        open_bounties_count=open_bounties_count,
     )

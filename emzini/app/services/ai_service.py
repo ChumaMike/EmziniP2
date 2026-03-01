@@ -686,12 +686,38 @@ def execute_tool(tool_name: str, tool_input: dict, user) -> str:
         return f'Something went wrong with {tool_name}: {str(e)}'
 
 
+# ── Friendly labels for action pills ──────────────────────────────────────────
+
+_TOOL_LABELS = {
+    'post_market_item':    'Item listed',
+    'delete_market_item':  'Listing removed',
+    'post_runner_job':     'Job posted',
+    'claim_job':           'Job claimed',
+    'cancel_job':          'Job cancelled',
+    'post_bounty':         'Bounty posted',
+    'delete_bounty':       'Bounty removed',
+    'post_civic_report':   'Report submitted',
+    'delete_civic_report': 'Report deleted',
+    'upvote_civic_report': 'Report upvoted',
+    'toggle_runner_status':'Runner status updated',
+    'add_goal':            'Goal added',
+    'complete_goal':       'Goal completed',
+    'delete_goal':         'Goal deleted',
+    'add_milestone':       'Milestone added',
+    'add_contact':         'Contact added',
+    'delete_contact':      'Contact removed',
+    'add_reminder':        'Reminder set',
+    'complete_reminder':   'Reminder done',
+    'delete_reminder':     'Reminder deleted',
+}
+
+
 # ── Chat entry point ───────────────────────────────────────────────────────────
 
-def chat(user, message: str, history: list) -> str:
+def chat(user, message: str, history: list) -> tuple:
     api_key = current_app.config.get('GEMINI_API_KEY', '')
     if not api_key or api_key.startswith('your-'):
-        return "AI not configured — paste your Gemini API key into GEMINI_API_KEY in .env"
+        return ("AI not configured — paste your Gemini API key into GEMINI_API_KEY in .env", [])
 
     client = genai.Client(api_key=api_key)
 
@@ -712,14 +738,19 @@ def chat(user, message: str, history: list) -> str:
     response = chat_session.send_message(message)
 
     if response.function_calls:
+        actions_taken = []
         fn_response_parts = []
         for fn in response.function_calls:
             args = {k: v for k, v in fn.args.items()} if fn.args else {}
             result = execute_tool(fn.name, args, user)
+            actions_taken.append({
+                'tool':  fn.name,
+                'label': _TOOL_LABELS.get(fn.name, fn.name),
+            })
             fn_response_parts.append(
                 types.Part.from_function_response(name=fn.name, response={'result': result})
             )
         follow = chat_session.send_message(fn_response_parts)
-        return follow.text or 'Done.'
+        return (follow.text or 'Done.', actions_taken)
 
-    return response.text or 'Done.'
+    return (response.text or 'Done.', [])

@@ -47,9 +47,18 @@ def send():
 
     # Full session history (excluding the message we just saved) for context
     history = _session_messages()
-    response = ai_service.chat(current_user, message, history[:-1])
+    response, actions = ai_service.chat(current_user, message, history[:-1])
 
     ai_msg = _save('assistant', response)
+
+    actions_html = ''
+    if actions:
+        pills = ''.join(
+            f'<span class="font-mono text-[10px] bg-teal-950 border border-teal-800 '
+            f'text-teal-400 px-2 py-0.5 rounded-full">&#10003; {_e(a["label"])}</span>'
+            for a in actions
+        )
+        actions_html = f'<div class="flex gap-1.5 flex-wrap mt-2">{pills}</div>'
 
     return f'''
 <div class="flex gap-3 flex-row-reverse" id="msg-user-{user_msg.id}">
@@ -64,7 +73,7 @@ def send():
   <div class="w-8 h-8 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white font-bold font-mono"
        style="background:var(--teal);">EM</div>
   <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg rounded-tl-none max-w-[85%] text-zinc-300 text-sm whitespace-pre-wrap">
-    {_e(response)}
+    {_e(response)}{actions_html}
   </div>
 </div>
 '''

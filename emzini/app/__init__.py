@@ -31,6 +31,10 @@ def create_app():
     os.makedirs(upload_dir, exist_ok=True)
     app.config['MARKET_UPLOAD_DIR'] = upload_dir
 
+    bounty_upload_dir = os.path.join(app.instance_path, 'uploads', 'bounties')
+    os.makedirs(bounty_upload_dir, exist_ok=True)
+    app.config['BOUNTY_UPLOAD_DIR'] = bounty_upload_dir
+
     # Extensions
     db.init_app(app)
     login_manager.init_app(app)

@@ -23,6 +23,10 @@
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
   {% for bounty in bounties %}
   <div class="card p-5 hover:border-red-800 transition flex flex-col">
+    {% if bounty.photo_url %}
+    <img src="/bounties/photos/{{ bounty.photo_url }}" alt="{{ bounty.title }}"
+         class="w-full h-36 object-cover rounded-lg mb-3 border border-zinc-700"/>
+    {% endif %}
     <div class="flex items-start justify-between mb-3">
       <span class="badge-{{ bounty.status }} font-mono text-[10px] px-2 py-0.5 rounded uppercase">{{ bounty.status }}</span>
       <span class="text-red-400 font-bold font-mono text-lg">R{{ '%.2f'|format(bounty.reward) }}</span>

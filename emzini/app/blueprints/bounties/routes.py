@@ -1,11 +1,44 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+import os
+import time
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, send_from_directory
 from flask_login import login_required, current_user
+from werkzeug.utils import secure_filename
 from app.extensions import db
 from app.models import Bounty
 from app.services.escrow_service import lock_escrow, release_escrow, InsufficientFundsError
 from app.services.logger_service import log_action
 
 bounties_bp = Blueprint('bounties', __name__)
+
+ALLOWED_EXT = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+
+
+def _allowed(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXT
+
+
+def _save_bounty_photo(file):
+    if not file or not file.filename:
+        return None
+    if not _allowed(file.filename):
+        return None
+    ext = file.filename.rsplit('.', 1)[1].lower()
+    filename = secure_filename(f"bounty_{current_user.id}_{int(time.time())}.{ext}")
+    file.save(os.path.join(current_app.config['BOUNTY_UPLOAD_DIR'], filename))
+    return filename
+
+
+def _delete_bounty_photo(filename):
+    if filename:
+        try:
+            os.remove(os.path.join(current_app.config['BOUNTY_UPLOAD_DIR'], filename))
+        except OSError:
+            pass
+
+
+@bounties_bp.route('/bounties/photos/<filename>')
+def serve_photo(filename):
+    return send_from_directory(current_app.config['BOUNTY_UPLOAD_DIR'], filename)
 
 
 @bounties_bp.route('/bounties')
@@ -44,11 +77,14 @@ def new_bounty():
             flash(str(e), 'danger')
             return render_template('bounties/new.html')
 
+        photo_filename = _save_bounty_photo(request.files.get('photo'))
+
         bounty = Bounty(
             poster_id=current_user.id,
             title=title,
             description=description,
             reward=reward,
+            photo_url=photo_filename,
         )
         db.session.add(bounty)
         db.session.commit()
