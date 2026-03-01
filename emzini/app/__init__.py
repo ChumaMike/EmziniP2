@@ -20,6 +20,11 @@ def create_app():
     app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME', 'admin')
     app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD', 'admin123')
     app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8 MB upload limit
+    app.config['MAIL_SERVER']   = os.getenv('MAIL_SERVER', '')
+    app.config['MAIL_PORT']     = int(os.getenv('MAIL_PORT', 587))
+    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME', '')
+    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
+    app.config['MAIL_FROM']     = os.getenv('MAIL_FROM', os.getenv('MAIL_USERNAME', ''))
 
     upload_dir = os.path.join(app.static_folder, 'uploads', 'market')
     os.makedirs(upload_dir, exist_ok=True)

@@ -160,36 +160,37 @@
         {% if item.allows_delivery %}
         <div class="mb-4">
           <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Fulfilment</p>
-          <label class="flex items-center gap-2 cursor-pointer mb-2 group">
-            <input type="radio" name="wants_delivery" value="0" checked
-                   class="accent-teal-500" onchange="toggleDelivery(false)"/>
-            <span class="text-sm text-slate-300">Pickup (free)</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer group">
-            <input type="radio" name="wants_delivery" value="1"
-                   class="accent-teal-500" onchange="toggleDelivery(true)"/>
-            <span class="text-sm text-slate-300">Deliver to my room
-              <span class="text-[10px] font-mono ml-1" style="color:var(--teal-lt);">+R15 runner fee</span>
-            </span>
-          </label>
-
-          <!-- Runner online indicator -->
-          <div class="mt-2 flex items-center gap-1.5 text-[11px]" style="color:var(--teal-lt);">
-            {% if active_runners %}
-            <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--teal-lt);"></span>
-            {{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online
-            {% else %}
-            <span class="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0"></span>
-            <span class="text-slate-600">No runners online now</span>
-            {% endif %}
+          <div class="space-y-2">
+            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--border-2);background:var(--bg);"
+                   onclick="selectDelivery(this, false)">
+              <input type="radio" name="wants_delivery" value="0" checked class="accent-teal-500 flex-shrink-0"/>
+              <div>
+                <p class="text-sm text-white font-medium">Pickup</p>
+                <p class="text-[11px] text-slate-500">Collect from seller — free</p>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--border-2);background:var(--bg);"
+                   onclick="selectDelivery(this, true)">
+              <input type="radio" name="wants_delivery" value="1" class="accent-teal-500 flex-shrink-0"/>
+              <div>
+                <p class="text-sm text-white font-medium">Deliver to my room</p>
+                <p class="text-[11px]" style="color:var(--teal-lt);">+R15 runner fee
+                  {% if active_runners %}
+                  · <span class="w-1.5 h-1.5 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
+                  {{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online
+                  {% else %}
+                  · <span class="text-slate-600">no runners online</span>
+                  {% endif %}
+                </p>
+              </div>
+            </label>
           </div>
-
           <!-- Delivery address (hidden by default) -->
           <div id="delivery-address-box" class="hidden mt-3">
-            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Delivery address / room</label>
-            <textarea name="delivery_address" rows="2"
-                      placeholder="e.g. Block B, Room 204"
-                      class="text-sm"></textarea>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Your room / address</label>
+            <textarea name="delivery_address" rows="2" placeholder="e.g. Block B, Room 204" class="text-sm"></textarea>
           </div>
         </div>
         {% else %}
@@ -199,20 +200,32 @@
         <!-- Payment method -->
         <div class="mb-5">
           <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Payment</p>
-          <label class="flex items-center gap-2 cursor-pointer mb-2">
-            <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500"/>
-            <span class="text-sm text-slate-300">App Rands
-              <span class="text-[10px] font-mono ml-1 text-slate-500">Balance: R{{ '%.2f'|format(current_user.wallet_balance) }}</span>
-            </span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer mb-2">
-            <input type="radio" name="payment_method" value="cash" class="accent-teal-500"/>
-            <span class="text-sm text-slate-300">Cash on delivery</span>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" name="payment_method" value="card" class="accent-teal-500"/>
-            <span class="text-sm text-slate-300">Card on delivery <span class="text-[10px] text-slate-500">(runner collects)</span></span>
-          </label>
+          <div class="space-y-2">
+            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--teal);background:rgba(13,148,136,0.07);">
+              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 flex-shrink-0"/>
+              <div>
+                <p class="text-sm text-white font-medium">App Rands</p>
+                <p class="text-[11px] text-slate-500">Balance: R{{ '%.2f'|format(current_user.wallet_balance) }}</p>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--border-2);background:var(--bg);">
+              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 flex-shrink-0"/>
+              <div>
+                <p class="text-sm text-white font-medium">Cash</p>
+                <p class="text-[11px] text-slate-500">Pay cash on delivery or pickup</p>
+              </div>
+            </label>
+            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--border-2);background:var(--bg);">
+              <input type="radio" name="payment_method" value="card" class="accent-teal-500 flex-shrink-0"/>
+              <div>
+                <p class="text-sm text-white font-medium">Card</p>
+                <p class="text-[11px] text-slate-500">Runner collects via card machine</p>
+              </div>
+            </label>
+          </div>
         </div>
 
         <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3">
@@ -267,7 +280,14 @@
 
 {% block scripts %}
 <script>
-function toggleDelivery(show) {
+function selectDelivery(label, show) {
+  // Highlight selected option
+  document.querySelectorAll('[name="wants_delivery"]').forEach(function(r) {
+    var l = r.closest('label');
+    if (l) { l.style.borderColor = 'var(--border-2)'; l.style.background = 'var(--bg)'; }
+  });
+  label.style.borderColor = 'var(--teal)';
+  label.style.background  = 'rgba(13,148,136,0.07)';
   var box = document.getElementById('delivery-address-box');
   var btn = document.getElementById('buy-btn');
   if (box) {
@@ -317,6 +337,18 @@ socket.on(_pairKey, function(data) {
   hist.scrollTop = hist.scrollHeight;
 });
 {% endif %}
+
+// Highlight payment option cards on click
+document.querySelectorAll('[name="payment_method"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('[name="payment_method"]').forEach(function(r) {
+      var l = r.closest('label');
+      if (l) { l.style.borderColor = 'var(--border-2)'; l.style.background = 'var(--bg)'; }
+    });
+    var sel = radio.closest('label');
+    if (sel) { sel.style.borderColor = 'var(--teal)'; sel.style.background = 'rgba(13,148,136,0.07)'; }
+  });
+});
 
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');

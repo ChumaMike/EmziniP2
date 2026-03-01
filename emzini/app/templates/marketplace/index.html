@@ -3,19 +3,19 @@
 {% block content %}
 
 <!-- Header -->
-<div class="flex items-start justify-between mb-5">
+<div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-5">
   <div>
     <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · PEER-TO-PEER</p>
     <h1 class="text-2xl font-bold text-white mt-1">Resident Market</h1>
     <p class="text-slate-400 text-sm mt-1">Buy, sell, and hire runners within the complex.</p>
   </div>
-  <div class="flex gap-2 flex-shrink-0">
+  <div class="flex-shrink-0">
     {% if view == 'tasks' %}
-    <a href="/jobs/new" class="btn-primary text-sm">
+    <a href="/jobs/new" class="btn-primary text-sm w-full sm:w-auto justify-center">
       <i class="fas fa-plus"></i> Post Task
     </a>
     {% else %}
-    <a href="/market/new" class="btn-primary text-sm">
+    <a href="/market/new" class="btn-primary text-sm w-full sm:w-auto justify-center">
       <i class="fas fa-plus"></i> List Item
     </a>
     {% endif %}
