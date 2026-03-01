@@ -14,55 +14,6 @@
   </p>
 </div>
 
-<!-- Creator card -->
-<div class="card p-8 mb-10 relative overflow-hidden">
-  <div class="absolute top-0 left-10 right-10 h-px" style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
-  <div class="flex flex-col md:flex-row items-start gap-8">
-
-    <!-- Avatar -->
-    <div class="flex-shrink-0">
-      <div class="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-bold font-mono"
-           style="background:linear-gradient(135deg,var(--teal-dim),var(--teal));color:#fff;">
-        CM
-      </div>
-    </div>
-
-    <!-- Info -->
-    <div class="flex-1">
-      <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">Creator & Developer</p>
-      <h2 class="text-2xl font-bold text-white mb-1">Chuma Mike</h2>
-      <p class="text-slate-400 mb-4 leading-relaxed max-w-xl">
-        Full-stack developer and resident-focused builder. Emzini was born from the frustration of living in a complex with zero digital infrastructure — no way to report issues, no local marketplace, no coordination. So I built one.
-      </p>
-
-      <!-- Contact links -->
-      <div class="flex flex-wrap gap-3">
-        <a href="https://linkedin.com/in/chuma-mike" target="_blank" rel="noopener"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
-           style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;"
-           onmouseover="this.style.background='rgba(99,102,241,0.22)'"
-           onmouseout="this.style.background='rgba(99,102,241,0.12)'">
-          <i class="fab fa-linkedin"></i> linkedin.com/in/chuma-mike
-        </a>
-        <a href="https://github.com/ChumaMike" target="_blank" rel="noopener"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
-           style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);color:#94a3b8;"
-           onmouseover="this.style.background='rgba(148,163,184,0.18)'"
-           onmouseout="this.style.background='rgba(148,163,184,0.1)'">
-          <i class="fab fa-github"></i> github.com/ChumaMike
-        </a>
-        <a href="mailto:nmeyiswa@gmail.com"
-           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
-           style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);"
-           onmouseover="this.style.background='rgba(13,148,136,0.2)'"
-           onmouseout="this.style.background='rgba(13,148,136,0.1)'">
-          <i class="fas fa-envelope"></i> nmeyiswa@gmail.com
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
 <!-- Features grid -->
 <div class="mb-14">
   <div class="text-center mb-8">
@@ -191,6 +142,46 @@
       <p class="text-slate-400 text-sm leading-relaxed">{{ desc }}</p>
     </div>
     {% endfor %}
+  </div>
+</div>
+
+<!-- Developer credit -->
+<div class="card p-8 mb-10 relative overflow-hidden">
+  <div class="absolute top-0 left-10 right-10 h-px" style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+  <div class="flex flex-col md:flex-row items-center gap-8">
+    <div class="flex-shrink-0">
+      <div class="w-20 h-20 rounded-2xl flex items-center justify-center text-2xl font-bold font-mono"
+           style="background:linear-gradient(135deg,var(--teal-dim),var(--teal));color:#fff;">
+        CM
+      </div>
+    </div>
+    <div class="flex-1 text-center md:text-left">
+      <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">Developed by</p>
+      <h2 class="text-2xl font-bold text-white mb-4">Chuma Mike</h2>
+      <div class="flex flex-wrap gap-3 justify-center md:justify-start">
+        <a href="https://linkedin.com/in/chuma-mike" target="_blank" rel="noopener"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;"
+           onmouseover="this.style.background='rgba(99,102,241,0.22)'"
+           onmouseout="this.style.background='rgba(99,102,241,0.12)'">
+          <i class="fab fa-linkedin"></i> linkedin.com/in/chuma-mike
+        </a>
+        <a href="https://github.com/ChumaMike" target="_blank" rel="noopener"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);color:#94a3b8;"
+           onmouseover="this.style.background='rgba(148,163,184,0.18)'"
+           onmouseout="this.style.background='rgba(148,163,184,0.1)'">
+          <i class="fab fa-github"></i> github.com/ChumaMike
+        </a>
+        <a href="mailto:nmeyiswa@gmail.com"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);"
+           onmouseover="this.style.background='rgba(13,148,136,0.2)'"
+           onmouseout="this.style.background='rgba(13,148,136,0.1)'">
+          <i class="fas fa-envelope"></i> nmeyiswa@gmail.com
+        </a>
+      </div>
+    </div>
   </div>
 </div>
 
