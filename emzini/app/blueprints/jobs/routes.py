@@ -37,6 +37,22 @@ def index():
                            needs_confirmation=needs_confirmation, mine_only=mine_only)
 
 
+@jobs_bp.route('/jobs/mine')
+@login_required
+def mine():
+    active = RunnerJob.query.filter(
+        RunnerJob.poster_id == current_user.id,
+        RunnerJob.status.in_(['open', 'claimed', 'pending_confirmation']),
+    ).order_by(RunnerJob.created_at.desc()).all()
+
+    history = RunnerJob.query.filter(
+        RunnerJob.poster_id == current_user.id,
+        RunnerJob.status.in_(['completed', 'cancelled']),
+    ).order_by(RunnerJob.created_at.desc()).all()
+
+    return render_template('jobs/mine.html', active=active, history=history)
+
+
 @jobs_bp.route('/jobs/new', methods=['GET', 'POST'])
 @login_required
 def new_job():
