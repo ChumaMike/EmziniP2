@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>{% block title %}Emzini{% endblock %}</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- HTMX -->
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Socket.IO -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+  <style>
+    :root {
+      --teal:     #0d9488;
+      --teal-lt:  #14b8a6;
+      --teal-dim: #0f766e;
+      --bg:       #060c0b;
+      --card:     #0c1714;
+      --border:   #162e28;
+      --border-2: #1e3d35;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+
+    .font-mono { font-family: 'DM Mono', monospace; }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 0.875rem;
+    }
+    .card-hover:hover {
+      border-color: var(--teal-dim);
+      transition: border-color 0.2s;
+    }
+
+    /* Navigation */
+    .nav-link {
+      color: #94a3b8;
+      border-radius: 0.5rem;
+      padding: 0.4rem 0.875rem;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .nav-link:hover { background: var(--border); color: #fff; }
+    .nav-link.active { background: var(--border-2); color: var(--teal-lt); }
+    .nav-link.active i { color: var(--teal-lt); }
+
+    /* Buttons */
+    .btn-primary {
+      background: var(--teal);
+      color: #fff;
+      font-weight: 600;
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      letter-spacing: 0.01em;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    .btn-primary:hover {
+      background: var(--teal-dim);
+      box-shadow: 0 0 18px rgba(13,148,136,0.35);
+    }
+    .btn-secondary {
+      background: var(--card);
+      color: #cbd5e1;
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.8125rem;
+      border: 1px solid var(--border-2);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      transition: all 0.15s;
+    }
+    .btn-secondary:hover { background: var(--border); color: #fff; border-color: var(--teal-dim); }
+
+    /* Inputs */
+    input, textarea, select {
+      background: var(--bg) !important;
+      border: 1px solid var(--border-2) !important;
+      color: #f1f5f9 !important;
+      border-radius: 0.5rem;
+      padding: 0.6875rem 1rem;
+      width: 100%;
+      font-size: 0.875rem;
+      transition: border-color 0.15s;
+      font-family: 'Inter', sans-serif;
+    }
+    input:focus, textarea:focus, select:focus {
+      outline: none;
+      border-color: var(--teal) !important;
+      box-shadow: 0 0 0 2px rgba(13,148,136,0.2);
+    }
+    input::placeholder, textarea::placeholder { color: #475569; }
+
+    /* Status badges */
+    .badge-open       { background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.3); color: #2dd4bf; }
+    .badge-in-progress{ background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
+    .badge-resolved   { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+    .badge-claimed    { background: rgba(250,204,21,0.1); border: 1px solid rgba(250,204,21,0.3); color: #fbbf24; }
+    .badge-completed  { background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.3); color: #818cf8; }
+    .badge-cancelled, .badge-closed { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+    .badge-available  { background: rgba(20,184,166,0.1); border: 1px solid rgba(20,184,166,0.3); color: #2dd4bf; }
+    .badge-sold       { background: rgba(100,116,139,0.1); border: 1px solid rgba(100,116,139,0.3); color: #94a3b8; }
+
+    /* Glow effects */
+    .glow-teal { box-shadow: 0 0 20px rgba(13,148,136,0.4); }
+
+    /* Severity indicators */
+    .sev-critical { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.3); color: #f87171; }
+    .sev-high     { background: rgba(249,115,22,0.12); border: 1px solid rgba(249,115,22,0.3); color: #fb923c; }
+    .sev-medium   { background: rgba(234,179,8,0.12);  border: 1px solid rgba(234,179,8,0.3);  color: #facc15; }
+    .sev-low      { background: rgba(100,116,139,0.12);border: 1px solid rgba(100,116,139,0.3);color: #94a3b8; }
+
+    /* Pulse dot */
+    @keyframes pulse-ring { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.6;transform:scale(1.4)} }
+    .pulse-dot { animation: pulse-ring 1.8s infinite; }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+    /* Top bar line on cards */
+    .card-accent::before {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--teal), transparent);
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+<!-- ─── TOP HEADER ─── -->
+<header class="sticky top-0 z-50 border-b" style="background:rgba(6,12,11,0.92);border-color:var(--border);backdrop-filter:blur(12px);">
+  <div class="max-w-6xl mx-auto px-5">
+    <div class="flex items-center justify-between h-[58px]">
+
+      <!-- Brand -->
+      <a href="/" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:var(--teal);">
+          <i class="fas fa-house text-white text-sm"></i>
+        </div>
+        <div>
+          <span class="font-bold text-white text-base tracking-tight">Emzini</span>
+          <span class="text-[10px] font-mono ml-1.5" style="color:var(--teal-lt);">RESIDENCE</span>
+        </div>
+      </a>
+
+      {% if current_user.is_authenticated %}
+      <!-- Nav Links — Desktop -->
+      <nav class="hidden md:flex items-center gap-1">
+        <a href="/"
+           class="nav-link {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+          <i class="fas fa-gauge-high"></i> Dashboard
+        </a>
+        <a href="/civic"
+           class="nav-link {% if 'civic' in request.endpoint %}active{% endif %}">
+          <i class="fas fa-triangle-exclamation"></i> Community
+        </a>
+        <a href="/docs"
+           class="nav-link {% if 'docs' in request.endpoint %}active{% endif %}">
+          <i class="fas fa-file-lines"></i> Documents
+        </a>
+        <a href="/market"
+           class="nav-link {% if 'marketplace' in request.endpoint %}active{% endif %}">
+          <i class="fas fa-shop"></i> Market
+        </a>
+        <a href="/messages"
+           class="nav-link {% if 'messages' in request.endpoint %}active{% endif %}">
+          <i class="fas fa-comments"></i> Connect
+        </a>
+        {% if current_user.is_admin %}
+        <a href="/admin"
+           class="nav-link {% if 'admin' in request.endpoint %}active{% endif %}"
+           style="color:#f43f5e;">
+          <i class="fas fa-shield-halved"></i> Admin
+        </a>
+        {% endif %}
+      </nav>
+
+      <!-- User pill -->
+      <div class="flex items-center gap-2">
+        <a href="/profile" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all"
+           style="background:var(--border);color:#94a3b8;border:1px solid var(--border-2);"
+           onmouseover="this.style.borderColor='var(--teal-dim)';this.style.color='#fff'"
+           onmouseout="this.style.borderColor='var(--border-2)';this.style.color='#94a3b8'">
+          {% if current_user.is_runner and current_user.runner_active %}
+          <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--teal-lt);flex-shrink:0;"></span>
+          {% else %}
+          <i class="fas fa-circle-user" style="color:var(--teal-lt);"></i>
+          {% endif %}
+          {{ current_user.username }}
+        </a>
+        <a href="/logout" class="btn-secondary text-xs py-1.5 px-3">
+          <i class="fas fa-right-from-bracket"></i>
+          <span class="hidden sm:inline">Sign out</span>
+        </a>
+      </div>
+
+      {% else %}
+      <div class="flex gap-2">
+        <a href="/login"  class="btn-secondary text-xs py-2 px-4">Sign in</a>
+        <a href="/register" class="btn-primary text-xs py-2 px-4">Join Emzini</a>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</header>
+
+<!-- Mobile nav bar -->
+{% if current_user.is_authenticated %}
+<nav class="md:hidden flex gap-1 px-4 py-2 border-b overflow-x-auto" style="background:var(--card);border-color:var(--border);">
+  <a href="/"      class="nav-link flex-shrink-0 {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
+    <i class="fas fa-gauge-high"></i> Dashboard
+  </a>
+  <a href="/civic" class="nav-link flex-shrink-0 {% if 'civic' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-triangle-exclamation"></i> Community
+  </a>
+  <a href="/docs" class="nav-link flex-shrink-0 {% if 'docs' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-file-lines"></i> Documents
+  </a>
+  <a href="/market" class="nav-link flex-shrink-0 {% if 'marketplace' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-shop"></i> Market
+  </a>
+  <a href="/messages" class="nav-link flex-shrink-0 {% if 'messages' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-comments"></i> Connect
+  </a>
+  {% if current_user.is_admin %}
+  <a href="/admin" class="nav-link flex-shrink-0" style="color:#f43f5e;">
+    <i class="fas fa-shield-halved"></i> Admin
+  </a>
+  {% endif %}
+</nav>
+{% endif %}
+
+<!-- Flash messages -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="max-w-6xl mx-auto px-5 pt-4 space-y-2">
+  {% for category, message in messages %}
+  <div class="flex items-center justify-between rounded-lg px-4 py-3 text-sm border-l-2
+    {% if category == 'success' %}border-teal-500 bg-teal-900/20 text-teal-300
+    {% elif category in ['danger','error'] %}border-red-500 bg-red-900/20 text-red-300
+    {% else %}border-slate-500 bg-slate-900/20 text-slate-300{% endif %}">
+    <span>{{ message }}</span>
+    <button onclick="this.parentElement.remove()" class="ml-4 opacity-50 hover:opacity-100 text-lg leading-none">&times;</button>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<!-- Main -->
+<main class="flex-1 max-w-6xl mx-auto w-full px-5 py-7">
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="border-t mt-10 py-7" style="border-color:var(--border);">
+  <div class="max-w-6xl mx-auto px-5 flex flex-col sm:flex-row items-center justify-between gap-3">
+    <div class="flex items-center gap-2.5">
+      <div class="w-6 h-6 rounded flex items-center justify-center" style="background:var(--teal);">
+        <i class="fas fa-house text-white text-[10px]"></i>
+      </div>
+      <span class="font-bold text-white text-sm">Emzini</span>
+      <span class="text-slate-600 text-xs">Residential Super App</span>
+    </div>
+    <span class="font-mono text-[10px] text-slate-700">© 2026 EMZINI · ALL RESIDENTS</span>
+  </div>
+</footer>
+
+<!-- SocketIO -->
+<script>
+  const socket = io();
+  socket.on('connect', () => console.log('[Emzini] Live connection established'));
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

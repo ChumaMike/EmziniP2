@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}List an Item — Emzini{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <div class="mb-6">
+    <a href="/market" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i> Back to Market
+    </a>
+    <h1 class="text-2xl font-bold text-white mt-4">List an Item</h1>
+    <p class="text-slate-400 text-sm mt-1">Sell directly to your neighbours — no couriers, no fees.</p>
+  </div>
+
+  <div class="card p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Item Title</label>
+        <input type="text" name="title"
+               placeholder="e.g. Samsung TV 43 inch — perfect condition"
+               required maxlength="200"/>
+      </div>
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Description</label>
+        <textarea name="description" rows="4"
+                  placeholder="Describe your item — condition, age, any accessories included, collection details..."
+                  required></textarea>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Asking Price (R)</label>
+          <input type="number" name="price" min="1" step="0.01" placeholder="500.00" required/>
+        </div>
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Category</label>
+          <select name="category">
+            {% for cat in categories %}
+            <option value="{{ cat }}">{{ cat|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Stock Quantity</label>
+          <input type="number" name="stock_qty" min="1" value="1" placeholder="1"/>
+        </div>
+        <div class="flex items-end pb-1">
+          <label class="flex items-center gap-2 cursor-pointer text-sm text-slate-300">
+            <input type="checkbox" name="allows_delivery" checked class="accent-teal-500 w-4 h-4"/>
+            Allow runner delivery
+          </label>
+        </div>
+      </div>
+
+      <!-- Photo upload -->
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+          Photo <span class="normal-case text-slate-600">(optional · jpg/png/webp · max 8 MB)</span>
+        </label>
+
+        <!-- Drop zone -->
+        <label id="drop-zone"
+               class="flex flex-col items-center justify-center gap-2 rounded-lg cursor-pointer transition-all"
+               style="border:2px dashed var(--border-2);background:var(--border);min-height:120px;"
+               onmouseover="this.style.borderColor='var(--teal)'"
+               onmouseout="this.style.borderColor='var(--border-2)'">
+          <div id="drop-placeholder" class="text-center py-6">
+            <i class="fas fa-camera text-2xl mb-2 block text-slate-600"></i>
+            <p class="text-slate-500 text-xs">Click to choose a photo</p>
+            <p class="text-slate-700 text-[10px] mt-0.5">or drag and drop here</p>
+          </div>
+          <!-- Preview image (hidden until file chosen) -->
+          <img id="photo-preview"
+               class="hidden w-full rounded-lg object-cover"
+               style="max-height:220px;"
+               alt="Preview"/>
+          <input id="photo-input" type="file" name="photo" accept="image/*" class="hidden"
+                 onchange="previewPhoto(this)"/>
+        </label>
+
+        <!-- Clear button -->
+        <button type="button" id="clear-photo"
+                class="hidden mt-2 text-[11px] font-mono text-slate-500 hover:text-red-400 transition"
+                onclick="clearPhoto()">
+          <i class="fas fa-xmark mr-1"></i>Remove photo
+        </button>
+      </div>
+
+      <!-- Info note -->
+      <div class="rounded-lg p-4 text-xs" style="background:var(--border);border:1px solid var(--border-2);">
+        <div class="flex items-start gap-2.5">
+          <i class="fas fa-circle-info mt-0.5 flex-shrink-0" style="color:var(--teal-lt);"></i>
+          <p class="text-slate-400 leading-relaxed">
+            Payment is handled directly between residents via the Emzini wallet. Once someone buys, the funds transfer instantly and the listing closes.
+          </p>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary w-full justify-center py-3">
+        <i class="fas fa-shop"></i> Post Listing
+      </button>
+
+    </form>
+  </div>
+</div>
+
+{% block scripts %}
+<script>
+function previewPhoto(input) {
+  var file = input.files[0];
+  if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var preview = document.getElementById('photo-preview');
+    var placeholder = document.getElementById('drop-placeholder');
+    preview.src = e.target.result;
+    preview.classList.remove('hidden');
+    placeholder.classList.add('hidden');
+    document.getElementById('clear-photo').classList.remove('hidden');
+    document.getElementById('drop-zone').style.borderColor = 'var(--teal)';
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPhoto() {
+  var input = document.getElementById('photo-input');
+  input.value = '';
+  document.getElementById('photo-preview').classList.add('hidden');
+  document.getElementById('drop-placeholder').classList.remove('hidden');
+  document.getElementById('clear-photo').classList.add('hidden');
+  document.getElementById('drop-zone').style.borderColor = 'var(--border-2)';
+}
+
+// Drag-and-drop support
+var zone = document.getElementById('drop-zone');
+zone.addEventListener('dragover', function(e) {
+  e.preventDefault();
+  zone.style.borderColor = 'var(--teal)';
+});
+zone.addEventListener('dragleave', function() {
+  if (!document.getElementById('photo-input').files.length)
+    zone.style.borderColor = 'var(--border-2)';
+});
+zone.addEventListener('drop', function(e) {
+  e.preventDefault();
+  var files = e.dataTransfer.files;
+  if (files.length) {
+    document.getElementById('photo-input').files = files;
+    previewPhoto(document.getElementById('photo-input'));
+  }
+});
+</script>
+{% endblock %}
+{% endblock %}

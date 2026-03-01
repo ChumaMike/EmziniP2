@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}{{ goal.title }} — Emzini{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <div class="mb-6">
+    <a href="/goals" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i> Back to Goals
+    </a>
+  </div>
+
+  <!-- Goal header card -->
+  <div class="card p-6 mb-5 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+    <div class="flex items-start justify-between mb-3">
+      <div>
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-md"
+              style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+          {{ goal.category }}
+        </span>
+        <h1 class="text-xl font-bold text-white mt-2">{{ goal.title }}</h1>
+        {% if goal.description %}
+        <p class="text-slate-400 text-sm mt-1 leading-relaxed">{{ goal.description }}</p>
+        {% endif %}
+      </div>
+      <span class="text-3xl font-bold font-mono flex-shrink-0 ml-4"
+            style="color:{% if goal.is_completed %}#6366f1{% else %}var(--teal-lt){% endif %};">
+        {{ goal.progress }}%
+      </span>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="w-full h-2 rounded-full overflow-hidden mb-3" style="background:var(--border-2);">
+      <div class="h-full rounded-full transition-all"
+           style="background:{% if goal.is_completed %}#6366f1{% elif goal.progress >= 50 %}var(--teal){% else %}#f59e0b{% endif %};
+                  width:{{ goal.progress }}%"></div>
+    </div>
+
+    <div class="flex items-center gap-4 text-[11px] font-mono text-slate-600">
+      {% if goal.target_date %}
+      <span><i class="fas fa-calendar-days mr-1"></i>{{ goal.target_date.strftime('%d %b %Y') }}</span>
+      {% endif %}
+      <span><i class="fas fa-clock mr-1"></i>Created {{ goal.created_at.strftime('%d %b %Y') }}</span>
+      {% if goal.is_completed %}
+      <span class="text-indigo-400"><i class="fas fa-circle-check mr-1"></i>Completed</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Milestones -->
+  <div class="card p-6 mb-5">
+    <h2 class="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+      <i class="fas fa-list-check text-xs text-slate-500"></i>
+      Milestones
+      <span class="font-mono text-xs text-slate-600">
+        ({{ goal.milestones|selectattr('is_completed')|list|length }}/{{ goal.milestones|length }})
+      </span>
+    </h2>
+
+    <div class="space-y-2 mb-5">
+      {% for ms in goal.milestones %}
+      <form method="POST" action="/goals/{{ goal.id }}/toggle-milestone/{{ ms.id }}">
+        <button type="submit" class="w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all"
+                style="background:var(--border);border:1px solid var(--border-2);"
+                onmouseover="this.style.borderColor='var(--teal-dim)'"
+                onmouseout="this.style.borderColor='var(--border-2)'">
+          <div class="w-4 h-4 rounded flex items-center justify-center flex-shrink-0 transition-all"
+               style="{% if ms.is_completed %}background:var(--teal);{% else %}background:var(--border-2);border:1.5px solid #334155;{% endif %}">
+            {% if ms.is_completed %}
+            <i class="fas fa-check text-white text-[9px]"></i>
+            {% endif %}
+          </div>
+          <span class="text-sm flex-1 {% if ms.is_completed %}line-through text-slate-500{% else %}text-slate-200{% endif %}">
+            {{ ms.title }}
+          </span>
+        </button>
+      </form>
+      {% else %}
+      <p class="text-slate-600 text-xs font-mono text-center py-3">No milestones yet — add one below</p>
+      {% endfor %}
+    </div>
+
+    <!-- Add milestone -->
+    {% if not goal.is_completed %}
+    <form method="POST" action="/goals/{{ goal.id }}/add-milestone" class="flex gap-2">
+      <input type="text" name="title" placeholder="Add a milestone…" required class="flex-1" style="padding:0.5rem 0.75rem;"/>
+      <button type="submit" class="btn-primary px-4 py-2 text-sm"><i class="fas fa-plus"></i></button>
+    </form>
+    {% endif %}
+  </div>
+
+  <!-- Complete / Delete -->
+  {% if not goal.is_completed %}
+  <div class="flex gap-3">
+    <form method="POST" action="/goals/{{ goal.id }}/complete" class="flex-1">
+      <button type="submit" class="btn-primary w-full justify-center py-3"
+              onclick="return confirm('Mark this goal complete?')"
+              style="background:#6366f1;">
+        <i class="fas fa-trophy"></i> Mark Complete (+10 rep)
+      </button>
+    </form>
+    <form method="POST" action="/goals/{{ goal.id }}/delete">
+      <button type="submit" class="btn-secondary py-3 px-5"
+              style="color:#f87171;border-color:rgba(248,113,113,0.3);"
+              onclick="return confirm('Delete this goal?')">
+        <i class="fas fa-trash-can"></i>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="status" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All statuses</option>
+    <option value="pending"  {% if status_f == 'pending'  %}selected{% endif %}>Pending</option>
+    <option value="approved" {% if status_f == 'approved' %}selected{% endif %}>Approved</option>
+    <option value="rejected" {% if status_f == 'rejected' %}selected{% endif %}>Rejected</option>
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.runners') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ profiles|length }} application(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Applicant</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Details</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Vehicle</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Stats</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Applied</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Status</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in profiles %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+
+          <!-- Applicant -->
+          <td class="px-4 py-3 align-middle">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center text-[10px] font-bold font-mono"
+                   style="background:var(--border-2);color:var(--teal-lt);">
+                {{ p.user.username[:2].upper() }}
+              </div>
+              <div>
+                <p class="text-slate-200 font-medium">@{{ p.user.username }}</p>
+                <p class="text-[10px] font-mono text-slate-600">{{ p.full_name }}</p>
+              </div>
+            </div>
+          </td>
+
+          <!-- Details -->
+          <td class="px-4 py-3 align-middle">
+            <p class="text-slate-400">{{ p.phone }}</p>
+            <p class="font-mono text-[10px] text-slate-600">ID: {{ p.id_number[:4] }}****</p>
+            {% if p.bio %}
+            <p class="text-slate-500 text-[10px] mt-0.5 max-w-[180px] truncate">{{ p.bio }}</p>
+            {% endif %}
+          </td>
+
+          <!-- Vehicle -->
+          <td class="px-4 py-3 align-middle">
+            <span class="font-mono text-xs capitalize">
+              {% if p.vehicle == 'foot' %}<i class="fas fa-person-walking mr-1 text-slate-500"></i>
+              {% elif p.vehicle == 'bicycle' %}<i class="fas fa-bicycle mr-1 text-slate-500"></i>
+              {% elif p.vehicle == 'motorbike' %}<i class="fas fa-motorcycle mr-1 text-slate-500"></i>
+              {% else %}<i class="fas fa-car mr-1 text-slate-500"></i>{% endif %}
+              {{ p.vehicle }}
+            </span>
+          </td>
+
+          <!-- Stats -->
+          <td class="px-4 py-3 align-middle">
+            <p class="font-mono text-[11px] text-slate-400">{{ p.total_deliveries }} deliveries</p>
+            <p class="font-mono text-[11px]" style="color:var(--teal-lt);">R{{ '%.2f'|format(p.total_earned) }} earned</p>
+          </td>
+
+          <!-- Applied -->
+          <td class="px-4 py-3 align-middle font-mono text-slate-500 whitespace-nowrap">
+            {{ p.created_at.strftime('%d %b %Y') }}
+            {% if p.approved_at %}
+            <br><span class="text-green-500 text-[10px]">Approved {{ p.approved_at.strftime('%d %b') }}</span>
+            {% endif %}
+          </td>
+
+          <!-- Status -->
+          <td class="px-4 py-3 align-middle text-center">
+            <span class="font-mono text-[10px] px-2 py-0.5 rounded uppercase
+                         {% if p.status == 'approved' %}text-green-400 bg-green-900/20 border border-green-800
+                         {% elif p.status == 'rejected' %}text-red-400 bg-red-900/20 border border-red-800
+                         {% else %}text-amber-400 bg-amber-900/20 border border-amber-800{% endif %}">
+              {{ p.status }}
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="px-4 py-3 align-middle text-center">
+            <div class="flex gap-1 justify-center">
+              {% if p.status != 'approved' %}
+              <form method="POST" action="{{ url_for('admin.approve_runner', pid=p.id) }}">
+                <button class="btn-primary text-[10px] px-2 py-1">Approve</button>
+              </form>
+              {% endif %}
+              {% if p.status != 'rejected' %}
+              <form method="POST" action="{{ url_for('admin.reject_runner', pid=p.id) }}">
+                <button class="btn-secondary text-[10px] px-2 py-1 text-red-400">Reject</button>
+              </form>
+              {% endif %}
+            </div>
+          </td>
+
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="px-4 py-12 text-center text-slate-500 font-mono">No runner applications yet</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}

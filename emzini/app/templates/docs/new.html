@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}New Document — Emzini{% endblock %}
+{% block content %}
+
+<div class="mb-7">
+  <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · DOCUMENTS · NEW</p>
+  <h1 class="text-2xl font-bold text-white mt-1">New Document</h1>
+  <p class="text-slate-400 text-sm mt-1">Choose a document type and give it a title.</p>
+</div>
+
+<div class="card p-6 max-w-2xl relative overflow-hidden">
+  <div class="absolute top-0 left-8 right-8 h-px"
+       style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+  <form method="POST" action="/docs/new">
+
+    <!-- Title -->
+    <div class="mb-6">
+      <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Document Title</label>
+      <input type="text" name="title" required maxlength="120"
+             placeholder="e.g. Software Engineer Application — Acme Corp"/>
+    </div>
+
+    <!-- Type selection -->
+    <div class="mb-7">
+      <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-3">Document Type</label>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {% for key, info in doc_types.items() %}
+        <label class="cursor-pointer">
+          <input type="radio" name="doc_type" value="{{ key }}" class="sr-only peer" required
+                 {% if loop.first %}checked{% endif %}>
+          <div class="card p-4 flex items-center gap-3 peer-checked:border-teal-600 transition-all"
+               style="border-color:var(--border-2);">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+                 style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);">
+              <i class="fas {{ info.icon }} text-sm" style="color:var(--teal-lt);"></i>
+            </div>
+            <div>
+              <p class="text-white font-medium text-sm">{{ info.label }}</p>
+              <p class="text-slate-500 text-xs">{{ info.fields | length }} fields</p>
+            </div>
+          </div>
+        </label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="flex gap-3">
+      <button type="submit" class="btn-primary"><i class="fas fa-arrow-right"></i> Continue to Edit</button>
+      <a href="/docs" class="btn-secondary">Cancel</a>
+    </div>
+  </form>
+</div>
+
+<style>
+  input[type="radio"]:checked + div {
+    border-color: var(--teal) !important;
+    background: rgba(13,148,136,0.05);
+  }
+</style>
+
+{% endblock %}

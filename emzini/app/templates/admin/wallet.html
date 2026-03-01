@@ -1,0 +1,98 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Liquidity</p>
+    <h3 class="text-xl font-bold text-green-400">R{{ '%.2f'|format(total_liquidity) }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Across all wallets</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Credits</p>
+    <h3 class="text-xl font-bold" style="color:var(--teal-lt);">R{{ '%.2f'|format(total_credits) }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">All-time deposits</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Debits</p>
+    <h3 class="text-xl font-bold text-red-400">R{{ '%.2f'|format(total_debits) }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">All-time withdrawals</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Escrow Locked</p>
+    <h3 class="text-xl font-bold text-amber-400">R{{ '%.2f'|format(total_escrow) }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Jobs + bounties</p>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="type" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All types</option>
+    {% for t in ['credit','debit','escrow_lock','escrow_release'] %}
+    <option value="{{ t }}" {% if tx_type == t %}selected{% endif %}>{{ t.replace('_',' ')|title }}</option>
+    {% endfor %}
+  </select>
+  <select name="user_id" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All users</option>
+    {% for u in all_users %}
+    <option value="{{ u.id }}" {% if uid == u.id %}selected{% endif %}>@{{ u.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.wallet_txs') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ txs|length }} tx(s) shown</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">User</th>
+          <th class="text-right text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Amount</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Type</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Reference</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for tx in txs %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ tx.id }}</td>
+          <td class="px-4 py-3 align-top font-mono text-slate-300">
+            {% if tx.user %}@{{ tx.user.username }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top text-right font-mono font-bold
+            {% if tx.tx_type == 'credit' or tx.tx_type == 'escrow_release' %}text-green-400
+            {% elif tx.tx_type == 'debit' %}text-red-400
+            {% else %}text-amber-400{% endif %}">
+            {% if tx.amount >= 0 %}+{% endif %}R{{ '%.2f'|format(tx.amount) }}
+          </td>
+          <td class="px-4 py-3 align-top">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono
+              {% if tx.tx_type == 'credit' %}badge-available
+              {% elif tx.tx_type == 'debit' %}badge-cancelled
+              {% elif tx.tx_type == 'escrow_lock' %}badge-claimed
+              {% else %}badge-completed{% endif %}">
+              {{ tx.tx_type.replace('_',' ')|upper }}
+            </span>
+          </td>
+          <td class="px-4 py-3 align-top text-slate-400" style="max-width:260px;">
+            <span class="truncate block">{{ tx.reference or '—' }}</span>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ tx.created_at.strftime('%d %b %y %H:%M') }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No transactions found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

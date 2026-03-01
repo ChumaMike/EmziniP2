@@ -1,0 +1,85 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary -->
+<div class="card p-4 mb-6 flex items-center justify-between">
+  <div>
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Total Log Entries</p>
+    <h3 class="text-2xl font-bold text-white mt-1">{{ total_logs }}</h3>
+  </div>
+  <i class="fas fa-list-ul text-3xl text-slate-700"></i>
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="action" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All action types</option>
+    {% for at in action_types %}
+    <option value="{{ at }}" {% if action_type == at %}selected{% endif %}>{{ at }}</option>
+    {% endfor %}
+  </select>
+  <select name="user_id" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All users</option>
+    {% for u in all_users %}
+    <option value="{{ u.id }}" {% if uid == u.id %}selected{% endif %}>@{{ u.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.logs') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ logs|length }} log(s) shown (max 500)</span>
+</form>
+
+<!-- Action type chips -->
+<div class="flex flex-wrap gap-1.5 mb-5">
+  {% for at in action_types %}
+  <a href="{{ url_for('admin.logs', action=at) }}"
+     class="px-2 py-0.5 rounded-full text-[10px] font-mono transition"
+     style="background:{% if action_type == at %}rgba(244,63,94,0.2){% else %}var(--border-2){% endif %};
+            color:{% if action_type == at %}#f87171{% else %}#94a3b8{% endif %};">
+    {{ at }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Action</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Description</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">User</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Timestamp</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ log.id }}</td>
+          <td class="px-4 py-3 align-top">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono whitespace-nowrap"
+                  style="background:rgba(244,63,94,0.08);color:#f87171;border:1px solid rgba(244,63,94,0.15);">
+              {{ log.action_type }}
+            </span>
+          </td>
+          <td class="px-4 py-3 align-top text-slate-300" style="max-width:380px;">
+            {{ log.description }}
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-400">
+            {% if log.user %}@{{ log.user.username }}{% else %}<span class="text-slate-600">system</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ log.created_at.strftime('%d %b %y %H:%M:%S') }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No logs found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

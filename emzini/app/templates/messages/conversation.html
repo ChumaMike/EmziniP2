@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Chat with @{{ other.username }} — Emzini{% endblock %}
+{% block content %}
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-5" style="min-height:calc(100vh - 180px);">
+
+  <!-- Sidebar: conversation list -->
+  <div class="lg:col-span-1 space-y-2">
+    <div class="flex items-center justify-between mb-3">
+      <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Conversations</p>
+      <a href="{{ url_for('messages.index', tab='chats') }}"
+         class="text-[10px] font-mono text-slate-600 hover:text-teal-400 transition">
+        <i class="fas fa-arrow-left mr-1"></i>All
+      </a>
+    </div>
+    {% for c in convs %}
+    {% set cu = c.other_user(current_user.id) %}
+    {% set last = c.last_message() %}
+    {% set unread = c.messages | selectattr('sender_id', '!=', current_user.id) | selectattr('is_read', 'eq', false) | list | length %}
+    <a href="{{ url_for('messages.conversation', conv_id=c.id) }}"
+       class="flex items-start gap-3 p-3 rounded-xl transition block"
+       style="{{ 'background:var(--teal);' if c.id == conv.id else 'background:var(--card);border:1px solid var(--border);' }}">
+      <div class="w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0"
+           style="background:{% if c.id == conv.id %}rgba(255,255,255,0.2){% else %}var(--border-2){% endif %};color:{% if c.id == conv.id %}#fff{% else %}var(--teal-lt){% endif %};">
+        {{ cu.username[:2].upper() }}
+      </div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center justify-between">
+          <span class="font-mono text-xs {{ 'text-white font-bold' if c.id == conv.id else 'text-slate-300' }}">
+            @{{ cu.username }}
+          </span>
+          {% if unread and c.id != conv.id %}
+          <span class="text-[10px] font-mono font-bold rounded-full px-1.5 py-0.5"
+                style="background:var(--teal);color:#fff;">{{ unread }}</span>
+          {% endif %}
+        </div>
+        {% if last %}
+        <p class="text-[11px] truncate mt-0.5 {{ 'text-teal-100' if c.id == conv.id else 'text-slate-500' }}">
+          {{ last.content[:40] }}
+        </p>
+        {% endif %}
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+
+  <!-- Chat pane -->
+  <div class="lg:col-span-2 flex flex-col card" style="max-height:calc(100vh - 180px);">
+
+    <!-- Header -->
+    <div class="flex items-center gap-3 p-4 border-b flex-shrink-0" style="border-color:var(--border-2);">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center text-[11px] font-bold font-mono"
+           style="background:var(--teal);color:#fff;">
+        {{ other.username[:2].upper() }}
+      </div>
+      <div>
+        <p class="text-white font-semibold text-sm">@{{ other.username }}</p>
+        {% if context_label %}
+        <p class="text-[11px] font-mono text-slate-500">{{ context_label }}</p>
+        {% endif %}
+      </div>
+      {% if other.is_runner and other.runner_active %}
+      <span class="ml-auto flex items-center gap-1.5 text-[11px] font-mono" style="color:var(--teal-lt);">
+        <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--teal-lt);"></span>
+        Runner online
+      </span>
+      {% endif %}
+    </div>
+
+    <!-- Message history -->
+    <div id="conv-history" class="flex-1 overflow-y-auto p-4 space-y-3">
+      {% for msg in conv.messages %}
+      {% include 'messages/_conv_message.html' %}
+      {% else %}
+      <p class="text-center text-slate-600 text-xs font-mono py-8">
+        Start of your conversation with @{{ other.username }}
+      </p>
+      {% endfor %}
+    </div>
+
+    <!-- Send form -->
+    <div class="p-4 border-t flex-shrink-0" style="border-color:var(--border-2);">
+      <form hx-post="{{ url_for('messages.send_in_conversation', conv_id=conv.id) }}"
+            hx-target="#conv-history"
+            hx-swap="beforeend"
+            class="flex gap-2"
+            id="conv-form">
+        <input type="text" name="content"
+               placeholder="Message @{{ other.username }}…"
+               class="flex-1 text-sm" required autocomplete="off"/>
+        <button type="submit" class="btn-primary text-sm px-4">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Scroll to bottom on load
+var hist = document.getElementById('conv-history');
+if (hist) hist.scrollTop = hist.scrollHeight;
+
+// Clear form + scroll after HTMX send
+var form = document.getElementById('conv-form');
+if (form) {
+  form.addEventListener('htmx:afterRequest', function() {
+    form.querySelector('input[name="content"]').value = '';
+    if (hist) hist.scrollTop = hist.scrollHeight;
+  });
+}
+
+// Real-time incoming messages from other party
+socket.on('conv_{{ conv.id }}', function(d) {
+  if (d.sender_id === {{ current_user.id }}) return; // already appended via HTMX
+  var div = document.createElement('div');
+  div.className = 'flex gap-2 items-end';
+  div.innerHTML =
+    '<div class="w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:var(--border-2);color:var(--teal-lt);">' +
+      escHtml(d.sender).substring(0,2).toUpperCase() +
+    '</div>' +
+    '<div style="max-width:70%;">' +
+      '<p class="text-[10px] font-mono mb-1" style="color:var(--teal-lt);">@' + escHtml(d.sender) + '</p>' +
+      '<div class="rounded-2xl rounded-bl-sm px-3 py-2 text-sm" style="background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;">' +
+        escHtml(d.content) +
+      '</div>' +
+      '<p class="text-[10px] font-mono text-slate-600 mt-1">' + d.time + '</p>' +
+    '</div>';
+  if (hist) { hist.appendChild(div); hist.scrollTop = hist.scrollHeight; }
+});
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,226 @@
+====================================================
+  EMZINI — DEPLOYMENT GUIDE
+====================================================
+
+RECOMMENDED: Deploy on a VPS (Hetzner or DigitalOcean)
+----------------------------------------------------
+Cost: ~R80–120/month (Hetzner CX22, 2 CPU / 4 GB RAM)
+Why: SQLite stays on disk naturally, uploads persist,
+     SocketIO works perfectly, full control.
+     You SSH in to update — no complicated pipelines needed.
+
+QUICK ALTERNATIVE: Railway.app
+- Connects to your GitHub repo
+- Auto-deploys on every git push (zero-downtime)
+- Has a PostgreSQL add-on (swap DATABASE_URL, SQLite not needed)
+- Costs ~$5–10/month depending on usage
+- See Section B below
+
+
+====================================================
+  SECTION A — VPS SETUP (Hetzner / DigitalOcean)
+====================================================
+
+1. CREATE SERVER
+   - Hetzner: hetzner.com → Cloud → New Project → CX22
+   - OS: Ubuntu 24.04
+   - Add your SSH key
+   - Note the server IP
+
+2. CONNECT & INSTALL
+   ssh root@YOUR_SERVER_IP
+
+   apt update && apt upgrade -y
+   apt install -y python3 python3-pip python3-venv nginx git
+
+3. UPLOAD YOUR CODE
+   On your local machine:
+     cd /home/wtc/Music/Projs/Res/EmziniP2/emzini
+     git init
+     git add .
+     git commit -m "initial deploy"
+
+   Create a private GitHub repo, then:
+     git remote add origin https://github.com/YOU/emzini.git
+     git push -u origin main
+
+   On the server:
+     git clone https://github.com/YOU/emzini.git /srv/emzini
+     cd /srv/emzini
+
+4. SET UP PYTHON ENVIRONMENT
+   python3 -m venv venv
+   source venv/bin/activate
+   pip install -r requirements.txt
+
+5. CREATE .env FILE ON SERVER
+   nano /srv/emzini/.env
+
+   Paste and fill in:
+     SECRET_KEY=<generate: python3 -c "import secrets; print(secrets.token_hex(32))">
+     GEMINI_API_KEY=<your key>
+     ADMIN_USERNAME=<your admin username>
+     ADMIN_PASSWORD=<strong password>
+     DATABASE_URL=sqlite:///emzini.db
+     FLASK_DEBUG=false
+
+   Ctrl+X to save. IMPORTANT: this file is in .gitignore — it never goes to GitHub.
+
+6. CREATE PERSISTENT UPLOADS DIRECTORY
+   mkdir -p /srv/emzini/app/static/uploads/market
+
+7. RUN AS A SYSTEM SERVICE (auto-restarts on crash/reboot)
+   nano /etc/systemd/system/emzini.service
+
+   Paste:
+   ---
+   [Unit]
+   Description=Emzini Flask App
+   After=network.target
+
+   [Service]
+   User=root
+   WorkingDirectory=/srv/emzini
+   EnvironmentFile=/srv/emzini/.env
+   ExecStart=/srv/emzini/venv/bin/gunicorn --worker-class eventlet -w 1 --bind 0.0.0.0:5000 run:app
+   Restart=always
+   RestartSec=5
+
+   [Install]
+   WantedBy=multi-user.target
+   ---
+
+   systemctl daemon-reload
+   systemctl enable emzini
+   systemctl start emzini
+   systemctl status emzini    # should say "active (running)"
+
+8. SET UP NGINX (serves traffic on port 80/443)
+   nano /etc/nginx/sites-available/emzini
+
+   Paste:
+   ---
+   server {
+       listen 80;
+       server_name YOUR_DOMAIN_OR_IP;
+
+       client_max_body_size 10M;
+
+       location / {
+           proxy_pass http://127.0.0.1:5000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection "upgrade";
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+       }
+   }
+   ---
+
+   ln -s /etc/nginx/sites-available/emzini /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl restart nginx
+
+9. FREE SSL (HTTPS) — optional but recommended
+   apt install -y certbot python3-certbot-nginx
+   certbot --nginx -d yourdomain.com
+   (Certbot auto-renews every 90 days)
+
+10. VISIT YOUR APP
+    http://YOUR_IP  or  https://yourdomain.com
+
+
+====================================================
+  HOW TO UPDATE WHILE USERS ARE LIVE
+====================================================
+
+Every time you change code locally:
+
+  # On your machine:
+  git add .
+  git commit -m "describe what changed"
+  git push
+
+  # SSH into server:
+  cd /srv/emzini
+  git pull
+  source venv/bin/activate
+  pip install -r requirements.txt   # only if requirements changed
+  systemctl restart emzini
+
+Downtime is 2–5 seconds (gunicorn restart).
+The database migration system (_migrate in __init__.py) adds new
+columns automatically on startup — existing data is never lost.
+
+For zero-downtime on critical updates, use Railway (Section B).
+
+
+====================================================
+  SECTION B — RAILWAY (GitHub auto-deploy)
+====================================================
+
+1. Push code to GitHub (same as step 3 above)
+2. railway.app → New Project → Deploy from GitHub → select your repo
+3. Add a PostgreSQL database:
+   Railway Dashboard → + Add → Database → PostgreSQL
+   Copy the DATABASE_URL it gives you
+4. Set environment variables in Railway dashboard:
+   SECRET_KEY, GEMINI_API_KEY, ADMIN_USERNAME, ADMIN_PASSWORD
+   DATABASE_URL=<the postgres URL from step 3>
+   FLASK_DEBUG=false
+5. Add a Volume (for uploads that persist across deploys):
+   Railway Dashboard → your service → + Add → Volume
+   Mount path: /app/app/static/uploads
+6. Railway auto-deploys every git push. Zero-downtime.
+
+NOTE: Railway's free tier gives ~$5 credit/month.
+      The app will likely use $3–5/month on the free plan.
+
+
+====================================================
+  DATABASE — IS SQLITE OK?
+====================================================
+
+YES — for a single residence building, SQLite is fine:
+  - Handles 50–500 concurrent users easily for a read-heavy app
+  - The database is a single file: instance/emzini.db
+  - It's in .gitignore, so it stays on the server (never pushed to GitHub)
+  - New columns are added safely by the _migrate() function in __init__.py
+  - Uploads are also excluded from git for the same reason
+
+BACKUP (run this daily via cron):
+  cp /srv/emzini/instance/emzini.db /srv/emzini/instance/emzini_$(date +%Y%m%d).db
+
+Set up automatic daily backup:
+  crontab -e
+  # Add this line:
+  0 3 * * * cp /srv/emzini/instance/emzini.db /srv/backups/emzini_$(date +\%Y\%m\%d).db && mkdir -p /srv/backups
+
+WHEN TO MOVE TO POSTGRESQL:
+  Only if you notice "database is locked" errors under heavy simultaneous
+  write traffic (unlikely for a single building). The switch is easy:
+  just change DATABASE_URL to a postgres:// URI — the app code is unchanged.
+
+
+====================================================
+  ENVIRONMENT VARIABLES REFERENCE
+====================================================
+
+SECRET_KEY        Required. Random 32-char hex string. Never share.
+GEMINI_API_KEY    Required. From Google AI Studio (aistudio.google.com).
+ADMIN_USERNAME    Username for the auto-created admin account.
+ADMIN_PASSWORD    Password for the admin account. Make it strong.
+DATABASE_URL      Defaults to sqlite:///emzini.db. Change for PostgreSQL.
+FLASK_DEBUG       Set to 'false' in production. Never 'true' on a live server.
+PORT              Defaults to 5000. Railway sets this automatically.
+
+
+====================================================
+  QUICK HEALTH CHECK AFTER DEPLOY
+====================================================
+
+  systemctl status emzini       # is gunicorn running?
+  journalctl -u emzini -n 50    # last 50 log lines
+  curl http://localhost:5000     # does the app respond?
+
+====================================================

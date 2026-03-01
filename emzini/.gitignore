@@ -1,0 +1,38 @@
+# Environment — NEVER commit this
+.env
+.env.*
+
+# Database — keep on server, not in git
+instance/
+*.db
+*.sqlite3
+
+# User uploads — keep on server, not in git
+app/static/uploads/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

@@ -1,0 +1,83 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="category" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All categories</option>
+    {% for c in ['electronics','furniture','clothing','food','services','general'] %}
+    <option value="{{ c }}" {% if cat_f == c %}selected{% endif %}>{{ c|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <select name="status" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All statuses</option>
+    <option value="available" {% if status_f == 'available' %}selected{% endif %}>Available</option>
+    <option value="sold"      {% if status_f == 'sold'      %}selected{% endif %}>Sold</option>
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.marketplace') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ items|length }} listing(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Listing</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Seller</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Category</th>
+          <th class="text-right text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Price</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Photo</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Status</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Date</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ item.id }}</td>
+          <td class="px-4 py-3 align-top" style="max-width:220px;">
+            <p class="text-slate-200 font-medium truncate">{{ item.title }}</p>
+            <p class="text-slate-500 text-[11px] mt-0.5 truncate">{{ item.description[:80] }}</p>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-300">
+            {% if item.seller %}@{{ item.seller.username }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top text-slate-400 capitalize">{{ item.category }}</td>
+          <td class="px-4 py-3 align-top text-right font-mono text-green-400">R{{ '%.2f'|format(item.price) }}</td>
+          <td class="px-4 py-3 align-top text-center">
+            {% if item.photo_filename %}
+            <i class="fas fa-image text-[11px]" style="color:var(--teal-lt);"></i>
+            {% else %}
+            <span class="text-slate-700">—</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 align-top">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono badge-{{ item.status }}">
+              {{ item.status|upper }}
+            </span>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ item.created_at.strftime('%d %b %y') }}
+          </td>
+          <td class="px-4 py-3 align-top text-center">
+            <form method="post" action="{{ url_for('admin.delete_listing', iid=item.id) }}"
+                  onsubmit="return confirm('Delete listing: {{ item.title }}?')">
+              <button type="submit" class="px-2 py-1 rounded text-[10px] font-mono transition"
+                      style="background:rgba(239,68,68,0.1);color:#f87171;">Delete</button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No listings found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

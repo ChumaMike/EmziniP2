@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find /home/wtc/Music/Projs/Res/EmziniP2 -type f -name \".*\" 2>/dev/null | head -20)",
+      "Bash(pip3 list 2>/dev/null | grep -E \"flask|sqlalchemy|anthropic|socket|htmx|eventlet|gevent|werkzeug\" | head -30)",
+      "Bash(pip3 list 2>/dev/null | grep -E \"anthropic|socketio|eventlet|gevent|PIL|pillow|requests|itsdangerous|wtforms\")",
+      "Bash(pip3 list 2>/dev/null | grep -E \"flask.socketio|flask-socketio|python-socketio|eventlet|anthropic\")",
+      "Bash(python3 -c \"import anthropic; print\\(anthropic.__version__\\)\" 2>/dev/null || echo \"anthropic not installed\"; python3 -c \"import flask_socketio; print\\(flask_socketio.__version__\\)\" 2>/dev/null || echo \"flask_socketio not installed\"; python3 -c \"import eventlet; print\\(eventlet.__version__\\)\" 2>/dev/null || echo \"eventlet not installed\")",
+      "Bash(python3 -c \"import flask_login; print\\(flask_login.__version__\\)\" 2>/dev/null && python3 -c \"import flask_sqlalchemy; print\\(flask_sqlalchemy.__version__\\)\" 2>/dev/null && python3 -c \"import flask_wtf; print\\(flask_wtf.__version__\\)\" 2>/dev/null && python3 -c \"import flask_migrate; print\\(flask_migrate.__version__\\)\" 2>/dev/null)",
+      "Bash(python3 -c \"import sqlalchemy; print\\(sqlalchemy.__version__\\)\")",
+      "Bash(python3 -c \"import PIL; print\\(PIL.__version__\\)\")",
+      "Bash(find /home/wtc/Music/Projs/Res/Skhokho/app -type f -name \"*.html\" -o -name \"*.css\" -o -name \"*.js\" 2>/dev/null | head -100)",
+      "Bash(python3 -c \"from app import create_app; app = create_app\\(\\); print\\('OK'\\)\" 2>&1)",
+      "Bash(python3 -c \"\nfrom app import create_app\napp = create_app\\(\\)\nwith app.app_context\\(\\):\n    from app.models import MarketItem\n    print\\('photo_filename column:', hasattr\\(MarketItem, 'photo_filename'\\)\\)\n    from app.blueprints.marketplace.routes import marketplace_bp\n    print\\('Routes OK'\\)\n    import os\n    print\\('Upload dir exists:', os.path.isdir\\(app.config['MARKET_UPLOAD_DIR']\\)\\)\n\" 2>&1)",
+      "Bash(python3 -c \"\nfrom app import create_app\napp = create_app\\(\\)\nprint\\('App created OK'\\)\nwith app.app_context\\(\\):\n    from app.blueprints.admin import routes\n    print\\('Admin routes imported OK'\\)\n    # Check all route endpoints exist\n    rules = [r.endpoint for r in app.url_map.iter_rules\\(\\) if r.endpoint.startswith\\('admin.'\\)]\n    for r in sorted\\(rules\\):\n        print\\(' ', r\\)\n\" 2>&1)",
+      "Bash(python3 -c \"\nfrom app import create_app\napp = create_app\\(\\)\nwith app.app_context\\(\\):\n    from app.models import DirectMessage\n    import sqlalchemy as sa\n    cols = [c.name for c in sa.inspect\\(sa.create_engine\\('sqlite:///instance/emzini.db'\\)\\).get_columns\\('direct_messages'\\)]\n    print\\('direct_messages columns:', cols\\)\n\" 2>&1)",
+      "Bash(python3 -c \"\nimport sqlite3\nconn = sqlite3.connect\\('instance/emzini.db'\\)\ncols = [row[1] for row in conn.execute\\('PRAGMA table_info\\(direct_messages\\)'\\).fetchall\\(\\)]\nprint\\('direct_messages columns:', cols\\)\nconn.close\\(\\)\n\" 2>&1)"
+    ]
+  }
+}

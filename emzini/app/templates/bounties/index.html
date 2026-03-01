@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}BOUNTIES — EMZINI.SYS{% endblock %}
+{% block content %}
+
+<div class="flex items-center justify-between mb-6">
+  <div>
+    <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI // LOST & FOUND GRID</p>
+    <h1 class="text-2xl font-bold text-white mt-1"><i class="fas fa-crosshairs text-red-500 mr-2"></i>BOUNTY GRID</h1>
+  </div>
+  <a href="/bounties/new" class="btn-primary"><i class="fas fa-plus mr-2"></i>POST BOUNTY</a>
+</div>
+
+<!-- Filter -->
+<div class="flex gap-2 mb-6">
+  {% for s in ['open', 'claimed', 'verified', 'all'] %}
+  <a href="/bounties?status={{ s }}" class="font-mono text-xs px-3 py-1.5 rounded border transition uppercase
+    {% if status_filter == s %}bg-red-900/30 border-red-600 text-red-400{% else %}border-zinc-700 text-zinc-500 hover:border-zinc-500{% endif %}">
+    {{ s }}
+  </a>
+  {% endfor %}
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for bounty in bounties %}
+  <div class="card p-5 hover:border-red-800 transition flex flex-col">
+    <div class="flex items-start justify-between mb-3">
+      <span class="badge-{{ bounty.status }} font-mono text-[10px] px-2 py-0.5 rounded uppercase">{{ bounty.status }}</span>
+      <span class="text-red-400 font-bold font-mono text-lg">R{{ '%.2f'|format(bounty.reward) }}</span>
+    </div>
+    <h3 class="text-white font-bold text-base mb-2">{{ bounty.title }}</h3>
+    <p class="text-zinc-400 text-sm flex-1 mb-4">{{ bounty.description[:120] }}{% if bounty.description|length > 120 %}...{% endif %}</p>
+    <div class="border-t border-zinc-800 pt-3 mt-auto">
+      <div class="flex items-center justify-between">
+        <span class="font-mono text-[10px] text-zinc-600">BY {{ bounty.poster.username|upper }}</span>
+        <div class="flex gap-2">
+          {% if bounty.status == 'open' and bounty.poster_id != current_user.id %}
+          <form method="POST" action="/bounties/{{ bounty.id }}/claim">
+            <button type="submit" class="btn-primary text-xs px-3 py-1.5">CLAIM</button>
+          </form>
+          {% endif %}
+          {% if bounty.status == 'claimed' and (bounty.poster_id == current_user.id or current_user.is_admin) %}
+          <form method="POST" action="/bounties/{{ bounty.id }}/verify">
+            <button type="submit" class="btn-secondary text-xs px-3 py-1.5 text-green-400">VERIFY & PAY</button>
+          </form>
+          {% endif %}
+        </div>
+      </div>
+      {% if bounty.claimer %}
+      <p class="font-mono text-[10px] text-blue-400 mt-1">CLAIMED BY {{ bounty.claimer.username|upper }}</p>
+      {% endif %}
+    </div>
+  </div>
+  {% else %}
+  <div class="col-span-3 card p-12 text-center">
+    <i class="fas fa-crosshairs text-zinc-700 text-4xl mb-4"></i>
+    <p class="text-zinc-500 font-mono">NO BOUNTIES FOUND</p>
+    <a href="/bounties/new" class="btn-primary mt-4 inline-block">POST FIRST BOUNTY</a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

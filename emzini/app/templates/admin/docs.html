@@ -1,0 +1,95 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Docs</p>
+    <h3 class="text-xl font-bold text-white">{{ total_docs }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">All residents</p>
+  </div>
+  {% for t, label, col in [
+    ('cv',           'CVs',          'var(--teal-lt)'),
+    ('cover_letter', 'Cover Letters','#60a5fa'),
+    ('email',        'Emails',       '#c084fc'),
+  ] %}
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">{{ label }}</p>
+    <h3 class="text-xl font-bold" style="color:{{ col }};">{{ type_counts[t] }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">{{ type_counts['letter'] }} letters</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="user_id" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All users</option>
+    {% for u in all_users %}
+    <option value="{{ u.id }}" {% if uid == u.id %}selected{% endif %}>@{{ u.username }}</option>
+    {% endfor %}
+  </select>
+  <select name="type" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All types</option>
+    {% for t in ['cv', 'cover_letter', 'email', 'letter'] %}
+    <option value="{{ t }}" {% if doc_type == t %}selected{% endif %}>{{ t.replace('_',' ')|title }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.docs_log') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ docs|length }} doc(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">User</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Title</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Type</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Created</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Updated</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for d in docs %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ d.id }}</td>
+          <td class="px-4 py-3 align-top font-mono text-slate-300">
+            {% if d.user %}@{{ d.user.username }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top text-slate-200 font-medium" style="max-width:220px;">
+            <span class="truncate block">{{ d.title }}</span>
+          </td>
+          <td class="px-4 py-3 align-top">
+            {% set type_colors = {
+              'cv':           ('var(--teal-lt)', 'rgba(20,184,166,0.1)'),
+              'cover_letter': ('#60a5fa',         'rgba(96,165,250,0.1)'),
+              'email':        ('#c084fc',          'rgba(192,132,252,0.1)'),
+              'letter':       ('#fb923c',          'rgba(251,146,60,0.1)'),
+            } %}
+            {% set col = type_colors.get(d.doc_type, ('#94a3b8','rgba(100,116,139,0.1)')) %}
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono"
+                  style="color:{{ col[0] }};background:{{ col[1] }};">
+              {{ d.doc_type.replace('_',' ')|upper }}
+            </span>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ d.created_at.strftime('%d %b %y') }}
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ d.updated_at.strftime('%d %b %y') if d.updated_at else '—' }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="6" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No documents found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

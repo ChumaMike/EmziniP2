@@ -1,0 +1,95 @@
+PRODUCT VISION: PROJECT EMZINI
+The Autonomous Residential Operating System & Micro-Economy
+
+1. CORE IDENTITY
+Emzini is an agentic life operating system designed for residential complexes and communities. It transcends standard property management apps by acting as an autonomous micro-economy, a hyper-local marketplace, and a proactive personal assistant. The system is designed for maximum frictionless interaction—allowing "lazy" users to control their environment, manage tasks, and make money purely through conversational AI.
+
+2. THE AI "LAZY OS" (THE BRAIN)
+The core UI is driven by an omnipresent AI assistant that doesn't just answer questions; it executes state changes and acts on the user's behalf.
+
+Conversational Execution: Users can navigate the app via chat. (e.g., "Post my old TV on the marketplace for R500" or "Hire a runner to fetch my UberEats at the gate.")
+
+Life-Helper Utilities: Inheriting foundational utility logic, the AI assists with daily tasks like drafting professional CVs, writing emails, or summarizing community rules.
+
+Context-Aware Proactivity: The AI constantly monitors external APIs (weather, load shedding schedules) to advise users. (e.g., "Stage 4 load shedding starts in 20 minutes; should I schedule your Runner for after the power returns?")
+
+3. THE HYPER-LOCAL MICRO-ECONOMY
+A peer-to-peer ecosystem turning the residential complex into a self-sustaining economy.
+
+The Marketplace: A dedicated feed where residents can list products or services.
+
+The "Runner" System (Uber for the Complex): Any user can toggle their status to "Active Runner." When a user is busy, they can broadcast a task (e.g., "Need someone to buy bread at the corner store, paying R30"). Available Runners can claim the job.
+
+Dynamic AI Pricing: The AI acts as a broker, suggesting surge pricing based on time of day, weather conditions, or task urgency.
+
+Secure Ledger & Escrow: A robust internal wallet system utilizing strict MVC architecture to handle simulated or real transfers. When a Runner is hired, funds are locked in escrow and only released upon verifiable completion, ensuring trustless peer-to-peer transactions.
+
+4. BOUNTY & REPORT GRID (LOST & FOUND GAMIFIED)
+A community grid for solving problems and finding lost items.
+
+Bounty Creation: A user loses keys or needs a specific item immediately and attaches a reward to the request.
+
+AI Verification: When a "Finder" claims the bounty, they submit a photo. The AI performs an automated image-recognition check against the original description to verify the match before notifying the owner or releasing the funds.
+
+5. OMNIPRESENT ACCESS (WHATSAPP INTEGRATION)
+Emzini meets users where they are.
+
+Conversational Webhooks: Deep integration with WhatsApp so users can interact with the community on the go.
+
+Quick Actions: Users can receive Runner job alerts via WhatsApp and reply "Accept" to lock the job in the main database without needing to open the app.
+
+6. THE GOD-MODE ADMIN CONSOLE (DEVELOPER OMNISCIENCE)
+Complete oversight for the platform owner to monitor ecosystem health and AI behavior.
+
+Omniscience Logger: Every single action—whether it's a financial escrow transfer, a Runner toggle state change, or a user's raw prompt asking the AI for life advice—is logged.
+
+Telemetry Dashboard: A central view to track active Runners, marketplace liquidity, prompt failure rates, and system anomalies in real time.
+
+7. DEVELOPMENT DIRECTIVE
+Tech Stack: The coding agent is authorized to select the best modern stack (e.g., Next.js, Flutter, React Native, Node, Python, Supabase, Postgres) to achieve a production-grade, highly scalable system.
+
+Architecture: Must be event-driven and capable of handling real-time WebSockets/messaging for chat and Runner tracking.
+
+
+
+
+SUGGESTED BUT NOT LIMITED TO, TECH TOOLS:
+
+# MISSION: EMZINI x SKHOKHO - THE WEB-BASED SUPER-OS
+
+## 1. CORE IDENTITY
+This is a unified web-based operating system and micro-economy for residential complexes and local townships. It merges the civic engagement and accessibility loops of "Skhokho" with the hyper-local, agentic "Emzini" Runner economy. It is a Progressive Web App (PWA) where users can earn money, report issues, and command an AI to manage their daily lives.
+
+## 2. THE THREE UNIFIED LOOPS
+
+### A. The Economic Loop (LinkUp + Runners + Escrow)
+- **The Marketplace:** Users buy, sell, and offer services locally. 
+- **The "Runner" Protocol:** Any user can toggle their status to "Active Runner." Busy residents can broadcast micro-jobs (e.g., "Need bread from the corner store, paying R30").
+- **Dynamic AI Pricing & Escrow:** The AI broker negotiates surge pricing based on time/weather. When a job is accepted, funds are locked in a strict MVC-architected escrow ledger and only released upon verifiable completion.
+
+### B. The Civic & Residential Loop (CivicNerve + Bounties)
+- **Civic Reporting:** Users report infrastructure issues (potholes, burst pipes). The AI auto-categorizes severity, and the community upvotes them.
+- **Bounty Grid (Lost & Found):** Users post rewards for lost items. Finders upload photos, and the Genkit AI performs image recognition to verify the match before releasing the escrowed bounty.
+- **Reputation Points:** Users earn points for verified civic reports and successful Runner jobs, granting them "Trusted" badges.
+
+### C. The Accessibility & AI Engine (Macalaa + The Lazy OS)
+- **Conversational Execution:** The dashboard features an omnipresent AI. Users don't need to click through menus; they just type or speak: "Hire a runner to fetch my delivery" or "Write a CV for a plumbing job." The AI drafts it, executes the state change, or posts the job.
+- **Context-Aware:** The AI cross-references external APIs (weather, load shedding) to advise users (e.g., "Stage 4 load shedding starts soon, schedule your Runner now").
+- **Macalaa Vision/Voice:** Accessibility features for visually impaired users to navigate the web app via voice and have the AI describe uploaded images or surroundings.
+
+## 3. THE GOD-MODE ADMIN CONSOLE (DEVELOPER OMNISCIENCE)
+A hidden, secure web dashboard for the platform owner to monitor the entire micro-economy.
+- **Omniscience Logger:** Every single system action is logged with timestamps and user IDs. This includes financial escrow transfers, Runner status toggles, and raw AI prompts.
+- **Live Telemetry:** Real-time graphs tracking active Runners, marketplace liquidity, civic issue resolution rates, and AI failure rates.
+
+## 4. OMNIPRESENT ACCESS (WHATSAPP WEBHOOKS)
+- Deep integration with the Meta Cloud API. Users can receive Runner job alerts or CivicNerve updates via WhatsApp and reply directly (e.g., "Accept Job") to trigger state changes in the main web database.
+
+## 5. DEVELOPMENT DIRECTIVE
+- **Architecture:** Must be a highly scalable Web Application (PWA). 
+- **Tech Stack Freedom:** The AI coding agent is authorized to select the best modern web stack (e.g., Next.js/React for the frontend, Node.js or a robust Python framework like FastAPI for the backend, PostgreSQL for the database). 
+- **Real-Time Requirement:** Must implement WebSockets or Server-Sent Events (SSE) to handle live Runner tracking, instant chat, and dynamic marketplace updates without page refreshes.
+- **Quality Standards:** Strict typing, centralized error handling, and comprehensive environment variable management.
+
+
+Use the most effecient but low storage stack like flask and tailwind because i am running on a low ram pc

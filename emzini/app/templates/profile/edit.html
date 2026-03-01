@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Edit Profile — Emzini{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <div class="mb-6">
+    <a href="/profile" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i> Back to Profile
+    </a>
+    <h1 class="text-2xl font-bold text-white mt-4">Edit Profile</h1>
+    <p class="text-slate-400 text-sm mt-1">Update your details and runner preferences.</p>
+  </div>
+
+  <div class="space-y-5">
+
+    <!-- Account details -->
+    <div class="card p-6 relative overflow-hidden">
+      <div class="absolute top-0 left-8 right-8 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+      <h2 class="text-sm font-semibold text-white mb-5 flex items-center gap-2">
+        <i class="fas fa-circle-user text-slate-500"></i> Account Details
+      </h2>
+
+      <form method="POST" id="profile-form" class="space-y-4">
+
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Username</label>
+          <input type="text" name="username"
+                 value="{{ current_user.username }}"
+                 required maxlength="30"/>
+        </div>
+
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Email Address</label>
+          <input type="email" name="email"
+                 value="{{ current_user.email }}"
+                 required/>
+        </div>
+
+        <!-- Runner Mode toggle -->
+        <div class="rounded-xl p-5 mt-2" style="background:var(--border);border:1px solid var(--border-2);">
+          <label class="flex items-center justify-between cursor-pointer select-none gap-4">
+            <div class="flex items-start gap-3">
+              <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5"
+                   style="background:rgba(13,148,136,0.1);">
+                <i class="fas fa-person-running text-sm" style="color:var(--teal-lt);"></i>
+              </div>
+              <div>
+                <p class="text-white font-semibold text-sm">Runner Mode</p>
+                <p class="text-slate-500 text-xs mt-0.5 leading-relaxed">
+                  Enable to accept paid errands from your neighbours. You can go active or offline anytime from your profile.
+                </p>
+              </div>
+            </div>
+
+            <!-- Toggle switch -->
+            <div class="flex-shrink-0">
+              <input type="checkbox" name="is_runner" id="runner-toggle" class="sr-only peer"
+                     {% if current_user.is_runner %}checked{% endif %}>
+              <label for="runner-toggle"
+                     class="relative inline-flex h-6 w-11 cursor-pointer rounded-full transition-all duration-200"
+                     style="background:var(--border-2);"
+                     id="toggle-visual">
+                <span class="absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-slate-500 shadow transition-all duration-200" id="toggle-knob"></span>
+              </label>
+            </div>
+          </label>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t pt-4" style="border-color:var(--border-2);">
+          <h3 class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-4">Change Password <span class="text-slate-600 normal-case">(leave blank to keep current)</span></h3>
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">New Password</label>
+              <input type="password" name="new_password" placeholder="min 6 characters" autocomplete="new-password"/>
+            </div>
+            <div>
+              <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Confirm New Password</label>
+              <input type="password" name="confirm_password" placeholder="repeat new password" autocomplete="new-password"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="submit" class="btn-primary flex-1 justify-center py-3">
+            <i class="fas fa-floppy-disk"></i> Save Changes
+          </button>
+          <a href="/profile" class="btn-secondary py-3 px-5">Cancel</a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Danger zone -->
+    <div class="card p-5" style="border-color:rgba(239,68,68,0.2);">
+      <h3 class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-3">
+        <i class="fas fa-triangle-exclamation mr-1 text-red-400"></i> Account Info
+      </h3>
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-slate-400 text-sm">Member since <span class="text-white">{{ current_user.created_at.strftime('%d %B %Y') }}</span></p>
+          <p class="text-slate-600 text-xs font-mono mt-0.5">Resident ID #{{ current_user.id }}</p>
+        </div>
+        <a href="/logout" class="btn-secondary text-xs py-1.5" style="color:#f87171;border-color:rgba(239,68,68,0.3);">
+          <i class="fas fa-right-from-bracket"></i> Sign Out
+        </a>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // Animate toggle switch to reflect checkbox state
+  const cb     = document.getElementById('runner-toggle');
+  const visual = document.getElementById('toggle-visual');
+  const knob   = document.getElementById('toggle-knob');
+
+  function syncToggle() {
+    if (cb.checked) {
+      visual.style.background = 'var(--teal)';
+      knob.style.transform    = 'translateX(20px)';
+      knob.style.background   = '#fff';
+    } else {
+      visual.style.background = 'var(--border-2)';
+      knob.style.transform    = 'translateX(0)';
+      knob.style.background   = '#64748b';
+    }
+  }
+
+  syncToggle();
+  cb.addEventListener('change', syncToggle);
+  // Clicking the visual label should toggle the hidden checkbox
+  visual.addEventListener('click', () => { cb.checked = !cb.checked; syncToggle(); });
+</script>
+{% endblock %}

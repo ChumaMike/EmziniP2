@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}Network — Emzini{% endblock %}
+{% block content %}
+
+<div class="flex items-start justify-between mb-7">
+  <div>
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · MY NETWORK</p>
+    <h1 class="text-2xl font-bold text-white mt-1">Network</h1>
+    <p class="text-slate-400 text-sm mt-1">Manage your contacts and schedule follow-ups.</p>
+  </div>
+  <div class="font-mono text-right hidden sm:block">
+    <p class="text-2xl font-bold text-white">{{ contacts|length }}</p>
+    <p class="text-xs text-slate-500">contacts</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Left: Contacts -->
+  <div class="lg:col-span-2 space-y-5">
+
+    <!-- Add Contact -->
+    <div class="card p-6 relative overflow-hidden">
+      <div class="absolute top-0 left-8 right-8 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+      <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+        <i class="fas fa-user-plus text-xs" style="color:var(--teal-lt);"></i> Add Contact
+      </h2>
+      <form method="POST" action="/network/add-contact">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Name *</label>
+            <input type="text" name="name" placeholder="Full name" required maxlength="120"/>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Role / Company</label>
+            <input type="text" name="role" placeholder="e.g. Property Manager" maxlength="120"/>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Phone</label>
+            <input type="text" name="phone" placeholder="+27 83 000 0000" maxlength="30"/>
+          </div>
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Email</label>
+            <input type="email" name="email" placeholder="contact@example.com" maxlength="160"/>
+          </div>
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Notes</label>
+            <textarea name="notes" rows="2" placeholder="Any useful notes about this contact…"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn-primary">
+          <i class="fas fa-plus"></i> Add to Network
+        </button>
+      </form>
+    </div>
+
+    <!-- Contacts List -->
+    <div>
+      <h2 class="font-semibold text-white mb-3 flex items-center gap-2">
+        <i class="fas fa-address-book text-xs text-slate-500"></i> Contacts
+        <span class="font-mono text-xs text-slate-600">({{ contacts|length }})</span>
+      </h2>
+
+      {% if contacts %}
+      <div class="space-y-3">
+        {% for c in contacts %}
+        <div class="card p-5">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 font-bold text-sm font-mono"
+                   style="background:rgba(13,148,136,0.15);color:var(--teal-lt);">
+                {{ c.name[:2]|upper }}
+              </div>
+              <div class="min-w-0">
+                <p class="text-white font-semibold text-sm">{{ c.name }}</p>
+                {% if c.role %}
+                <p class="text-slate-500 text-xs font-mono">{{ c.role }}</p>
+                {% endif %}
+              </div>
+            </div>
+            <div class="flex items-center gap-2 flex-shrink-0">
+              {% if c.phone %}
+              <a href="tel:{{ c.phone }}" class="btn-secondary text-xs py-1 px-2.5" title="{{ c.phone }}">
+                <i class="fas fa-phone text-[10px]"></i>
+              </a>
+              {% endif %}
+              {% if c.email %}
+              <a href="mailto:{{ c.email }}" class="btn-secondary text-xs py-1 px-2.5" title="{{ c.email }}">
+                <i class="fas fa-envelope text-[10px]"></i>
+              </a>
+              {% endif %}
+            </div>
+          </div>
+
+          {% if c.phone or c.email or c.notes %}
+          <div class="flex flex-wrap gap-3 text-[11px] font-mono text-slate-500 mb-3">
+            {% if c.phone %}<span><i class="fas fa-phone mr-1"></i>{{ c.phone }}</span>{% endif %}
+            {% if c.email %}<span><i class="fas fa-envelope mr-1"></i>{{ c.email }}</span>{% endif %}
+          </div>
+          {% if c.notes %}
+          <p class="text-slate-500 text-xs italic mb-3 leading-relaxed border-l-2 pl-3" style="border-color:var(--border-2);">{{ c.notes }}</p>
+          {% endif %}
+          {% endif %}
+
+          <!-- Alert count -->
+          {% set pending_alerts = c.alerts|selectattr('is_completed','equalto',False)|list %}
+          {% if pending_alerts %}
+          <p class="text-[10px] font-mono mb-3" style="color:var(--teal-lt);">
+            <i class="fas fa-bell mr-1"></i>{{ pending_alerts|length }} upcoming reminder{{ 's' if pending_alerts|length != 1 else '' }}
+          </p>
+          {% endif %}
+
+          <details class="group">
+            <summary class="text-xs font-mono text-slate-500 cursor-pointer hover:text-slate-300 transition list-none flex items-center gap-1.5">
+              <i class="fas fa-chevron-right text-[9px] group-open:rotate-90 transition-transform"></i>
+              Edit / Add Reminder
+            </summary>
+            <div class="mt-3 space-y-4 pt-3 border-t" style="border-color:var(--border);">
+
+              <!-- Edit form -->
+              <form method="POST" action="/network/edit-contact/{{ c.id }}">
+                <p class="text-[10px] font-mono text-slate-600 uppercase tracking-wider mb-2">Edit Contact</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                  <input type="text" name="name" value="{{ c.name }}" placeholder="Name" maxlength="120"/>
+                  <input type="text" name="role" value="{{ c.role or '' }}" placeholder="Role" maxlength="120"/>
+                  <input type="text" name="phone" value="{{ c.phone or '' }}" placeholder="Phone" maxlength="30"/>
+                  <input type="email" name="email" value="{{ c.email or '' }}" placeholder="Email" maxlength="160"/>
+                  <div class="sm:col-span-2">
+                    <textarea name="notes" rows="2" placeholder="Notes">{{ c.notes or '' }}</textarea>
+                  </div>
+                </div>
+                <div class="flex gap-2">
+                  <button type="submit" class="btn-secondary text-xs py-1.5 px-3">
+                    <i class="fas fa-floppy-disk"></i> Save
+                  </button>
+                  <form method="POST" action="/network/delete-contact/{{ c.id }}" class="inline">
+                    <button type="submit" class="btn-secondary text-xs py-1.5 px-3"
+                            style="color:#f87171;border-color:rgba(248,113,113,0.3);"
+                            onclick="return confirm('Remove {{ c.name }} from your network?')">
+                      <i class="fas fa-trash-can"></i> Remove
+                    </button>
+                  </form>
+                </div>
+              </form>
+
+              <!-- Add Alert form -->
+              <form method="POST" action="/network/add-alert/{{ c.id }}">
+                <p class="text-[10px] font-mono text-slate-600 uppercase tracking-wider mb-2">Schedule a Reminder</p>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                  <div class="sm:col-span-2">
+                    <input type="text" name="title" placeholder="e.g. Follow up on proposal" required maxlength="200"/>
+                  </div>
+                  <div>
+                    <input type="datetime-local" name="alert_date" required/>
+                  </div>
+                  <div>
+                    <select name="alert_type">
+                      {% for t in alert_types %}
+                      <option value="{{ t }}">{{ t }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="sm:col-span-2">
+                    <input type="text" name="description" placeholder="Optional notes…" maxlength="400"/>
+                  </div>
+                </div>
+                <button type="submit" class="btn-secondary text-xs py-1.5 px-3">
+                  <i class="fas fa-bell"></i> Set Reminder
+                </button>
+              </form>
+
+            </div>
+          </details>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="card p-10 text-center">
+        <i class="fas fa-address-book text-3xl text-slate-700 mb-3"></i>
+        <p class="text-slate-400 font-medium">No contacts yet</p>
+        <p class="text-slate-600 text-sm mt-1">Add your first contact using the form above</p>
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right: Upcoming Alerts -->
+  <div class="space-y-5">
+    <div class="card p-5 relative overflow-hidden">
+      <div class="absolute top-0 left-8 right-8 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+      <h3 class="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+        <i class="fas fa-bell text-xs" style="color:var(--teal-lt);"></i>
+        Upcoming Reminders
+        <span class="font-mono text-xs text-slate-600">({{ upcoming|length }})</span>
+      </h3>
+
+      {% if upcoming %}
+      <div class="space-y-3">
+        {% for alert in upcoming %}
+        <div class="flex items-start gap-3 p-3 rounded-lg" style="background:var(--border);border:1px solid var(--border-2);">
+          <div class="w-1.5 h-1.5 rounded-full mt-2 flex-shrink-0" style="background:var(--teal-lt);"></div>
+          <div class="flex-1 min-w-0">
+            <p class="text-white text-xs font-medium">{{ alert.title }}</p>
+            <p class="text-slate-500 text-[10px] font-mono mt-0.5">
+              <i class="fas fa-user mr-1"></i>{{ alert.contact.name }}
+              · {{ alert.alert_date.strftime('%d %b · %H:%M') }}
+            </p>
+            <span class="text-[9px] font-mono px-1.5 py-0.5 rounded mt-1 inline-block"
+                  style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+              {{ alert.alert_type }}
+            </span>
+          </div>
+          <div class="flex gap-1 flex-shrink-0">
+            <form method="POST" action="/network/toggle-alert/{{ alert.id }}">
+              <button type="submit" class="text-slate-600 hover:text-teal-400 transition text-xs p-1" title="Mark done">
+                <i class="fas fa-check"></i>
+              </button>
+            </form>
+            <form method="POST" action="/network/delete-alert/{{ alert.id }}">
+              <button type="submit" class="text-slate-600 hover:text-red-400 transition text-xs p-1" title="Delete">
+                <i class="fas fa-xmark"></i>
+              </button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <div class="text-center py-6">
+        <i class="fas fa-bell-slash text-2xl text-slate-700 mb-2"></i>
+        <p class="text-slate-600 text-xs font-mono">No upcoming reminders</p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Stats -->
+    <div class="card p-5">
+      <h3 class="font-semibold text-white text-sm mb-3">
+        <i class="fas fa-chart-simple mr-2 text-xs text-slate-500"></i>Overview
+      </h3>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-xs">Total Contacts</span>
+          <span class="font-mono text-sm font-bold text-white">{{ contacts|length }}</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-400 text-xs">Upcoming Reminders</span>
+          <span class="font-mono text-sm font-bold" style="color:var(--teal-lt);">{{ upcoming|length }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}

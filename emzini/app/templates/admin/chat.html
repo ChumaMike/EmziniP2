@@ -1,0 +1,86 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Messages</p>
+    <h3 class="text-xl font-bold text-white">{{ total_msgs }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">All sessions</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">User Messages</p>
+    <h3 class="text-xl font-bold" style="color:var(--teal-lt);">{{ user_msgs }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Prompts sent</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">AI Responses</p>
+    <h3 class="text-xl font-bold text-blue-400">{{ ai_msgs }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Gemini replies</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Sessions</p>
+    <h3 class="text-xl font-bold text-purple-400">{{ sessions }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Distinct login sessions</p>
+  </div>
+</div>
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="user_id" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All users</option>
+    {% for u in all_users %}
+    <option value="{{ u.id }}" {% if uid == u.id %}selected{% endif %}>@{{ u.username }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.chat_log') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ msgs|length }} message(s) shown</span>
+</form>
+
+<!-- Message log table -->
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">User</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Role</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Message</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Session</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in msgs %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-300">
+            {% if m.user %}@{{ m.user.username }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top">
+            {% if m.role == 'assistant' %}
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono" style="background:rgba(96,165,250,0.1);color:#60a5fa;border:1px solid rgba(96,165,250,0.2);">AI</span>
+            {% else %}
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono" style="background:rgba(20,184,166,0.1);color:var(--teal-lt);border:1px solid rgba(20,184,166,0.2);">USER</span>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 align-top text-slate-300" style="max-width:400px;">
+            <p class="line-clamp-3">{{ m.content }}</p>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-600 text-[10px] whitespace-nowrap">
+            {% if m.chat_session_id %}{{ m.chat_session_id[:8] }}…{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ m.created_at.strftime('%d %b %y %H:%M') }}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="5" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No messages found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+flask
+flask-sqlalchemy
+flask-login
+flask-socketio
+eventlet
+gunicorn
+google-genai
+python-dotenv
+werkzeug
+pillow
+requests

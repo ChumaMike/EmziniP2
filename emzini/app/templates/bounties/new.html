@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}POST BOUNTY — EMZINI.SYS{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+  <div class="mb-6">
+    <a href="/bounties" class="font-mono text-[10px] text-zinc-600 hover:text-zinc-400 transition">← BACK TO BOUNTIES</a>
+    <h1 class="text-2xl font-bold text-white mt-3"><i class="fas fa-crosshairs text-red-500 mr-2"></i>POST A BOUNTY</h1>
+    <p class="text-zinc-500 text-sm mt-1">Lost something? Post a reward — the community will help find it.</p>
+  </div>
+  <div class="card p-6">
+    <form method="POST" class="space-y-4">
+      <div>
+        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">What was lost</label>
+        <input type="text" name="title" placeholder="e.g. Set of keys — Toyota key fob + house keys" required maxlength="200"/>
+      </div>
+      <div>
+        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Full Description</label>
+        <textarea name="description" rows="4" placeholder="Describe in detail: colour, size, where you last saw it, any unique identifiers..." required></textarea>
+      </div>
+      <div>
+        <label class="block font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-2">Reward (R)</label>
+        <input type="number" name="reward" min="1" step="0.01" placeholder="100.00" required/>
+        <p class="font-mono text-[10px] text-zinc-600 mt-1">Locked in escrow — paid out when you verify the finder.</p>
+      </div>
+      <button type="submit" class="btn-primary w-full"><i class="fas fa-crosshairs mr-2"></i>POST BOUNTY</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

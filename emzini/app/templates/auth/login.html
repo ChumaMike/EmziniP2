@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Sign In — Emzini{% endblock %}
+{% block content %}
+<div class="min-h-[72vh] flex items-center justify-center">
+  <div class="w-full max-w-sm">
+
+    <!-- Brand mark -->
+    <div class="text-center mb-8">
+      <div class="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4"
+           style="background:var(--teal);">
+        <i class="fas fa-house text-white text-2xl"></i>
+      </div>
+      <h1 class="text-xl font-bold text-white">Welcome back</h1>
+      <p class="text-slate-500 text-sm mt-1">Sign in to your Emzini account</p>
+    </div>
+
+    <div class="card p-7 relative overflow-hidden">
+      <div class="absolute top-0 left-8 right-8 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+      <form method="POST" class="space-y-4">
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Username</label>
+          <input type="text" name="username" placeholder="your_username"
+                 required autocomplete="username"/>
+        </div>
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Password</label>
+          <input type="password" name="password" placeholder="••••••••"
+                 required autocomplete="current-password"/>
+        </div>
+        <button type="submit" class="btn-primary w-full justify-center py-3 mt-2">
+          <i class="fas fa-right-to-bracket"></i> Sign In
+        </button>
+      </form>
+    </div>
+
+    <p class="text-center text-slate-500 text-sm mt-5">
+      New resident?
+      <a href="/register" class="font-medium transition" style="color:var(--teal-lt);">Join Emzini</a>
+    </p>
+
+  </div>
+</div>
+{% endblock %}

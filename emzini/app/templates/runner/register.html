@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Runner Application — Emzini{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <div class="mb-6">
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · RUNNER PROGRAMME</p>
+    <h1 class="text-2xl font-bold text-white mt-2">Become a Runner</h1>
+    <p class="text-slate-400 text-sm mt-1">Earn money delivering items within the complex. An admin will review your application.</p>
+  </div>
+
+  {% if existing %}
+  <!-- Application status card -->
+  <div class="card p-6 mb-5 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,
+                {% if existing.status == 'approved' %}#34d399{% elif existing.status == 'rejected' %}#f87171{% else %}#fbbf24{% endif %}
+                ,transparent);"></div>
+
+    <div class="flex items-start gap-4">
+      <div class="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0
+                  {% if existing.status == 'approved' %}bg-green-900/30{% elif existing.status == 'rejected' %}bg-red-900/30{% else %}bg-amber-900/30{% endif %}">
+        <i class="fas {% if existing.status == 'approved' %}fa-check text-green-400{% elif existing.status == 'rejected' %}fa-xmark text-red-400{% else %}fa-hourglass-half text-amber-400{% endif %} text-xl"></i>
+      </div>
+      <div>
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-1">Application Status</p>
+        <span class="font-mono text-sm font-bold uppercase
+                     {% if existing.status == 'approved' %}text-green-400{% elif existing.status == 'rejected' %}text-red-400{% else %}text-amber-400{% endif %}">
+          {{ existing.status }}
+        </span>
+        <p class="text-slate-400 text-sm mt-1">{{ existing.full_name }} · {{ existing.vehicle|capitalize }}</p>
+        <p class="text-slate-500 text-xs mt-0.5">Applied {{ existing.created_at.strftime('%d %b %Y') }}</p>
+        {% if existing.status == 'approved' %}
+        <p class="text-xs mt-2" style="color:var(--teal-lt);">
+          You can now go active as a runner via <a href="/runner/dashboard" class="underline">your runner dashboard</a>.
+        </p>
+        {% elif existing.status == 'rejected' %}
+        <p class="text-xs text-slate-500 mt-2">Contact an admin if you'd like to discuss your application.</p>
+        {% else %}
+        <p class="text-xs text-slate-500 mt-2">An admin will review your application shortly.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <!-- Application form -->
+  <div class="card p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+    <form method="POST" class="space-y-5">
+
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Full Name</label>
+          <input type="text" name="full_name" placeholder="As on your ID" required maxlength="200"/>
+        </div>
+        <div>
+          <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Phone Number</label>
+          <input type="tel" name="phone" placeholder="e.g. 082 555 1234" required maxlength="30"/>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">SA ID Number</label>
+        <input type="text" name="id_number" placeholder="13-digit ID number" required maxlength="20"/>
+      </div>
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Mode of Transport</label>
+        <div class="grid grid-cols-2 gap-2">
+          {% for v, icon, label in [('foot','fa-person-walking','On foot'),('bicycle','fa-bicycle','Bicycle'),('motorbike','fa-motorcycle','Motorbike'),('car','fa-car','Car')] %}
+          <label class="flex items-center gap-2 cursor-pointer p-3 rounded-lg border transition hover:border-teal-700"
+                 style="background:var(--border);border-color:var(--border-2);">
+            <input type="radio" name="vehicle" value="{{ v }}" class="accent-teal-500"
+                   {% if v == 'foot' %}checked{% endif %}/>
+            <i class="fas {{ icon }} text-slate-400"></i>
+            <span class="text-sm text-slate-300">{{ label }}</span>
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+          Bio <span class="normal-case text-slate-600">(optional)</span>
+        </label>
+        <textarea name="bio" rows="3"
+                  placeholder="Tell residents a bit about yourself and why you'd make a great runner…"></textarea>
+      </div>
+
+      <div class="rounded-lg p-4 text-xs" style="background:var(--border);border:1px solid var(--border-2);">
+        <div class="flex items-start gap-2.5">
+          <i class="fas fa-circle-info mt-0.5 flex-shrink-0" style="color:var(--teal-lt);"></i>
+          <p class="text-slate-400 leading-relaxed">
+            A 10% platform fee is deducted from delivery job payouts. You keep 90% of each delivery reward.
+            Your ID number is used for verification and stored securely.
+          </p>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primary w-full justify-center py-3">
+        <i class="fas fa-paper-plane mr-2"></i>Submit Application
+      </button>
+
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

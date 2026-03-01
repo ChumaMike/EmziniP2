@@ -1,0 +1,131 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search username or email…"
+         style="width:220px;padding:0.4rem 0.75rem;font-size:0.75rem;">
+  <select name="role" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All roles</option>
+    <option value="admin"         {% if role_f == 'admin'         %}selected{% endif %}>Admin</option>
+    <option value="runner"        {% if role_f == 'runner'        %}selected{% endif %}>Runner</option>
+    <option value="active_runner" {% if role_f == 'active_runner' %}selected{% endif %}>Active Runner</option>
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.users') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ users|length }} result(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">User</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Email</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Joined</th>
+          <th class="text-right text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Wallet</th>
+          <th class="text-right text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Rep</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Flags</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+
+          <!-- User -->
+          <td class="px-4 py-3 align-middle">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded flex-shrink-0 flex items-center justify-center text-[10px] font-bold font-mono"
+                   style="background:{% if u.is_admin %}rgba(244,63,94,0.2){% else %}var(--border-2){% endif %};color:{% if u.is_admin %}#f87171{% else %}var(--teal-lt){% endif %};">
+                {{ u.username[:2].upper() }}
+              </div>
+              <div>
+                <p class="text-slate-200 font-medium">{{ u.username }}</p>
+                <p class="text-[10px] font-mono text-slate-600">#{{ u.id }}</p>
+              </div>
+            </div>
+          </td>
+
+          <!-- Email -->
+          <td class="px-4 py-3 align-middle text-slate-400">{{ u.email }}</td>
+
+          <!-- Joined -->
+          <td class="px-4 py-3 align-middle font-mono text-slate-500 whitespace-nowrap">
+            {{ u.created_at.strftime('%d %b %Y') }}
+          </td>
+
+          <!-- Wallet -->
+          <td class="px-4 py-3 align-middle text-right">
+            <span class="font-mono text-green-400">R{{ '%.2f'|format(u.wallet_balance) }}</span>
+          </td>
+
+          <!-- Rep -->
+          <td class="px-4 py-3 align-middle text-right font-mono" style="color:var(--teal-lt);">
+            {{ u.reputation }}
+          </td>
+
+          <!-- Flags -->
+          <td class="px-4 py-3 align-middle text-center">
+            <div class="flex gap-1 justify-center flex-wrap">
+              {% if u.is_admin %}
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono" style="background:rgba(244,63,94,0.1);color:#f87171;border:1px solid rgba(244,63,94,0.2);">ADMIN</span>
+              {% endif %}
+              {% if u.runner_active %}
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono" style="background:rgba(20,184,166,0.1);color:var(--teal-lt);border:1px solid rgba(20,184,166,0.2);">LIVE</span>
+              {% elif u.is_runner %}
+              <span class="px-1.5 py-0.5 rounded text-[9px] font-mono" style="background:rgba(100,116,139,0.15);color:#94a3b8;border:1px solid rgba(100,116,139,0.2);">RUNNER</span>
+              {% endif %}
+            </div>
+          </td>
+
+          <!-- Actions -->
+          <td class="px-4 py-3 align-middle">
+            <div class="flex gap-1.5 justify-center flex-wrap">
+
+              <!-- Toggle admin -->
+              <form method="post" action="{{ url_for('admin.toggle_admin', uid=u.id) }}"
+                    onsubmit="return confirm('{{ 'Revoke' if u.is_admin else 'Grant' }} admin for {{ u.username }}?')">
+                <button type="submit"
+                        class="px-2 py-1 rounded text-[10px] font-mono transition whitespace-nowrap"
+                        style="background:{% if u.is_admin %}rgba(244,63,94,0.15){% else %}rgba(20,184,166,0.12){% endif %};
+                               color:{% if u.is_admin %}#f87171{% else %}var(--teal-lt){% endif %};">
+                  {{ 'Revoke Admin' if u.is_admin else 'Grant Admin' }}
+                </button>
+              </form>
+
+              <!-- Set wallet -->
+              <form method="post" action="{{ url_for('admin.set_wallet', uid=u.id) }}"
+                    class="flex gap-1" onsubmit="return confirm('Set wallet for {{ u.username }}?')">
+                <input type="number" name="amount" step="0.01" min="0"
+                       value="{{ '%.2f'|format(u.wallet_balance) }}"
+                       style="width:80px;padding:0.2rem 0.5rem;font-size:0.7rem;">
+                <button type="submit"
+                        class="px-2 py-1 rounded text-[10px] font-mono whitespace-nowrap"
+                        style="background:rgba(52,211,153,0.12);color:#34d399;">Set</button>
+              </form>
+
+              <!-- Delete user -->
+              {% if u.id != current_user.id %}
+              <form method="post" action="{{ url_for('admin.delete_user', uid=u.id) }}"
+                    onsubmit="return confirm('PERMANENTLY delete {{ u.username }}? This cannot be undone.')">
+                <button type="submit"
+                        class="px-2 py-1 rounded text-[10px] font-mono transition"
+                        style="background:rgba(239,68,68,0.1);color:#f87171;">Delete</button>
+              </form>
+              {% endif %}
+
+            </div>
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="7" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No users found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

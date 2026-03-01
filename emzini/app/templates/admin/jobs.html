@@ -1,0 +1,84 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="status" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All statuses</option>
+    {% for s in ['open','claimed','completed','cancelled'] %}
+    <option value="{{ s }}" {% if status_f == s %}selected{% endif %}>{{ s|capitalize }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.jobs') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ jobs|length }} job(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Job</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Poster</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Runner</th>
+          <th class="text-right text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Reward</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Escrow</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Status</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Date</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for j in jobs %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ j.id }}</td>
+          <td class="px-4 py-3 align-top" style="max-width:220px;">
+            <p class="text-slate-200 font-medium truncate">{{ j.title }}</p>
+            <p class="text-slate-500 text-[11px] mt-0.5 truncate">{{ j.description[:80] }}</p>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-300">
+            {% if j.poster %}@{{ j.poster.username }}{% else %}—{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-400">
+            {% if j.runner %}@{{ j.runner.username }}{% else %}<span class="text-slate-600">—</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 align-top text-right font-mono text-amber-400">R{{ '%.2f'|format(j.reward) }}</td>
+          <td class="px-4 py-3 align-top text-center">
+            {% if j.escrow_locked %}
+            <i class="fas fa-lock text-[11px] text-amber-400"></i>
+            {% else %}
+            <i class="fas fa-lock-open text-[11px] text-slate-600"></i>
+            {% endif %}
+          </td>
+          <td class="px-4 py-3 align-top">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono badge-{{ j.status }}">
+              {{ j.status|upper }}
+            </span>
+          </td>
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ j.created_at.strftime('%d %b %y') }}
+          </td>
+          <td class="px-4 py-3 align-top text-center">
+            {% if j.status in ('open', 'claimed') %}
+            <form method="post" action="{{ url_for('admin.cancel_job_admin', jid=j.id) }}"
+                  onsubmit="return confirm('Cancel job #{{ j.id }} and refund escrow?')">
+              <button type="submit" class="px-2 py-1 rounded text-[10px] font-mono transition"
+                      style="background:rgba(251,191,36,0.1);color:#fbbf24;">Cancel + Refund</button>
+            </form>
+            {% else %}
+            <span class="text-slate-700 text-[10px] font-mono">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="9" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No jobs found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

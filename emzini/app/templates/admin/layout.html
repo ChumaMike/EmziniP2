@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Admin Console — Emzini{% endblock %}
+
+{% block content %}
+<!-- Admin header -->
+<div class="flex items-center justify-between mb-5">
+  <div>
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-widest">EMZINI RESIDENCE · ADMIN ONLY</p>
+    <h1 class="text-xl font-bold text-white mt-1 flex items-center gap-2">
+      <i class="fas fa-shield-halved" style="color:var(--teal-lt);"></i>
+      Admin Console
+    </h1>
+  </div>
+  <span class="px-2.5 py-1 rounded text-[10px] font-mono border"
+        style="background:rgba(244,63,94,0.1);border-color:rgba(244,63,94,0.3);color:#f87171;">
+    ADMIN ACCESS
+  </span>
+</div>
+
+<!-- Tab navigation -->
+<div class="overflow-x-auto mb-7" style="border-bottom:1px solid var(--border-2);">
+  <nav class="flex min-w-max -mb-px">
+    {% set _tabs = [
+      ('admin.index',       'fa-gauge',               'Overview'),
+      ('admin.users',       'fa-users',               'Users'),
+      ('admin.civic',       'fa-triangle-exclamation','Civic'),
+      ('admin.marketplace', 'fa-store',               'Market'),
+      ('admin.jobs',        'fa-person-running',      'Jobs'),
+      ('admin.bounties',    'fa-trophy',              'Bounties'),
+      ('admin.wallet_txs',  'fa-wallet',              'Wallet'),
+      ('admin.chat_log',    'fa-robot',               'AI Chat'),
+      ('admin.goals_log',   'fa-bullseye',            'Goals'),
+      ('admin.network_log', 'fa-people-arrows',       'Network'),
+      ('admin.docs_log',    'fa-file-lines',          'Docs'),
+      ('admin.runners',     'fa-id-card',             'Runners'),
+      ('admin.logs',        'fa-list-ul',             'Logs'),
+    ] %}
+    {% for ep, icon, label in _tabs %}
+    {% set active = request.endpoint == ep %}
+    <a href="{{ url_for(ep) }}"
+       class="flex items-center gap-1.5 px-3.5 py-2.5 text-[11px] font-mono whitespace-nowrap transition-colors border-b-2
+              {{ 'text-white' if active else 'text-slate-500 hover:text-slate-300' }}"
+       style="{{ 'border-color:var(--teal);' if active else 'border-color:transparent;' }}">
+      <i class="fas {{ icon }} text-[10px]"></i>{{ label }}
+    </a>
+    {% endfor %}
+  </nav>
+</div>
+
+{% block admin_content %}{% endblock %}
+{% endblock %}
+
+{% block scripts %}
+{% block admin_scripts %}{% endblock %}
+{% endblock %}

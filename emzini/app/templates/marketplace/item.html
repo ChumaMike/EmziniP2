@@ -1,0 +1,327 @@
+{% extends 'base.html' %}
+{% block title %}{{ item.title }} — Emzini Market{% endblock %}
+{% block content %}
+
+<!-- Back link -->
+<div class="mb-5">
+  <a href="/market" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+    <i class="fas fa-arrow-left text-[10px]"></i> Back to Market
+  </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Left: Item Info (2/3) -->
+  <div class="lg:col-span-2 space-y-5">
+
+    <!-- Photo -->
+    {% if item.photo_filename %}
+    <div class="rounded-xl overflow-hidden" style="max-height:360px;">
+      <img src="{{ url_for('static', filename='uploads/market/' + item.photo_filename) }}"
+           alt="{{ item.title }}" class="w-full object-cover">
+    </div>
+    {% endif %}
+
+    <!-- Header card -->
+    <div class="card p-6">
+      <div class="flex items-start gap-3 flex-wrap mb-3">
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md capitalize"
+              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);">
+          {{ item.category }}
+        </span>
+        {% if item.allows_delivery %}
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
+              style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;">
+          <i class="fas fa-truck-fast mr-1"></i>Delivery available
+        </span>
+        {% endif %}
+        {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
+        {% if stock > 0 %}
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
+              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.3);color:#34d399;">
+          IN STOCK · {{ stock }} left
+        </span>
+        {% else %}
+        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
+              style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171;">
+          OUT OF STOCK
+        </span>
+        {% endif %}
+      </div>
+
+      <h1 class="text-2xl font-bold text-white mb-1">{{ item.title }}</h1>
+      <p class="text-3xl font-bold font-mono mb-4" style="color:var(--teal-lt);">R{{ '%.2f'|format(item.price) }}</p>
+      <p class="text-slate-400 leading-relaxed">{{ item.description }}</p>
+
+      <div class="flex items-center gap-2 mt-4 pt-4 border-t text-sm text-slate-500" style="border-color:var(--border);">
+        <i class="fas fa-user text-xs"></i>
+        <span>Sold by</span>
+        <span class="font-mono" style="color:var(--teal-lt);">@{{ item.seller.username }}</span>
+        <span class="text-slate-700">·</span>
+        <i class="fas fa-star text-xs text-amber-400"></i>
+        <span>{{ item.seller.reputation }} rep</span>
+        <span class="text-slate-700">·</span>
+        <span>{{ item.created_at.strftime('%d %b %Y') }}</span>
+      </div>
+    </div>
+
+    <!-- Private DM Chat Panel -->
+    <div class="card p-5">
+      <h2 class="text-sm font-mono font-semibold text-white mb-3 flex items-center gap-2">
+        <i class="fas fa-lock" style="color:var(--teal-lt);"></i>
+        {% if item.seller_id == current_user.id %}Buyer Messages{% else %}Private Chat with Seller{% endif %}
+        <span class="ml-auto text-[10px] font-mono text-slate-600">Private — only you &amp; the seller can see this</span>
+      </h2>
+
+      {% if item.seller_id == current_user.id %}
+      <!-- Seller: show list of buyers who messaged -->
+      {% if buyers %}
+      <div class="space-y-2 mb-3">
+        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Conversations</p>
+        {% for buyer in buyers %}
+        <a href="{{ url_for('messages.start_conversation') }}"
+           class="flex items-center gap-2 p-2 rounded-lg hover:bg-teal-900/20 transition cursor-pointer"
+           style="border:1px solid var(--border);"
+           onclick="event.preventDefault(); document.getElementById('open-conv-{{ buyer.id }}').submit();">
+          <div class="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0"
+               style="background:var(--border-2);color:var(--teal-lt);">
+            {{ buyer.username[:2].upper() }}
+          </div>
+          <span class="font-mono text-xs text-slate-300">@{{ buyer.username }}</span>
+          <i class="fas fa-chevron-right text-[10px] text-slate-600 ml-auto"></i>
+        </a>
+        <form id="open-conv-{{ buyer.id }}" method="POST" action="{{ url_for('messages.start_conversation') }}" class="hidden">
+          <input type="hidden" name="other_user_id" value="{{ buyer.id }}"/>
+          <input type="hidden" name="context_type" value="item"/>
+          <input type="hidden" name="context_id" value="{{ item.id }}"/>
+        </form>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="text-slate-600 text-xs font-mono text-center py-4">No buyer messages yet.</p>
+      {% endif %}
+
+      {% else %}
+      <!-- Buyer: private thread with seller -->
+      <div id="dm-history" class="space-y-2 mb-4 overflow-y-auto pr-1" style="max-height:260px;">
+        {% for dm in dms %}
+        {% include 'marketplace/_dm_message.html' %}
+        {% endfor %}
+        {% if not dms %}
+        <p class="text-slate-600 text-xs font-mono text-center py-4">
+          No messages yet — ask the seller anything privately!
+        </p>
+        {% endif %}
+      </div>
+      <form hx-post="/market/{{ item.id }}/messages/send"
+            hx-target="#dm-history"
+            hx-swap="beforeend"
+            class="flex gap-2"
+            id="dm-form">
+        <input type="text" name="content" placeholder="Message seller privately…"
+               class="flex-1 text-sm" required autocomplete="off"/>
+        <button type="submit" class="btn-primary text-sm px-4">
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </form>
+
+      <!-- Also link to full conversation view -->
+      <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="mt-2">
+        <input type="hidden" name="other_user_id" value="{{ item.seller_id }}"/>
+        <input type="hidden" name="context_type" value="item"/>
+        <input type="hidden" name="context_id" value="{{ item.id }}"/>
+        <button class="text-[11px] font-mono text-slate-600 hover:text-teal-400 transition w-full text-center">
+          <i class="fas fa-arrow-up-right-from-square mr-1"></i>Open in full chat view
+        </button>
+      </form>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right: Buy Panel (1/3) -->
+  <div class="space-y-4">
+
+    {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
+    {% if stock > 0 and item.status == 'available' and item.seller_id != current_user.id %}
+    <!-- Buy form -->
+    <div class="card p-5 relative overflow-hidden" style="border-color:var(--teal);border-width:1px;">
+      <div class="absolute top-0 left-6 right-6 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+      <h2 class="text-sm font-mono font-semibold text-white mb-4 flex items-center gap-2">
+        <i class="fas fa-bag-shopping" style="color:var(--teal-lt);"></i>
+        Purchase
+      </h2>
+
+      <form method="POST" action="/market/{{ item.id }}/buy" id="buy-form">
+
+        <!-- Delivery option -->
+        {% if item.allows_delivery %}
+        <div class="mb-4">
+          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Fulfilment</p>
+          <label class="flex items-center gap-2 cursor-pointer mb-2 group">
+            <input type="radio" name="wants_delivery" value="0" checked
+                   class="accent-teal-500" onchange="toggleDelivery(false)"/>
+            <span class="text-sm text-slate-300">Pickup (free)</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer group">
+            <input type="radio" name="wants_delivery" value="1"
+                   class="accent-teal-500" onchange="toggleDelivery(true)"/>
+            <span class="text-sm text-slate-300">Deliver to my room
+              <span class="text-[10px] font-mono ml-1" style="color:var(--teal-lt);">+R15 runner fee</span>
+            </span>
+          </label>
+
+          <!-- Runner online indicator -->
+          <div class="mt-2 flex items-center gap-1.5 text-[11px]" style="color:var(--teal-lt);">
+            {% if active_runners %}
+            <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--teal-lt);"></span>
+            {{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online
+            {% else %}
+            <span class="w-1.5 h-1.5 rounded-full bg-slate-600 flex-shrink-0"></span>
+            <span class="text-slate-600">No runners online now</span>
+            {% endif %}
+          </div>
+
+          <!-- Delivery address (hidden by default) -->
+          <div id="delivery-address-box" class="hidden mt-3">
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Delivery address / room</label>
+            <textarea name="delivery_address" rows="2"
+                      placeholder="e.g. Block B, Room 204"
+                      class="text-sm"></textarea>
+          </div>
+        </div>
+        {% else %}
+        <input type="hidden" name="wants_delivery" value="0"/>
+        {% endif %}
+
+        <!-- Payment method -->
+        <div class="mb-5">
+          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Payment</p>
+          <label class="flex items-center gap-2 cursor-pointer mb-2">
+            <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500"/>
+            <span class="text-sm text-slate-300">App Rands
+              <span class="text-[10px] font-mono ml-1 text-slate-500">Balance: R{{ '%.2f'|format(current_user.wallet_balance) }}</span>
+            </span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer mb-2">
+            <input type="radio" name="payment_method" value="cash" class="accent-teal-500"/>
+            <span class="text-sm text-slate-300">Cash on delivery</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="payment_method" value="card" class="accent-teal-500"/>
+            <span class="text-sm text-slate-300">Card on delivery <span class="text-[10px] text-slate-500">(runner collects)</span></span>
+          </label>
+        </div>
+
+        <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3">
+          <i class="fas fa-bag-shopping mr-2"></i>Buy Now
+        </button>
+
+      </form>
+    </div>
+
+    {% elif item.seller_id == current_user.id %}
+    <!-- Owner panel -->
+    <div class="card p-5">
+      <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-3">Your Listing</p>
+      <form method="POST" action="/market/{{ item.id }}/delete"
+            onsubmit="return confirm('Remove this listing?')">
+        <button type="submit" class="btn-secondary w-full justify-center text-sm"
+                style="color:#f87171;border-color:rgba(239,68,68,0.3);">
+          <i class="fas fa-trash-can mr-2"></i>Remove Listing
+        </button>
+      </form>
+    </div>
+
+    {% elif stock <= 0 or item.status != 'available' %}
+    <!-- Out of stock panel -->
+    <div class="card p-5" style="border-color:rgba(239,68,68,0.3);">
+      <div class="text-center mb-4">
+        <i class="fas fa-box text-3xl text-slate-600 mb-2 block"></i>
+        <p class="text-white font-semibold text-sm">Out of Stock</p>
+        <p class="text-slate-500 text-xs mt-1">This item is currently unavailable</p>
+      </div>
+      {% if not user_restock %}
+      <form method="POST" action="/market/{{ item.id }}/restock">
+        <button type="submit" class="btn-secondary w-full justify-center text-sm" style="color:var(--teal-lt);">
+          <i class="fas fa-bell mr-2"></i>Notify Me When Restocked
+        </button>
+      </form>
+      {% else %}
+      <p class="text-center text-xs font-mono" style="color:var(--teal-lt);">
+        <i class="fas fa-check mr-1"></i>You're on the notify list
+      </p>
+      {% endif %}
+    </div>
+    {% endif %}
+
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function toggleDelivery(show) {
+  var box = document.getElementById('delivery-address-box');
+  var btn = document.getElementById('buy-btn');
+  if (box) {
+    if (show) {
+      box.classList.remove('hidden');
+      if (btn) btn.innerHTML = '<i class="fas fa-truck-fast mr-2"></i>Buy + Request Delivery';
+    } else {
+      box.classList.add('hidden');
+      if (btn) btn.innerHTML = '<i class="fas fa-bag-shopping mr-2"></i>Buy Now';
+    }
+  }
+}
+
+// Clear DM input after send
+var dmForm = document.getElementById('dm-form');
+if (dmForm) {
+  dmForm.addEventListener('htmx:afterRequest', function() {
+    dmForm.querySelector('input[name="content"]').value = '';
+    var hist = document.getElementById('dm-history');
+    if (hist) hist.scrollTop = hist.scrollHeight;
+  });
+}
+
+// SocketIO: real-time private DM (pair-keyed)
+{% set me = current_user.id %}
+{% set other_id = item.seller_id if current_user.id != item.seller_id else 0 %}
+{% if other_id %}
+var _pairKey = 'dm_{{ item.id }}_' + Math.min({{ me }}, {{ other_id }}) + '_' + Math.max({{ me }}, {{ other_id }});
+socket.on(_pairKey, function(data) {
+  if (data.sender_id === {{ current_user.id }}) return; // own message already appended by HTMX
+  var hist = document.getElementById('dm-history');
+  if (!hist) return;
+  // Incoming message bubble (left-aligned, dark background)
+  var div = document.createElement('div');
+  div.className = 'flex gap-2 items-end';
+  div.innerHTML =
+    '<div class="w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:var(--border-2);color:var(--teal-lt);">' +
+      escapeHtml(data.sender).substring(0,2).toUpperCase() +
+    '</div>' +
+    '<div style="max-width:75%;">' +
+      '<p class="text-[10px] font-mono mb-1" style="color:var(--teal-lt);">@' + escapeHtml(data.sender) + '</p>' +
+      '<div class="rounded-2xl rounded-bl-sm px-3 py-2 text-sm" style="background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;">' +
+        escapeHtml(data.content) +
+      '</div>' +
+    '</div>';
+  hist.appendChild(div);
+  hist.scrollTop = hist.scrollHeight;
+});
+{% endif %}
+
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Runner status update
+socket.on('runner_status_changed', function(data) {
+  // Optionally update runner online count — lightweight for now
+});
+</script>
+{% endblock %}

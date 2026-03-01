@@ -1,0 +1,114 @@
+import os
+from flask import Flask
+from dotenv import load_dotenv
+from app.extensions import db, login_manager, socketio
+
+load_dotenv()
+
+
+def create_app():
+    app = Flask(__name__)
+
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///emzini.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config['GEMINI_API_KEY'] = os.getenv('GEMINI_API_KEY', '')
+    app.config['ADMIN_USERNAME'] = os.getenv('ADMIN_USERNAME', 'admin')
+    app.config['ADMIN_PASSWORD'] = os.getenv('ADMIN_PASSWORD', 'admin123')
+    app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8 MB upload limit
+
+    upload_dir = os.path.join(app.static_folder, 'uploads', 'market')
+    os.makedirs(upload_dir, exist_ok=True)
+    app.config['MARKET_UPLOAD_DIR'] = upload_dir
+
+    # Extensions
+    db.init_app(app)
+    login_manager.init_app(app)
+    socketio.init_app(app, async_mode='eventlet', cors_allowed_origins='*')
+
+    login_manager.login_view = 'auth.login'
+    login_manager.login_message_category = 'info'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        from app.models import User
+        return User.query.get(int(user_id))
+
+    # Register blueprints
+    from app.blueprints.auth.routes import auth_bp
+    from app.blueprints.dashboard.routes import dashboard_bp
+    from app.blueprints.marketplace.routes import marketplace_bp
+    from app.blueprints.jobs.routes import jobs_bp
+    from app.blueprints.bounties.routes import bounties_bp
+    from app.blueprints.civic.routes import civic_bp
+    from app.blueprints.wallet.routes import wallet_bp
+    from app.blueprints.chat.routes import chat_bp
+    from app.blueprints.admin.routes import admin_bp
+    from app.blueprints.profile.routes import profile_bp
+    from app.blueprints.goals.routes import goals_bp
+    from app.blueprints.network.routes import network_bp
+    from app.blueprints.docs.routes import docs_bp
+    from app.blueprints.runner.routes import runner_bp
+    from app.blueprints.messages.routes import messages_bp
+
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(marketplace_bp)
+    app.register_blueprint(jobs_bp)
+    app.register_blueprint(bounties_bp)
+    app.register_blueprint(civic_bp)
+    app.register_blueprint(wallet_bp)
+    app.register_blueprint(chat_bp)
+    app.register_blueprint(admin_bp)
+    app.register_blueprint(profile_bp)
+    app.register_blueprint(goals_bp)
+    app.register_blueprint(network_bp)
+    app.register_blueprint(docs_bp)
+    app.register_blueprint(runner_bp)
+    app.register_blueprint(messages_bp)
+
+    with app.app_context():
+        db.create_all()
+        _migrate(db)
+        _seed_admin(app)
+
+    return app
+
+
+def _migrate(db):
+    """Add any missing columns to existing tables (poor-man's migration)."""
+    _add_col = lambda conn, table, col, typedef: (
+        conn.execute(db.text(f'ALTER TABLE {table} ADD COLUMN {col} {typedef}'))
+        if col not in {r[1] for r in conn.execute(db.text(f'PRAGMA table_info({table})')).fetchall()}
+        else None
+    )
+    with db.engine.connect() as conn:
+        _add_col(conn, 'market_items',  'photo_filename',   'VARCHAR(260)')
+        _add_col(conn, 'users',         'chat_session_id',  'VARCHAR(36)')
+        _add_col(conn, 'chat_messages', 'chat_session_id',  'VARCHAR(36)')
+        _add_col(conn, 'market_items',    'stock_qty',        'INTEGER DEFAULT 1')
+        _add_col(conn, 'market_items',    'allows_delivery',  'BOOLEAN DEFAULT 1')
+        _add_col(conn, 'runner_jobs',     'item_id',          'INTEGER')
+        _add_col(conn, 'runner_jobs',     'delivery_address', 'VARCHAR(300)')
+        _add_col(conn, 'runner_jobs',     'job_type',         'VARCHAR(20) DEFAULT "general"')
+        _add_col(conn, 'runner_jobs',     'payment_method',   'VARCHAR(20) DEFAULT "wallet"')
+        _add_col(conn, 'direct_messages', 'recipient_id',     'INTEGER')
+        conn.commit()
+
+
+def _seed_admin(app):
+    from app.models import User
+    from app.extensions import db
+
+    admin_username = app.config['ADMIN_USERNAME']
+    if not User.query.filter_by(username=admin_username).first():
+        admin = User(
+            username=admin_username,
+            email=f'{admin_username}@emzini.local',
+            is_admin=True,
+            wallet_balance=1000.0,
+            is_runner=True,
+        )
+        admin.set_password(app.config['ADMIN_PASSWORD'])
+        db.session.add(admin)
+        db.session.commit()

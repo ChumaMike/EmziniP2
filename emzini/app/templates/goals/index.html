@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Goals — Emzini{% endblock %}
+{% block content %}
+
+<div class="flex items-start justify-between mb-7">
+  <div>
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · MY GOALS</p>
+    <h1 class="text-2xl font-bold text-white mt-1">Goals</h1>
+    <p class="text-slate-400 text-sm mt-1">Track your personal missions and milestones.</p>
+  </div>
+</div>
+
+<!-- Add Goal Form -->
+<div class="card p-6 mb-8 relative overflow-hidden">
+  <div class="absolute top-0 left-8 right-8 h-px"
+       style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+  <h2 class="text-sm font-semibold text-white mb-4 flex items-center gap-2">
+    <i class="fas fa-plus-circle text-xs" style="color:var(--teal-lt);"></i> Add a New Goal
+  </h2>
+  <form method="POST" action="/goals/add">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <div class="md:col-span-2">
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Goal Title</label>
+        <input type="text" name="title" placeholder="e.g. Complete online Python course" required maxlength="200"/>
+      </div>
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Category</label>
+        <select name="category">
+          {% for cat in categories %}
+          <option value="{{ cat }}">{{ cat }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Target Date <span class="text-slate-600">(optional)</span></label>
+        <input type="date" name="target_date"/>
+      </div>
+      <div class="md:col-span-2">
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Description <span class="text-slate-600">(optional)</span></label>
+        <textarea name="description" rows="2" placeholder="Why is this goal important to you?"></textarea>
+      </div>
+    </div>
+    <button type="submit" class="btn-primary"><i class="fas fa-flag"></i> Create Goal</button>
+  </form>
+</div>
+
+<!-- Active Goals -->
+<div class="mb-8">
+  <h2 class="font-semibold text-white mb-4 flex items-center gap-2">
+    <i class="fas fa-bolt text-xs text-amber-400"></i> Active Goals
+    <span class="font-mono text-xs text-slate-600 ml-1">({{ active|length }})</span>
+  </h2>
+
+  {% if active %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {% for goal in active %}
+    <div class="card p-5 flex flex-col transition-all" style="hover:border-color:var(--teal-dim);">
+      <div class="flex items-start justify-between mb-3">
+        <div class="flex-1 min-w-0">
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-md"
+                style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+            {{ goal.category }}
+          </span>
+          <h3 class="text-white font-semibold mt-2 leading-snug">{{ goal.title }}</h3>
+          {% if goal.description %}
+          <p class="text-slate-500 text-xs mt-1 leading-relaxed">{{ goal.description[:80] }}{% if goal.description|length > 80 %}…{% endif %}</p>
+          {% endif %}
+        </div>
+        <div class="flex-shrink-0 ml-3 text-right">
+          <span class="text-2xl font-bold font-mono" style="color:var(--teal-lt);">{{ goal.progress }}%</span>
+          {% if goal.target_date %}
+          <p class="text-[10px] font-mono text-slate-600 mt-0.5">
+            <i class="fas fa-calendar-days mr-1"></i>{{ goal.target_date.strftime('%d %b %Y') }}
+          </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="w-full h-1.5 rounded-full overflow-hidden mb-3" style="background:var(--border-2);">
+        <div class="h-full rounded-full transition-all"
+             style="background:{% if goal.progress == 100 %}#6366f1{% elif goal.progress >= 50 %}var(--teal){% else %}#f59e0b{% endif %};
+                    width:{{ goal.progress }}%"></div>
+      </div>
+
+      <!-- Milestones preview -->
+      {% if goal.milestones %}
+      <p class="text-[10px] font-mono text-slate-600 mb-3">
+        {{ goal.milestones|selectattr('is_completed')|list|length }}/{{ goal.milestones|length }} milestones done
+      </p>
+      {% endif %}
+
+      <!-- Actions -->
+      <div class="flex gap-2 mt-auto pt-3 border-t" style="border-color:var(--border);">
+        <a href="/goals/{{ goal.id }}" class="btn-secondary text-xs py-1.5 px-3 flex-1 justify-center">
+          <i class="fas fa-list-check"></i> Milestones
+        </a>
+        <form method="POST" action="/goals/{{ goal.id }}/complete">
+          <button type="submit" class="btn-secondary text-xs py-1.5 px-3" style="color:#a78bfa;border-color:rgba(167,139,250,0.3);"
+                  onclick="return confirm('Mark this goal as complete?')">
+            <i class="fas fa-check"></i> Done
+          </button>
+        </form>
+        <form method="POST" action="/goals/{{ goal.id }}/delete">
+          <button type="submit" class="btn-secondary text-xs py-1.5 px-3" style="color:#f87171;border-color:rgba(248,113,113,0.2);"
+                  onclick="return confirm('Delete this goal?')">
+            <i class="fas fa-trash-can"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-10 text-center">
+    <i class="fas fa-flag text-3xl text-slate-700 mb-3"></i>
+    <p class="text-slate-400 font-medium">No active goals yet</p>
+    <p class="text-slate-600 text-sm mt-1">Add your first goal above to start tracking</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Completed Goals -->
+{% if completed %}
+<div>
+  <h2 class="font-semibold text-slate-500 mb-4 flex items-center gap-2">
+    <i class="fas fa-circle-check text-xs text-indigo-400"></i> Completed
+    <span class="font-mono text-xs text-slate-700 ml-1">({{ completed|length }})</span>
+  </h2>
+  <div class="space-y-2">
+    {% for goal in completed %}
+    <div class="card p-4 flex items-center justify-between opacity-60">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-circle-check text-indigo-400 text-sm"></i>
+        <div>
+          <p class="text-slate-300 text-sm font-medium line-through">{{ goal.title }}</p>
+          <p class="text-[10px] font-mono text-slate-600">{{ goal.category }} · {{ goal.created_at.strftime('%d %b %Y') }}</p>
+        </div>
+      </div>
+      <form method="POST" action="/goals/{{ goal.id }}/delete">
+        <button type="submit" class="text-slate-700 hover:text-red-400 transition text-xs">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}

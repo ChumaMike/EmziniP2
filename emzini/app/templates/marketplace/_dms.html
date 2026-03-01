@@ -1,0 +1,6 @@
+{% for dm in dms %}
+{% include 'marketplace/_dm_message.html' %}
+{% endfor %}
+{% if not dms %}
+<p class="text-slate-600 text-xs font-mono text-center py-4">No messages yet.</p>
+{% endif %}

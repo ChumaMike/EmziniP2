@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}{{ doc.title }} — Emzini{% endblock %}
+{% block content %}
+
+<!-- Page header (app UI, not included in PDF) -->
+<div class="flex items-start justify-between mb-7">
+  <div>
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · DOCUMENTS · PREVIEW</p>
+    <h1 class="text-xl font-bold text-white mt-1">{{ doc.title }}</h1>
+    <p class="text-slate-400 text-sm mt-1">
+      <span class="font-mono text-[10px] px-2 py-0.5 rounded-md"
+            style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+        {{ schema.label }}
+      </span>
+    </p>
+  </div>
+  <div class="flex gap-2">
+    <a href="/docs/{{ doc.id }}/edit" class="btn-secondary text-xs">
+      <i class="fas fa-pen"></i> Edit
+    </a>
+    <button onclick="downloadPdf()" class="btn-primary text-xs">
+      <i class="fas fa-download"></i> Download PDF
+    </button>
+  </div>
+</div>
+
+<!-- Document preview (white card, print-friendly) -->
+<div class="card p-2 mb-6">
+  <div id="document-body"
+       style="background:#fff;color:#111;font-family:'Georgia',serif;padding:48px 56px;max-width:800px;margin:0 auto;line-height:1.6;min-height:600px;">
+
+    {% if doc.doc_type == 'cv' %}
+    <!-- ── CV / Resume layout ── -->
+    <div style="border-bottom:2px solid #0d9488;padding-bottom:16px;margin-bottom:24px;">
+      <h1 style="font-size:28px;font-weight:700;margin:0 0 4px;color:#0d9488;">{{ content.get('full_name','') }}</h1>
+      <p style="margin:0;font-size:14px;color:#444;">
+        {% if content.get('email') %}{{ content.email }}{% endif %}
+        {% if content.get('phone') %} &nbsp;·&nbsp; {{ content.phone }}{% endif %}
+        {% if content.get('location') %} &nbsp;·&nbsp; {{ content.location }}{% endif %}
+        {% if content.get('linkedin') %} &nbsp;·&nbsp; {{ content.linkedin }}{% endif %}
+      </p>
+    </div>
+
+    {% if content.get('summary') %}
+    <div style="margin-bottom:20px;">
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d9488;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:10px;">Professional Summary</h2>
+      <p style="font-size:14px;color:#222;margin:0;">{{ content.summary | replace('\n','<br>')|safe }}</p>
+    </div>
+    {% endif %}
+
+    {% if content.get('experience') %}
+    <div style="margin-bottom:20px;">
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d9488;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:10px;">Experience</h2>
+      <p style="font-size:14px;color:#222;margin:0;white-space:pre-line;">{{ content.experience }}</p>
+    </div>
+    {% endif %}
+
+    {% if content.get('education') %}
+    <div style="margin-bottom:20px;">
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d9488;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:10px;">Education</h2>
+      <p style="font-size:14px;color:#222;margin:0;white-space:pre-line;">{{ content.education }}</p>
+    </div>
+    {% endif %}
+
+    {% if content.get('skills') %}
+    <div>
+      <h2 style="font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#0d9488;border-bottom:1px solid #e5e7eb;padding-bottom:4px;margin-bottom:10px;">Skills</h2>
+      <p style="font-size:14px;color:#222;margin:0;white-space:pre-line;">{{ content.skills }}</p>
+    </div>
+    {% endif %}
+
+    {% elif doc.doc_type == 'cover_letter' %}
+    <!-- ── Cover Letter layout ── -->
+    <div style="margin-bottom:28px;">
+      <p style="margin:0;font-size:14px;font-weight:700;color:#111;">{{ content.get('your_name','') }}</p>
+      <p style="margin:2px 0 0;font-size:13px;color:#555;">
+        {{ content.get('your_email','') }}{% if content.get('your_phone') %} &nbsp;·&nbsp; {{ content.your_phone }}{% endif %}
+      </p>
+    </div>
+
+    <div style="margin-bottom:20px;font-size:14px;color:#333;">
+      <p style="margin:0;">{{ content.get('date','') }}</p>
+      <p style="margin:8px 0 0;">{{ content.get('employer_name','') }}</p>
+      <p style="margin:2px 0 0;">{{ content.get('employer_company','') }}</p>
+    </div>
+
+    {% if content.get('subject') %}
+    <p style="font-weight:700;font-size:14px;margin-bottom:16px;color:#111;">Re: {{ content.subject }}</p>
+    {% endif %}
+
+    {% if content.get('opening') %}
+    <p style="font-size:14px;margin-bottom:14px;color:#222;white-space:pre-line;">{{ content.opening }}</p>
+    {% endif %}
+    {% if content.get('body') %}
+    <p style="font-size:14px;margin-bottom:14px;color:#222;white-space:pre-line;">{{ content.body }}</p>
+    {% endif %}
+    {% if content.get('closing') %}
+    <p style="font-size:14px;margin-bottom:32px;color:#222;white-space:pre-line;">{{ content.closing }}</p>
+    {% endif %}
+
+    <p style="font-size:14px;color:#111;">
+      Yours sincerely,<br>
+      <strong>{{ content.get('your_name','') }}</strong>
+    </p>
+
+    {% elif doc.doc_type == 'email' %}
+    <!-- ── Email layout ── -->
+    <div style="border-bottom:1px solid #e5e7eb;padding-bottom:16px;margin-bottom:20px;">
+      <table style="font-size:13px;color:#555;border-collapse:collapse;width:100%;">
+        <tr><td style="padding:3px 12px 3px 0;font-weight:700;color:#111;width:60px;">To:</td><td>{{ content.get('to','') }}</td></tr>
+        {% if content.get('cc') %}<tr><td style="padding:3px 12px 3px 0;font-weight:700;color:#111;">CC:</td><td>{{ content.cc }}</td></tr>{% endif %}
+        <tr><td style="padding:3px 12px 3px 0;font-weight:700;color:#111;">Subject:</td><td><strong>{{ content.get('subject','') }}</strong></td></tr>
+      </table>
+    </div>
+
+    {% if content.get('greeting') %}<p style="font-size:14px;margin-bottom:14px;">{{ content.greeting }}</p>{% endif %}
+    {% if content.get('body') %}<p style="font-size:14px;margin-bottom:24px;color:#222;white-space:pre-line;">{{ content.body }}</p>{% endif %}
+    <p style="font-size:14px;">
+      {{ content.get('sign_off','Kind regards,') }}<br>
+      <strong>{{ content.get('your_name','') }}</strong>
+    </p>
+
+    {% elif doc.doc_type == 'letter' %}
+    <!-- ── Business Letter layout ── -->
+    <div style="display:flex;justify-content:space-between;margin-bottom:24px;">
+      <div style="font-size:13px;color:#333;">
+        <strong style="color:#111;">{{ content.get('your_name','') }}</strong><br>
+        <span style="white-space:pre-line;">{{ content.get('your_address','') }}</span>
+      </div>
+      <div style="text-align:right;font-size:13px;color:#333;">{{ content.get('date','') }}</div>
+    </div>
+
+    <div style="margin-bottom:20px;font-size:13px;color:#333;">
+      <strong style="color:#111;">{{ content.get('recipient_name','') }}</strong><br>
+      <span style="white-space:pre-line;">{{ content.get('recipient_address','') }}</span>
+    </div>
+
+    {% if content.get('subject') %}
+    <p style="font-weight:700;font-size:14px;margin-bottom:16px;color:#111;">Re: {{ content.subject }}</p>
+    {% endif %}
+
+    {% if content.get('body') %}
+    <p style="font-size:14px;margin-bottom:32px;color:#222;white-space:pre-line;">{{ content.body }}</p>
+    {% endif %}
+
+    <p style="font-size:14px;">
+      {{ content.get('closing','Yours sincerely,') }}<br><br><br>
+      <strong>{{ content.get('your_name_signed','') }}</strong>
+    </p>
+    {% endif %}
+
+  </div>
+</div>
+
+<!-- Back link -->
+<div class="flex gap-3">
+  <a href="/docs" class="btn-secondary text-xs"><i class="fas fa-arrow-left"></i> All Documents</a>
+  <a href="/docs/{{ doc.id }}/edit" class="btn-secondary text-xs"><i class="fas fa-pen"></i> Edit</a>
+  <button onclick="downloadPdf()" class="btn-primary text-xs"><i class="fas fa-download"></i> Download PDF</button>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script>
+function downloadPdf() {
+  const el = document.getElementById('document-body');
+  const filename = '{{ doc.title | replace(" ", "_") | replace("/", "-") }}.pdf';
+  const opt = {
+    margin:     10,
+    filename:   filename,
+    image:      { type: 'jpeg', quality: 0.98 },
+    html2canvas:{ scale: 2, useCORS: true },
+    jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' },
+  };
+  html2pdf().set(opt).from(el).save();
+}
+</script>
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Filter bar -->
+<form method="get" class="flex flex-wrap gap-2 mb-5 items-center">
+  <select name="status" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All statuses</option>
+    <option value="open"        {% if status_f == 'open'        %}selected{% endif %}>Open</option>
+    <option value="in_progress" {% if status_f == 'in_progress' %}selected{% endif %}>In Progress</option>
+    <option value="resolved"    {% if status_f == 'resolved'    %}selected{% endif %}>Resolved</option>
+  </select>
+  <select name="severity" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+    <option value="">All severities</option>
+    <option value="critical" {% if sev_f == 'critical' %}selected{% endif %}>Critical</option>
+    <option value="high"     {% if sev_f == 'high'     %}selected{% endif %}>High</option>
+    <option value="medium"   {% if sev_f == 'medium'   %}selected{% endif %}>Medium</option>
+    <option value="low"      {% if sev_f == 'low'      %}selected{% endif %}>Low</option>
+  </select>
+  <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+  <a href="{{ url_for('admin.civic') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+  <span class="ml-auto text-[11px] font-mono text-slate-500">{{ reports|length }} report(s)</span>
+</form>
+
+<div class="card overflow-hidden">
+  <div class="overflow-x-auto">
+    <table class="w-full text-xs">
+      <thead>
+        <tr style="border-bottom:1px solid var(--border-2);">
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Report</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Reporter</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Severity</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Upvotes</th>
+          <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Date</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Status</th>
+          <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in reports %}
+        <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+
+          <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ r.id }}</td>
+
+          <td class="px-4 py-3 align-top" style="max-width:260px;">
+            <p class="text-slate-200 font-medium truncate">{{ r.title }}</p>
+            <p class="text-slate-500 text-[11px] mt-0.5 line-clamp-2">{{ r.description[:100] }}{% if r.description|length > 100 %}…{% endif %}</p>
+            <span class="text-[10px] font-mono text-slate-600 capitalize mt-0.5 inline-block">{{ r.category }}</span>
+          </td>
+
+          <td class="px-4 py-3 align-top">
+            {% if r.reporter %}
+            <span class="text-slate-300 font-mono">@{{ r.reporter.username }}</span>
+            {% else %}
+            <span class="text-slate-600">—</span>
+            {% endif %}
+          </td>
+
+          <td class="px-4 py-3 align-top">
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-mono sev-{{ r.severity }}">{{ r.severity|upper }}</span>
+          </td>
+
+          <td class="px-4 py-3 align-top text-center font-mono text-slate-400">
+            <i class="fas fa-chevron-up text-[9px] mr-0.5"></i>{{ r.upvotes }}
+          </td>
+
+          <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+            {{ r.created_at.strftime('%d %b %y') }}
+          </td>
+
+          <!-- Status badge + change form -->
+          <td class="px-4 py-3 align-top text-center">
+            <form method="post" action="{{ url_for('admin.update_civic_status', rid=r.id) }}" class="flex flex-col items-center gap-1.5">
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-mono badge-{{ r.status.replace('_','-') }}">
+                {{ r.status.replace('_', ' ')|upper }}
+              </span>
+              <div class="flex gap-1">
+                {% for s, label in [('open','Open'),('in_progress','WIP'),('resolved','Done')] %}
+                {% if s != r.status %}
+                <button type="submit" name="status" value="{{ s }}"
+                        class="px-1.5 py-0.5 rounded text-[9px] font-mono transition whitespace-nowrap"
+                        style="background:var(--border-2);color:#94a3b8;">{{ label }}</button>
+                {% endif %}
+                {% endfor %}
+              </div>
+            </form>
+          </td>
+
+          <!-- Delete -->
+          <td class="px-4 py-3 align-top text-center">
+            <form method="post" action="{{ url_for('admin.delete_civic', rid=r.id) }}"
+                  onsubmit="return confirm('Delete this report?')">
+              <button type="submit" class="px-2 py-1 rounded text-[10px] font-mono transition"
+                      style="background:rgba(239,68,68,0.1);color:#f87171;">Delete</button>
+            </form>
+          </td>
+
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="8" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No reports found</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

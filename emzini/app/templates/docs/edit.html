@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Edit — {{ doc.title }} — Emzini{% endblock %}
+{% block content %}
+
+<div class="flex items-start justify-between mb-7">
+  <div>
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · DOCUMENTS · EDIT</p>
+    <h1 class="text-2xl font-bold text-white mt-1">{{ doc.title }}</h1>
+    <p class="text-slate-400 text-sm mt-1">
+      <span class="font-mono text-[10px] px-2 py-0.5 rounded-md"
+            style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+        {{ schema.label }}
+      </span>
+    </p>
+  </div>
+  <a href="/docs/{{ doc.id }}/preview" class="btn-secondary text-xs">
+    <i class="fas fa-eye"></i> Preview
+  </a>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Main form -->
+  <div class="lg:col-span-2">
+    <div class="card p-6 relative overflow-hidden">
+      <div class="absolute top-0 left-8 right-8 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+      <form method="POST" action="/docs/{{ doc.id }}/edit" id="doc-form">
+        <div class="space-y-5">
+          {% for field in schema.fields %}
+          <div>
+            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2"
+                   for="field-{{ field.name }}">
+              {{ field.label }}
+            </label>
+            {% if field.type == 'textarea' %}
+            <textarea id="field-{{ field.name }}" name="{{ field.name }}"
+                      rows="{{ field.rows | default(4) }}"
+                      placeholder="{{ field.placeholder | default('') }}"
+                      >{{ content.get(field.name, '') }}</textarea>
+            {% else %}
+            <input type="text" id="field-{{ field.name }}" name="{{ field.name }}"
+                   placeholder="{{ field.placeholder | default('') }}"
+                   value="{{ content.get(field.name, '') }}"/>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="flex gap-3 mt-6 pt-5 border-t" style="border-color:var(--border);">
+          <button type="submit" class="btn-primary"><i class="fas fa-floppy-disk"></i> Save &amp; Preview</button>
+          <a href="/docs" class="btn-secondary">Back to Docs</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- AI Draft panel -->
+  <div class="lg:col-span-1">
+    <div class="card p-5 relative overflow-hidden sticky top-24">
+      <div class="absolute top-0 left-6 right-6 h-px"
+           style="background:linear-gradient(90deg,transparent,var(--teal-lt),transparent);"></div>
+
+      <div class="flex items-center gap-2 mb-4">
+        <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+             style="background:rgba(13,148,136,0.15);border:1px solid rgba(13,148,136,0.3);">
+          <i class="fas fa-wand-magic-sparkles text-xs" style="color:var(--teal-lt);"></i>
+        </div>
+        <h2 class="text-sm font-semibold text-white">Draft with AI</h2>
+      </div>
+
+      <p class="text-slate-500 text-xs mb-4 leading-relaxed">
+        Describe yourself and what you need — Claude will draft all the fields for you.
+      </p>
+
+      <textarea id="ai-prompt" rows="5"
+                placeholder="e.g. I'm a software engineer with 5 years experience in Python and React, applying for a senior role at a fintech startup. I worked at two companies, led a team of 4, and hold a BSc Computer Science from UCT."
+                class="mb-3"></textarea>
+
+      <button id="ai-draft-btn" onclick="runAiDraft()" class="btn-primary w-full justify-center text-sm">
+        <i class="fas fa-wand-magic-sparkles"></i> Generate Draft
+      </button>
+
+      <div id="ai-status" class="mt-3 text-xs font-mono text-center hidden"></div>
+    </div>
+  </div>
+
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const DOC_TYPE = '{{ doc.doc_type }}';
+
+async function runAiDraft() {
+  const prompt = document.getElementById('ai-prompt').value.trim();
+  if (!prompt) {
+    showStatus('Please describe yourself first.', 'text-amber-400');
+    return;
+  }
+
+  const btn = document.getElementById('ai-draft-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Drafting...';
+  showStatus('Claude is writing your document...', 'text-teal-400');
+
+  try {
+    const res = await fetch('/docs/ai-draft', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({doc_type: DOC_TYPE, user_prompt: prompt}),
+    });
+    const data = await res.json();
+
+    if (data.error) {
+      showStatus(data.error, 'text-red-400');
+    } else if (data.fields) {
+      let filled = 0;
+      for (const [key, val] of Object.entries(data.fields)) {
+        const el = document.getElementById('field-' + key);
+        if (el) { el.value = val; filled++; }
+      }
+      showStatus(`Done — ${filled} fields populated. Review and save.`, 'text-teal-400');
+    }
+  } catch (e) {
+    showStatus('Network error. Try again.', 'text-red-400');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Generate Draft';
+  }
+}
+
+function showStatus(msg, cls) {
+  const el = document.getElementById('ai-status');
+  el.className = 'mt-3 text-xs font-mono text-center ' + cls;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+</script>
+{% endblock %}

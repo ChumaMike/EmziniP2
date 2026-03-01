@@ -1,0 +1,121 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary cards -->
+<div class="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Contacts</p>
+    <h3 class="text-xl font-bold text-white">{{ total_contacts }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Across all residents</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Pending Reminders</p>
+    <h3 class="text-xl font-bold text-amber-400">{{ pending_alerts }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Upcoming follow-ups</p>
+  </div>
+  <div class="card p-4">
+    <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider mb-2">Total Reminders</p>
+    <h3 class="text-xl font-bold text-white">{{ total_alerts }}</h3>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">All-time</p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+  <!-- Contacts table -->
+  <div class="lg:col-span-2">
+
+    <!-- Filter bar -->
+    <form method="get" class="flex flex-wrap gap-2 mb-4 items-center">
+      <select name="user_id" style="width:auto;padding:0.4rem 0.75rem;font-size:0.75rem;">
+        <option value="">All users</option>
+        {% for u in all_users %}
+        <option value="{{ u.id }}" {% if uid == u.id %}selected{% endif %}>@{{ u.username }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-primary" style="padding:0.4rem 0.875rem;font-size:0.75rem;">Filter</button>
+      <a href="{{ url_for('admin.network_log') }}" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition">Reset</a>
+      <span class="ml-auto text-[11px] font-mono text-slate-500">{{ contacts|length }} contact(s)</span>
+    </form>
+
+    <div class="card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border-2);">
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">ID</th>
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Owner</th>
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Contact</th>
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Role</th>
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Phone</th>
+              <th class="text-center text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Reminders</th>
+              <th class="text-left text-[10px] font-mono text-slate-500 uppercase tracking-wider px-4 py-3">Added</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for c in contacts %}
+            <tr class="hover:bg-[#0a1a15] transition-colors" style="border-bottom:1px solid var(--border);">
+              <td class="px-4 py-3 align-top font-mono text-slate-600">#{{ c.id }}</td>
+              <td class="px-4 py-3 align-top font-mono text-slate-300">
+                {% if c.user %}@{{ c.user.username }}{% else %}—{% endif %}
+              </td>
+              <td class="px-4 py-3 align-top">
+                <p class="text-slate-200 font-medium">{{ c.name }}</p>
+                {% if c.email %}<p class="text-slate-500 text-[11px]">{{ c.email }}</p>{% endif %}
+              </td>
+              <td class="px-4 py-3 align-top text-slate-400">{{ c.role or '—' }}</td>
+              <td class="px-4 py-3 align-top font-mono text-slate-400">{{ c.phone or '—' }}</td>
+              <td class="px-4 py-3 align-top text-center font-mono text-slate-400">
+                {{ c.alerts|length }}
+              </td>
+              <td class="px-4 py-3 align-top font-mono text-slate-500 whitespace-nowrap">
+                {{ c.created_at.strftime('%d %b %y') }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="px-4 py-10 text-center text-slate-600 font-mono text-xs">No contacts found</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upcoming reminders sidebar -->
+  <div class="card p-5">
+    <h3 class="font-semibold text-white text-sm mb-4 flex items-center gap-2">
+      <i class="fas fa-bell text-amber-400 text-xs"></i>
+      Upcoming System-wide
+    </h3>
+    {% if upcoming %}
+    <div class="space-y-3">
+      {% for a in upcoming %}
+      <div class="p-3 rounded-lg" style="background:var(--border);">
+        <div class="flex items-center gap-1.5 mb-1">
+          <i class="fas
+            {%- if a.alert_type == 'Call' %} fa-phone
+            {%- elif a.alert_type == 'Email' %} fa-envelope
+            {%- elif a.alert_type == 'Meeting' %} fa-calendar-check
+            {%- else %} fa-bell{%- endif %} text-[10px] flex-shrink-0" style="color:var(--teal-lt);"></i>
+          <span class="text-[10px] font-mono text-slate-400">{{ a.alert_type }}</span>
+          <span class="ml-auto text-[10px] font-mono text-slate-600">{{ a.alert_date.strftime('%d %b') }}</span>
+        </div>
+        <p class="text-xs text-slate-300 truncate">{{ a.title }}</p>
+        <p class="text-[10px] font-mono text-slate-500 mt-0.5">
+          @{{ a.user.username if a.user else '?' }} → {{ a.contact.name }}
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="py-8 text-center">
+      <i class="fas fa-calendar-check text-slate-700 text-2xl mb-2 block"></i>
+      <p class="text-slate-600 text-xs">No upcoming reminders</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+{% endblock %}

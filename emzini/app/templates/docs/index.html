@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Documents — Emzini{% endblock %}
+{% block content %}
+
+<div class="flex items-start justify-between mb-7">
+  <div>
+    <p class="text-xs font-mono" style="color:var(--teal-lt);">EMZINI RESIDENCE · MY DOCUMENTS</p>
+    <h1 class="text-2xl font-bold text-white mt-1">Documents</h1>
+    <p class="text-slate-400 text-sm mt-1">Create professional CVs, cover letters, emails and letters with AI assistance.</p>
+  </div>
+  <a href="/docs/new" class="btn-primary">
+    <i class="fas fa-plus"></i> New Document
+  </a>
+</div>
+
+{% if docs %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+  {% for doc in docs %}
+  {% set type_info = doc_types.get(doc.doc_type, {}) %}
+  <div class="card p-5 flex flex-col card-hover relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+    <div class="flex items-start justify-between mb-3">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0"
+             style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);">
+          <i class="fas {{ type_info.icon | default('fa-file-lines') }} text-sm" style="color:var(--teal-lt);"></i>
+        </div>
+        <div>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded-md"
+                style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+            {{ type_info.label | default(doc.doc_type) }}
+          </span>
+          <h3 class="text-white font-semibold text-sm mt-1 leading-snug">{{ doc.title }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <p class="text-[10px] font-mono text-slate-600 mb-4">
+      <i class="fas fa-clock mr-1"></i>Updated {{ doc.updated_at.strftime('%d %b %Y') }}
+    </p>
+
+    <div class="flex gap-2 mt-auto pt-3 border-t" style="border-color:var(--border);">
+      <a href="/docs/{{ doc.id }}/preview" class="btn-secondary text-xs py-1.5 px-3 flex-1 justify-center">
+        <i class="fas fa-eye"></i> Preview
+      </a>
+      <a href="/docs/{{ doc.id }}/edit" class="btn-secondary text-xs py-1.5 px-3 flex-1 justify-center">
+        <i class="fas fa-pen"></i> Edit
+      </a>
+      <form method="POST" action="/docs/{{ doc.id }}/delete">
+        <button type="submit" class="btn-secondary text-xs py-1.5 px-3"
+                style="color:#f87171;border-color:rgba(248,113,113,0.2);"
+                onclick="return confirm('Delete this document?')">
+          <i class="fas fa-trash-can"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="card p-12 text-center">
+  <div class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"
+       style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);">
+    <i class="fas fa-file-lines text-2xl" style="color:var(--teal-lt);"></i>
+  </div>
+  <p class="text-white font-semibold mb-1">No documents yet</p>
+  <p class="text-slate-500 text-sm mb-5">Create your first professional document with AI assistance</p>
+  <a href="/docs/new" class="btn-primary"><i class="fas fa-plus"></i> New Document</a>
+</div>
+{% endif %}
+
+{% endblock %}
