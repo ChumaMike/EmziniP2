@@ -4,7 +4,7 @@
 
 <!-- Back link -->
 <div class="mb-5">
-  <a href="/market" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+  <a href="/market" class="text-xs font-mono text-zinc-500 hover:text-zinc-300 transition flex items-center gap-1.5">
     <i class="fas fa-arrow-left text-[10px]"></i> Back to Market
   </a>
 </div>
@@ -23,44 +23,45 @@
     {% endif %}
 
     <!-- Header card -->
-    <div class="card p-6">
-      <div class="flex items-start gap-3 flex-wrap mb-3">
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md capitalize"
+    <div class="card p-5">
+      <!-- Badges -->
+      <div class="flex items-center gap-2 flex-wrap mb-3">
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full capitalize"
               style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);">
           {{ item.category }}
         </span>
         {% if item.allows_delivery %}
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full"
               style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;">
-          <i class="fas fa-truck-fast mr-1"></i>Delivery available
+          <i class="fas fa-truck-fast mr-1"></i>Delivery
         </span>
         {% endif %}
         {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
         {% if stock > 0 %}
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
-              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.3);color:#34d399;">
-          IN STOCK · {{ stock }} left
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full"
+              style="background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);color:#4ade80;">
+          {{ stock }} in stock
         </span>
         {% else %}
-        <span class="text-[11px] font-mono px-2 py-0.5 rounded-md"
-              style="background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);color:#f87171;">
-          OUT OF STOCK
+        <span class="text-[10px] font-mono px-2 py-0.5 rounded-full"
+              style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#f87171;">
+          Out of stock
         </span>
         {% endif %}
       </div>
 
-      <h1 class="text-2xl font-bold text-white mb-1">{{ item.title }}</h1>
-      <p class="text-3xl font-bold font-mono mb-4" style="color:var(--teal-lt);">R{{ '%.2f'|format(item.price) }}</p>
-      <p class="text-slate-400 leading-relaxed">{{ item.description }}</p>
+      <h1 class="text-xl font-bold text-white mb-1">{{ item.title }}</h1>
+      <p class="text-3xl font-bold font-mono mb-3" style="color:var(--teal-lt);">R{{ '%.2f'|format(item.price) }}</p>
+      <p class="text-zinc-400 leading-relaxed text-sm">{{ item.description }}</p>
 
-      <div class="flex items-center gap-2 mt-4 pt-4 border-t text-sm text-slate-500" style="border-color:var(--border);">
-        <i class="fas fa-user text-xs"></i>
+      <div class="flex items-center gap-2 mt-4 pt-4 border-t text-xs text-zinc-500" style="border-color:var(--border);">
+        <i class="fas fa-user text-[10px]"></i>
         <span>Sold by</span>
         <span class="font-mono" style="color:var(--teal-lt);">@{{ item.seller.username }}</span>
-        <span class="text-slate-700">·</span>
-        <i class="fas fa-star text-xs text-amber-400"></i>
+        <span class="text-zinc-700">·</span>
+        <i class="fas fa-star text-[10px] text-amber-400"></i>
         <span>{{ item.seller.reputation }} rep</span>
-        <span class="text-slate-700">·</span>
+        <span class="text-zinc-700">·</span>
         <span>{{ item.created_at.strftime('%d %b %Y') }}</span>
       </div>
     </div>
@@ -69,26 +70,23 @@
     <div class="card p-5">
       <h2 class="text-sm font-mono font-semibold text-white mb-3 flex items-center gap-2">
         <i class="fas fa-lock" style="color:var(--teal-lt);"></i>
-        {% if item.seller_id == current_user.id %}Buyer Messages{% else %}Private Chat with Seller{% endif %}
-        <span class="ml-auto text-[10px] font-mono text-slate-600">Private — only you &amp; the seller can see this</span>
+        {% if item.seller_id == current_user.id %}Buyer Messages{% else %}Chat with Seller{% endif %}
+        <span class="ml-auto text-[10px] font-mono text-zinc-600">Private</span>
       </h2>
 
       {% if item.seller_id == current_user.id %}
-      <!-- Seller: show list of buyers who messaged -->
       {% if buyers %}
-      <div class="space-y-2 mb-3">
-        <p class="text-[10px] font-mono text-slate-500 uppercase tracking-wider">Conversations</p>
+      <div class="space-y-2">
+        <p class="text-[10px] font-mono text-zinc-500 uppercase tracking-wider mb-2">Conversations</p>
         {% for buyer in buyers %}
         <a href="{{ url_for('messages.start_conversation') }}"
-           class="flex items-center gap-2 p-2 rounded-lg hover:bg-teal-900/20 transition cursor-pointer"
+           class="flex items-center gap-2 p-2 rounded-lg hover:bg-teal-900/20 transition"
            style="border:1px solid var(--border);"
            onclick="event.preventDefault(); document.getElementById('open-conv-{{ buyer.id }}').submit();">
-          <div class="w-7 h-7 rounded flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0"
-               style="background:var(--border-2);color:var(--teal-lt);">
-            {{ buyer.username[:2].upper() }}
-          </div>
-          <span class="font-mono text-xs text-slate-300">@{{ buyer.username }}</span>
-          <i class="fas fa-chevron-right text-[10px] text-slate-600 ml-auto"></i>
+          <div class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold font-mono flex-shrink-0"
+               style="background:var(--border-2);color:var(--teal-lt);">{{ buyer.username[:2].upper() }}</div>
+          <span class="font-mono text-xs text-zinc-300">@{{ buyer.username }}</span>
+          <i class="fas fa-chevron-right text-[10px] text-zinc-600 ml-auto"></i>
         </a>
         <form id="open-conv-{{ buyer.id }}" method="POST" action="{{ url_for('messages.start_conversation') }}" class="hidden">
           <input type="hidden" name="other_user_id" value="{{ buyer.id }}"/>
@@ -98,19 +96,16 @@
         {% endfor %}
       </div>
       {% else %}
-      <p class="text-slate-600 text-xs font-mono text-center py-4">No buyer messages yet.</p>
+      <p class="text-zinc-600 text-xs font-mono text-center py-4">No buyer messages yet.</p>
       {% endif %}
 
       {% else %}
-      <!-- Buyer: private thread with seller -->
-      <div id="dm-history" class="space-y-2 mb-4 overflow-y-auto pr-1" style="max-height:260px;">
+      <div id="dm-history" class="space-y-2 mb-4 overflow-y-auto pr-1" style="max-height:240px;">
         {% for dm in dms %}
         {% include 'marketplace/_dm_message.html' %}
         {% endfor %}
         {% if not dms %}
-        <p class="text-slate-600 text-xs font-mono text-center py-4">
-          No messages yet — ask the seller anything privately!
-        </p>
+        <p class="text-zinc-600 text-xs font-mono text-center py-4">No messages yet — ask the seller anything!</p>
         {% endif %}
       </div>
       <form hx-post="/market/{{ item.id }}/messages/send"
@@ -118,19 +113,17 @@
             hx-swap="beforeend"
             class="flex gap-2"
             id="dm-form">
-        <input type="text" name="content" placeholder="Message seller privately…"
+        <input type="text" name="content" placeholder="Message seller…"
                class="flex-1 text-sm" required autocomplete="off"/>
-        <button type="submit" class="btn-primary text-sm px-4">
+        <button type="submit" class="btn-primary text-sm px-4 flex-shrink-0">
           <i class="fas fa-paper-plane"></i>
         </button>
       </form>
-
-      <!-- Also link to full conversation view -->
       <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="mt-2">
         <input type="hidden" name="other_user_id" value="{{ item.seller_id }}"/>
         <input type="hidden" name="context_type" value="item"/>
         <input type="hidden" name="context_id" value="{{ item.id }}"/>
-        <button class="text-[11px] font-mono text-slate-600 hover:text-teal-400 transition w-full text-center">
+        <button class="text-[11px] font-mono text-zinc-600 hover:text-teal-400 transition w-full text-center">
           <i class="fas fa-arrow-up-right-from-square mr-1"></i>Open in full chat view
         </button>
       </form>
@@ -139,58 +132,60 @@
 
   </div>
 
-  <!-- Right: Buy Panel (1/3) -->
-  <div class="space-y-4">
+  <!-- Right: Buy Panel (1/3) — sticky on desktop -->
+  <div class="space-y-4 lg:sticky lg:top-6 lg:self-start">
 
     {% set stock = item.stock_qty if item.stock_qty is not none else 1 %}
+
     {% if stock > 0 and item.status == 'available' and item.seller_id != current_user.id %}
-    <!-- Buy form -->
-    <div class="card p-5 relative overflow-hidden" style="border-color:var(--teal);border-width:1px;">
-      <div class="absolute top-0 left-6 right-6 h-px"
-           style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+    <!-- ── Buy Form ── -->
+    <div class="card relative overflow-hidden" style="border-color:rgba(13,148,136,0.4);">
+      <div class="absolute top-0 left-0 right-0 h-[3px]"
+           style="background:linear-gradient(90deg,var(--teal),rgba(99,102,241,0.6));"></div>
 
-      <h2 class="text-sm font-mono font-semibold text-white mb-4 flex items-center gap-2">
-        <i class="fas fa-bag-shopping" style="color:var(--teal-lt);"></i>
-        Purchase
-      </h2>
+      <!-- Price hero -->
+      <div class="px-5 pt-6 pb-4 border-b" style="border-color:var(--border);">
+        <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-widest mb-1">Price</p>
+        <p class="text-4xl font-bold font-mono" style="color:var(--teal-lt);">R{{ '%.2f'|format(item.price) }}</p>
+        <p class="font-mono text-[10px] text-zinc-600 mt-1">{{ stock }} in stock</p>
+      </div>
 
-      <form method="POST" action="/market/{{ item.id }}/buy" id="buy-form">
+      <form method="POST" action="/market/{{ item.id }}/buy" id="buy-form" class="p-5 space-y-4">
 
         <!-- Delivery option -->
         {% if item.allows_delivery %}
-        <div class="mb-4">
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Fulfilment</p>
+        <div>
+          <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-2">Fulfilment</p>
           <div class="space-y-2">
-            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                   style="border:1px solid var(--border-2);background:var(--bg);"
+            <label class="fulfilment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
+                   style="border:1px solid var(--teal);background:rgba(13,148,136,0.07);"
                    onclick="selectDelivery(this, false)">
-              <input type="radio" name="wants_delivery" value="0" checked class="accent-teal-500 flex-shrink-0"/>
-              <div>
+              <input type="radio" name="wants_delivery" value="0" checked class="accent-teal-500 mt-0.5 flex-shrink-0"/>
+              <div class="min-w-0">
                 <p class="text-sm text-white font-medium">Pickup</p>
-                <p class="text-[11px] text-slate-500">Collect from seller — free</p>
+                <p class="text-[11px] text-zinc-500 leading-tight">Collect from seller · free</p>
               </div>
             </label>
-            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+            <label class="fulfilment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
                    style="border:1px solid var(--border-2);background:var(--bg);"
                    onclick="selectDelivery(this, true)">
-              <input type="radio" name="wants_delivery" value="1" class="accent-teal-500 flex-shrink-0"/>
-              <div>
-                <p class="text-sm text-white font-medium">Deliver to my room</p>
-                <p class="text-[11px]" style="color:var(--teal-lt);">+R15 runner fee
-                  {% if active_runners %}
-                  · <span class="w-1.5 h-1.5 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
-                  {{ active_runners|length }} runner{{ 's' if active_runners|length > 1 }} online
-                  {% else %}
-                  · <span class="text-slate-600">no runners online</span>
-                  {% endif %}
+              <input type="radio" name="wants_delivery" value="1" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
+              <div class="min-w-0">
+                <p class="text-sm text-white font-medium">Delivery</p>
+                <p class="text-[11px] leading-tight" style="color:var(--teal-lt);">+R15 runner fee
+                  {% if active_runners %}·
+                    <span class="w-1.5 h-1.5 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
+                    {{ active_runners|length }} online
+                  {% else %}· <span class="text-zinc-600">no runners</span>{% endif %}
                 </p>
               </div>
             </label>
           </div>
-          <!-- Delivery address (hidden by default) -->
+
           <div id="delivery-address-box" class="hidden mt-3">
-            <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1">Your room / address</label>
-            <textarea name="delivery_address" rows="2" placeholder="e.g. Block B, Room 204" class="text-sm"></textarea>
+            <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Room / address</label>
+            <textarea name="delivery_address" rows="2"
+                      placeholder="e.g. Block B, Room 204" class="text-sm w-full"></textarea>
           </div>
         </div>
         {% else %}
@@ -198,38 +193,39 @@
         {% endif %}
 
         <!-- Payment method -->
-        <div class="mb-5">
-          <p class="text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Payment</p>
+        <div>
+          <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-2">Payment</p>
           <div class="space-y-2">
-            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
                    style="border:1px solid var(--teal);background:rgba(13,148,136,0.07);">
-              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 flex-shrink-0"/>
-              <div>
+              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 mt-0.5 flex-shrink-0"/>
+              <div class="min-w-0">
                 <p class="text-sm text-white font-medium">App Rands</p>
-                <p class="text-[11px] text-slate-500">Balance: R{{ '%.2f'|format(current_user.wallet_balance) }}</p>
+                <p class="text-[11px] text-zinc-500">Bal: R{{ '%.2f'|format(current_user.wallet_balance) }}</p>
               </div>
             </label>
-            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
                    style="border:1px solid var(--border-2);background:var(--bg);">
-              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 flex-shrink-0"/>
-              <div>
+              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
+              <div class="min-w-0">
                 <p class="text-sm text-white font-medium">Cash</p>
-                <p class="text-[11px] text-slate-500">Pay cash on delivery or pickup</p>
+                <p class="text-[11px] text-zinc-500">On delivery/pickup</p>
               </div>
             </label>
-            <label class="flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all"
+            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
                    style="border:1px solid var(--border-2);background:var(--bg);">
-              <input type="radio" name="payment_method" value="card" class="accent-teal-500 flex-shrink-0"/>
-              <div>
+              <input type="radio" name="payment_method" value="card" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
+              <div class="min-w-0">
                 <p class="text-sm text-white font-medium">Card</p>
-                <p class="text-[11px] text-slate-500">Runner collects via card machine</p>
+                <p class="text-[11px] text-zinc-500">Via runner machine</p>
               </div>
             </label>
           </div>
         </div>
 
-        <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3">
-          <i class="fas fa-bag-shopping mr-2"></i>Buy Now
+        <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3 text-sm">
+          <i class="fas fa-bag-shopping mr-2"></i>
+          <span id="buy-label">Buy Now</span>
         </button>
 
       </form>
@@ -237,8 +233,8 @@
 
     {% elif item.seller_id == current_user.id %}
     <!-- Owner panel -->
-    <div class="card p-5 space-y-2">
-      <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-3">Your Listing</p>
+    <div class="card p-5 space-y-3">
+      <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider">Your Listing</p>
       <a href="/market/{{ item.id }}/edit" class="btn-secondary w-full justify-center text-sm">
         <i class="fas fa-pen mr-2"></i>Edit Listing
       </a>
@@ -252,21 +248,22 @@
     </div>
 
     {% elif stock <= 0 or item.status != 'available' %}
-    <!-- Out of stock panel -->
-    <div class="card p-5" style="border-color:rgba(239,68,68,0.3);">
-      <div class="text-center mb-4">
-        <i class="fas fa-box text-3xl text-slate-600 mb-2 block"></i>
-        <p class="text-white font-semibold text-sm">Out of Stock</p>
-        <p class="text-slate-500 text-xs mt-1">This item is currently unavailable</p>
+    <!-- Out of stock -->
+    <div class="card p-6 text-center" style="border-color:rgba(239,68,68,0.25);">
+      <div class="w-12 h-12 rounded-xl flex items-center justify-center mx-auto mb-3"
+           style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.18);">
+        <i class="fas fa-box text-xl text-red-500/50"></i>
       </div>
+      <p class="text-white font-semibold text-sm mb-1">Out of Stock</p>
+      <p class="text-zinc-500 text-xs mb-4">This item is currently unavailable</p>
       {% if not user_restock %}
       <form method="POST" action="/market/{{ item.id }}/restock">
         <button type="submit" class="btn-secondary w-full justify-center text-sm" style="color:var(--teal-lt);">
-          <i class="fas fa-bell mr-2"></i>Notify Me When Restocked
+          <i class="fas fa-bell mr-2"></i>Notify Me
         </button>
       </form>
       {% else %}
-      <p class="text-center text-xs font-mono" style="color:var(--teal-lt);">
+      <p class="text-xs font-mono" style="color:var(--teal-lt);">
         <i class="fas fa-check mr-1"></i>You're on the notify list
       </p>
       {% endif %}
@@ -281,25 +278,29 @@
 {% block scripts %}
 <script>
 function selectDelivery(label, show) {
-  // Highlight selected option
-  document.querySelectorAll('[name="wants_delivery"]').forEach(function(r) {
-    var l = r.closest('label');
-    if (l) { l.style.borderColor = 'var(--border-2)'; l.style.background = 'var(--bg)'; }
+  document.querySelectorAll('.fulfilment-card').forEach(function(l) {
+    l.style.borderColor = 'var(--border-2)';
+    l.style.background  = 'var(--bg)';
   });
   label.style.borderColor = 'var(--teal)';
   label.style.background  = 'rgba(13,148,136,0.07)';
   var box = document.getElementById('delivery-address-box');
-  var btn = document.getElementById('buy-btn');
-  if (box) {
-    if (show) {
-      box.classList.remove('hidden');
-      if (btn) btn.innerHTML = '<i class="fas fa-truck-fast mr-2"></i>Buy + Request Delivery';
-    } else {
-      box.classList.add('hidden');
-      if (btn) btn.innerHTML = '<i class="fas fa-bag-shopping mr-2"></i>Buy Now';
-    }
-  }
+  var lbl = document.getElementById('buy-label');
+  if (box) box.classList.toggle('hidden', !show);
+  if (lbl) lbl.textContent = show ? 'Buy + Request Delivery' : 'Buy Now';
 }
+
+// Payment card highlighting
+document.querySelectorAll('[name="payment_method"]').forEach(function(radio) {
+  radio.addEventListener('change', function() {
+    document.querySelectorAll('.payment-card').forEach(function(l) {
+      l.style.borderColor = 'var(--border-2)';
+      l.style.background  = 'var(--bg)';
+    });
+    var sel = radio.closest('label');
+    if (sel) { sel.style.borderColor = 'var(--teal)'; sel.style.background = 'rgba(13,148,136,0.07)'; }
+  });
+});
 
 // Clear DM input after send
 var dmForm = document.getElementById('dm-form');
@@ -311,20 +312,19 @@ if (dmForm) {
   });
 }
 
-// SocketIO: real-time private DM (pair-keyed)
+// SocketIO: real-time private DM
 {% set me = current_user.id %}
 {% set other_id = item.seller_id if current_user.id != item.seller_id else 0 %}
 {% if other_id %}
 var _pairKey = 'dm_{{ item.id }}_' + Math.min({{ me }}, {{ other_id }}) + '_' + Math.max({{ me }}, {{ other_id }});
 socket.on(_pairKey, function(data) {
-  if (data.sender_id === {{ current_user.id }}) return; // own message already appended by HTMX
+  if (data.sender_id === {{ current_user.id }}) return;
   var hist = document.getElementById('dm-history');
   if (!hist) return;
-  // Incoming message bubble (left-aligned, dark background)
   var div = document.createElement('div');
   div.className = 'flex gap-2 items-end';
   div.innerHTML =
-    '<div class="w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:var(--border-2);color:var(--teal-lt);">' +
+    '<div class="w-6 h-6 rounded-lg flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:var(--border-2);color:var(--teal-lt);">' +
       escapeHtml(data.sender).substring(0,2).toUpperCase() +
     '</div>' +
     '<div style="max-width:75%;">' +
@@ -338,25 +338,10 @@ socket.on(_pairKey, function(data) {
 });
 {% endif %}
 
-// Highlight payment option cards on click
-document.querySelectorAll('[name="payment_method"]').forEach(function(radio) {
-  radio.addEventListener('change', function() {
-    document.querySelectorAll('[name="payment_method"]').forEach(function(r) {
-      var l = r.closest('label');
-      if (l) { l.style.borderColor = 'var(--border-2)'; l.style.background = 'var(--bg)'; }
-    });
-    var sel = radio.closest('label');
-    if (sel) { sel.style.borderColor = 'var(--teal)'; sel.style.background = 'rgba(13,148,136,0.07)'; }
-  });
-});
+socket.on('runner_status_changed', function(data) {});
 
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
-
-// Runner status update
-socket.on('runner_status_changed', function(data) {
-  // Optionally update runner online count — lightweight for now
-});
 </script>
 {% endblock %}
