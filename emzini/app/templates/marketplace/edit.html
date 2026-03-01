@@ -60,7 +60,7 @@
       {% if item.photo_filename %}
       <div>
         <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">Current Photo</label>
-        <img src="{{ url_for('static', filename='uploads/market/' + item.photo_filename) }}"
+        <img src="{{ url_for('marketplace.serve_photo', filename=item.photo_filename) }}"
              alt="{{ item.title }}" class="rounded-lg object-cover w-full" style="max-height:180px;">
       </div>
       {% endif %}

@@ -93,7 +93,7 @@
     <!-- Photo or colour strip -->
     {% if item.photo_filename %}
     <div class="rounded-t-[0.875rem] overflow-hidden" style="height:180px;">
-      <img src="{{ url_for('static', filename='uploads/market/' + item.photo_filename) }}"
+      <img src="{{ url_for('marketplace.serve_photo', filename=item.photo_filename) }}"
            alt="{{ item.title }}" class="w-full h-full object-cover">
     </div>
     {% else %}

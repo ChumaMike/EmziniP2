@@ -17,7 +17,7 @@
     <!-- Photo -->
     {% if item.photo_filename %}
     <div class="rounded-xl overflow-hidden" style="max-height:360px;">
-      <img src="{{ url_for('static', filename='uploads/market/' + item.photo_filename) }}"
+      <img src="{{ url_for('marketplace.serve_photo', filename=item.photo_filename) }}"
            alt="{{ item.title }}" class="w-full object-cover">
     </div>
     {% endif %}

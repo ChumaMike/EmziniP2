@@ -26,7 +26,8 @@ def create_app():
     app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD', '')
     app.config['MAIL_FROM']     = os.getenv('MAIL_FROM', os.getenv('MAIL_USERNAME', ''))
 
-    upload_dir = os.path.join(app.static_folder, 'uploads', 'market')
+    # Store uploads inside instance/ so they share the persistent volume
+    upload_dir = os.path.join(app.instance_path, 'uploads', 'market')
     os.makedirs(upload_dir, exist_ok=True)
     app.config['MARKET_UPLOAD_DIR'] = upload_dir
 
