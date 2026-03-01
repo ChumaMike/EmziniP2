@@ -224,8 +224,11 @@
 
     {% elif item.seller_id == current_user.id %}
     <!-- Owner panel -->
-    <div class="card p-5">
+    <div class="card p-5 space-y-2">
       <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-3">Your Listing</p>
+      <a href="/market/{{ item.id }}/edit" class="btn-secondary w-full justify-center text-sm">
+        <i class="fas fa-pen mr-2"></i>Edit Listing
+      </a>
       <form method="POST" action="/market/{{ item.id }}/delete"
             onsubmit="return confirm('Remove this listing?')">
         <button type="submit" class="btn-secondary w-full justify-center text-sm"

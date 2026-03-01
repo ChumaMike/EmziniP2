@@ -207,6 +207,10 @@
            class="nav-link {% if 'messages' in request.endpoint %}active{% endif %}">
           <i class="fas fa-comments"></i> Connect
         </a>
+        <a href="/runner/dashboard"
+           class="nav-link {% if 'runner' in request.endpoint %}active{% endif %}">
+          <i class="fas fa-person-running"></i> Runner
+        </a>
         <a href="/about"
            class="nav-link {% if request.endpoint == 'about.index' %}active{% endif %}">
           <i class="fas fa-circle-info"></i> About
@@ -267,6 +271,9 @@
   </a>
   <a href="/messages" class="nav-link flex-shrink-0 {% if 'messages' in request.endpoint %}active{% endif %}">
     <i class="fas fa-comments"></i> Connect
+  </a>
+  <a href="/runner/dashboard" class="nav-link flex-shrink-0 {% if 'runner' in request.endpoint %}active{% endif %}">
+    <i class="fas fa-person-running"></i> Runner
   </a>
   <a href="/about" class="nav-link flex-shrink-0 {% if request.endpoint == 'about.index' %}active{% endif %}">
     <i class="fas fa-circle-info"></i> About

@@ -292,6 +292,62 @@ def restock_notify(item_id):
     return redirect(url_for('marketplace.item_detail', item_id=item_id))
 
 
+@marketplace_bp.route('/market/<int:item_id>/edit', methods=['GET', 'POST'])
+@login_required
+def edit_item(item_id):
+    item = MarketItem.query.get_or_404(item_id)
+    if item.seller_id != current_user.id:
+        flash('Not authorized.', 'danger')
+        return redirect(url_for('marketplace.item_detail', item_id=item_id))
+
+    if request.method == 'POST':
+        title       = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        price_str   = request.form.get('price', '0')
+        category    = request.form.get('category', item.category)
+        stock_str   = request.form.get('stock_qty', '1')
+        allows_del  = request.form.get('allows_delivery') == 'on'
+
+        if not title or not description:
+            flash('Title and description are required.', 'danger')
+            return render_template('marketplace/edit.html', item=item, categories=CATEGORIES)
+        try:
+            price = float(price_str)
+            if price <= 0:
+                raise ValueError
+        except ValueError:
+            flash('Enter a valid price.', 'danger')
+            return render_template('marketplace/edit.html', item=item, categories=CATEGORIES)
+        try:
+            stock_qty = int(stock_str)
+            if stock_qty < 0:
+                raise ValueError
+        except ValueError:
+            stock_qty = item.stock_qty or 1
+
+        # Replace photo only if a new one was uploaded
+        new_photo = request.files.get('photo')
+        if new_photo and new_photo.filename:
+            _delete_photo(item.photo_filename)
+            item.photo_filename = _save_photo(new_photo)
+
+        item.title          = title
+        item.description    = description
+        item.price          = price
+        item.category       = category if category in CATEGORIES else item.category
+        item.stock_qty      = stock_qty
+        item.allows_delivery = allows_del
+        if stock_qty > 0 and item.status == 'sold':
+            item.status = 'available'
+
+        db.session.commit()
+        log_action('market_item_edited', f'{current_user.username} edited "{title}"', current_user.id)
+        flash('Listing updated.', 'success')
+        return redirect(url_for('marketplace.item_detail', item_id=item_id))
+
+    return render_template('marketplace/edit.html', item=item, categories=CATEGORIES)
+
+
 @marketplace_bp.route('/market/<int:item_id>/delete', methods=['POST'])
 @login_required
 def delete_item(item_id):
