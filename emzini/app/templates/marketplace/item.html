@@ -150,42 +150,38 @@
         <p class="font-mono text-[10px] text-zinc-600 mt-1">{{ stock }} in stock</p>
       </div>
 
-      <form method="POST" action="/market/{{ item.id }}/buy" id="buy-form" class="p-5 space-y-4">
+      <form method="POST" action="/market/{{ item.id }}/buy" id="buy-form" class="px-4 pb-4 pt-3 space-y-3">
 
         <!-- Delivery option -->
         {% if item.allows_delivery %}
         <div>
-          <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-2">Fulfilment</p>
-          <div class="space-y-2">
-            <label class="fulfilment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
+          <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Fulfilment</p>
+          <div class="grid grid-cols-2 gap-1.5">
+            <label class="fulfilment-card flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg cursor-pointer transition-all text-center"
                    style="border:1px solid var(--teal);background:rgba(13,148,136,0.07);"
                    onclick="selectDelivery(this, false)">
-              <input type="radio" name="wants_delivery" value="0" checked class="accent-teal-500 mt-0.5 flex-shrink-0"/>
-              <div class="min-w-0">
-                <p class="text-sm text-white font-medium">Pickup</p>
-                <p class="text-[11px] text-zinc-500 leading-tight">Collect from seller · free</p>
-              </div>
+              <input type="radio" name="wants_delivery" value="0" checked class="hidden"/>
+              <i class="fas fa-store text-sm" style="color:var(--teal-lt);"></i>
+              <span class="text-white text-xs font-semibold">Pickup</span>
+              <span class="text-zinc-500 text-[10px]">Free</span>
             </label>
-            <label class="fulfilment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
+            <label class="fulfilment-card flex flex-col items-center gap-1 py-2.5 px-2 rounded-lg cursor-pointer transition-all text-center"
                    style="border:1px solid var(--border-2);background:var(--bg);"
                    onclick="selectDelivery(this, true)">
-              <input type="radio" name="wants_delivery" value="1" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
-              <div class="min-w-0">
-                <p class="text-sm text-white font-medium">Delivery</p>
-                <p class="text-[11px] leading-tight" style="color:var(--teal-lt);">+R15 runner fee
-                  {% if active_runners %}·
-                    <span class="w-1.5 h-1.5 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
-                    {{ active_runners|length }} online
-                  {% else %}· <span class="text-zinc-600">no runners</span>{% endif %}
-                </p>
-              </div>
+              <input type="radio" name="wants_delivery" value="1" class="hidden"/>
+              <i class="fas fa-truck-fast text-sm text-zinc-400"></i>
+              <span class="text-white text-xs font-semibold">Delivery</span>
+              <span class="text-[10px]" style="color:var(--teal-lt);">+R15
+                {% if active_runners %}
+                  <span class="w-1 h-1 rounded-full pulse-dot inline-block" style="background:var(--teal-lt);"></span>
+                {% endif %}
+              </span>
             </label>
           </div>
-
-          <div id="delivery-address-box" class="hidden mt-3">
-            <label class="block font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-1">Room / address</label>
+          <div id="delivery-address-box" class="hidden mt-2">
             <textarea name="delivery_address" rows="2"
-                      placeholder="e.g. Block B, Room 204" class="text-sm w-full"></textarea>
+                      placeholder="Room / address (e.g. Block B, Room 204)"
+                      class="text-sm w-full"></textarea>
           </div>
         </div>
         {% else %}
@@ -194,36 +190,29 @@
 
         <!-- Payment method -->
         <div>
-          <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider mb-2">Payment</p>
-          <div class="space-y-2">
-            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                   style="border:1px solid var(--teal);background:rgba(13,148,136,0.07);">
-              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 mt-0.5 flex-shrink-0"/>
-              <div class="min-w-0">
-                <p class="text-sm text-white font-medium">App Rands</p>
-                <p class="text-[11px] text-zinc-500">Bal: R{{ '%.2f'|format(current_user.wallet_balance) }}</p>
+          <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider mb-1.5">Payment</p>
+          <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border-2);">
+            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
+                   style="background:rgba(13,148,136,0.07);border-bottom:1px solid var(--border-2);">
+              <input type="radio" name="payment_method" value="wallet" checked class="accent-teal-500 flex-shrink-0"/>
+              <div class="flex-1 min-w-0">
+                <span class="text-white text-sm font-medium">App Rands</span>
+                <span class="font-mono text-[11px] text-zinc-400 ml-2">R{{ '%.2f'|format(current_user.wallet_balance) }}</span>
               </div>
             </label>
-            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                   style="border:1px solid var(--border-2);background:var(--bg);">
-              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
-              <div class="min-w-0">
-                <p class="text-sm text-white font-medium">Cash</p>
-                <p class="text-[11px] text-zinc-500">On delivery/pickup</p>
-              </div>
+            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all"
+                   style="border-bottom:1px solid var(--border-2);">
+              <input type="radio" name="payment_method" value="cash" class="accent-teal-500 flex-shrink-0"/>
+              <span class="text-white text-sm font-medium">Cash</span>
             </label>
-            <label class="payment-card flex items-start gap-3 p-3 rounded-xl cursor-pointer transition-all"
-                   style="border:1px solid var(--border-2);background:var(--bg);">
-              <input type="radio" name="payment_method" value="card" class="accent-teal-500 mt-0.5 flex-shrink-0"/>
-              <div class="min-w-0">
-                <p class="text-sm text-white font-medium">Card</p>
-                <p class="text-[11px] text-zinc-500">Via runner machine</p>
-              </div>
+            <label class="payment-card flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-all">
+              <input type="radio" name="payment_method" value="card" class="accent-teal-500 flex-shrink-0"/>
+              <span class="text-white text-sm font-medium">Card</span>
             </label>
           </div>
         </div>
 
-        <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3 text-sm">
+        <button type="submit" id="buy-btn" class="btn-primary w-full justify-center py-3">
           <i class="fas fa-bag-shopping mr-2"></i>
           <span id="buy-label">Buy Now</span>
         </button>
@@ -281,24 +270,27 @@ function selectDelivery(label, show) {
   document.querySelectorAll('.fulfilment-card').forEach(function(l) {
     l.style.borderColor = 'var(--border-2)';
     l.style.background  = 'var(--bg)';
+    var icon = l.querySelector('i');
+    if (icon) icon.style.color = '';
   });
   label.style.borderColor = 'var(--teal)';
   label.style.background  = 'rgba(13,148,136,0.07)';
+  var icon = label.querySelector('i');
+  if (icon) icon.style.color = 'var(--teal-lt)';
   var box = document.getElementById('delivery-address-box');
   var lbl = document.getElementById('buy-label');
   if (box) box.classList.toggle('hidden', !show);
   if (lbl) lbl.textContent = show ? 'Buy + Request Delivery' : 'Buy Now';
 }
 
-// Payment card highlighting
+// Payment row highlighting
 document.querySelectorAll('[name="payment_method"]').forEach(function(radio) {
   radio.addEventListener('change', function() {
     document.querySelectorAll('.payment-card').forEach(function(l) {
-      l.style.borderColor = 'var(--border-2)';
-      l.style.background  = 'var(--bg)';
+      l.style.background = '';
     });
     var sel = radio.closest('label');
-    if (sel) { sel.style.borderColor = 'var(--teal)'; sel.style.background = 'rgba(13,148,136,0.07)'; }
+    if (sel) sel.style.background = 'rgba(13,148,136,0.1)';
   });
 });
 
