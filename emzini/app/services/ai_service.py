@@ -686,6 +686,53 @@ def execute_tool(tool_name: str, tool_input: dict, user) -> str:
         return f'Something went wrong with {tool_name}: {str(e)}'
 
 
+# ── Bounty photo verification ──────────────────────────────────────────────────
+
+def verify_bounty_photo(description: str, photo_path: str) -> dict:
+    """
+    Use Gemini vision to check if the proof photo matches the bounty description.
+    Returns {'match': bool, 'confidence': str, 'reason': str}
+    """
+    api_key = current_app.config.get('GEMINI_API_KEY', '')
+    if not api_key or api_key.startswith('your-'):
+        return {'match': None, 'confidence': 'unknown', 'reason': 'AI not configured.'}
+
+    try:
+        import mimetypes
+        mime = mimetypes.guess_type(photo_path)[0] or 'image/jpeg'
+        with open(photo_path, 'rb') as f:
+            image_bytes = f.read()
+
+        client = genai.Client(api_key=api_key)
+        prompt = (
+            f'You are verifying a lost-item bounty claim.\n\n'
+            f'Original lost item description: "{description}"\n\n'
+            f'A finder has submitted the photo above as proof they found it.\n'
+            f'Does the photo plausibly match the description?\n\n'
+            f'Reply with ONLY a JSON object, no other text:\n'
+            f'{{"match": true_or_false, "confidence": "high|medium|low", '
+            f'"reason": "one sentence explanation"}}'
+        )
+        image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            contents=[prompt, image_part],
+        )
+        import json, re
+        raw = response.text.strip()
+        # strip markdown code fences if present
+        raw = re.sub(r'^```[a-z]*\n?', '', raw)
+        raw = re.sub(r'\n?```$', '', raw)
+        result = json.loads(raw)
+        return {
+            'match':      bool(result.get('match')),
+            'confidence': result.get('confidence', 'medium'),
+            'reason':     result.get('reason', ''),
+        }
+    except Exception as e:
+        return {'match': None, 'confidence': 'unknown', 'reason': f'Verification error: {e}'}
+
+
 # ── Friendly labels for action pills ──────────────────────────────────────────
 
 _TOOL_LABELS = {

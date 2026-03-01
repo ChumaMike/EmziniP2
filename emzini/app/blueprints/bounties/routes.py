@@ -41,6 +41,11 @@ def serve_photo(filename):
     return send_from_directory(current_app.config['BOUNTY_UPLOAD_DIR'], filename)
 
 
+@bounties_bp.route('/bounties/proofs/<filename>')
+def serve_proof(filename):
+    return send_from_directory(current_app.config['BOUNTY_PROOF_DIR'], filename)
+
+
 @bounties_bp.route('/bounties')
 @login_required
 def index():
@@ -95,10 +100,11 @@ def new_bounty():
     return render_template('bounties/new.html')
 
 
-@bounties_bp.route('/bounties/<int:bounty_id>/claim', methods=['POST'])
+@bounties_bp.route('/bounties/<int:bounty_id>/claim', methods=['GET', 'POST'])
 @login_required
 def claim_bounty(bounty_id):
     bounty = Bounty.query.get_or_404(bounty_id)
+
     if bounty.status != 'open':
         flash('Bounty no longer open.', 'danger')
         return redirect(url_for('bounties.index'))
@@ -106,11 +112,46 @@ def claim_bounty(bounty_id):
         flash("Can't claim your own bounty.", 'danger')
         return redirect(url_for('bounties.index'))
 
+    if request.method == 'GET':
+        return render_template('bounties/claim.html', bounty=bounty)
+
+    # POST — save proof photo then run AI verification
+    proof_file = request.files.get('proof_photo')
+    if not proof_file or not proof_file.filename:
+        flash('A proof photo is required to claim a bounty.', 'danger')
+        return render_template('bounties/claim.html', bounty=bounty)
+    if not _allowed(proof_file.filename):
+        flash('Only image files are accepted.', 'danger')
+        return render_template('bounties/claim.html', bounty=bounty)
+
+    ext = proof_file.filename.rsplit('.', 1)[1].lower()
+    proof_filename = secure_filename(f"proof_{bounty_id}_{current_user.id}_{int(time.time())}.{ext}")
+    proof_path = os.path.join(current_app.config['BOUNTY_PROOF_DIR'], proof_filename)
+    proof_file.save(proof_path)
+
+    # AI vision check
+    from app.services.ai_service import verify_bounty_photo
+    verdict = verify_bounty_photo(
+        description=f"{bounty.title}. {bounty.description}",
+        photo_path=proof_path,
+    )
+
     bounty.claimer_id = current_user.id
     bounty.status = 'claimed'
+    bounty.proof_photo = proof_filename
+    bounty.ai_verified = verdict['match']
+    bounty.ai_verdict_msg = f"[{verdict['confidence'].upper()} confidence] {verdict['reason']}"
     db.session.commit()
+
     log_action('bounty_claimed', f'{current_user.username} claimed bounty #{bounty.id}', current_user.id)
-    flash('Bounty claimed! Submit proof to the poster for verification.', 'success')
+
+    if verdict['match'] is True:
+        flash(f'Proof submitted! AI verified: looks like a match. Waiting for poster to confirm.', 'success')
+    elif verdict['match'] is False:
+        flash(f"Proof submitted but AI flagged a mismatch: {verdict['reason']} The poster will still review.", 'info')
+    else:
+        flash('Proof submitted! Waiting for poster to review.', 'success')
+
     return redirect(url_for('bounties.index'))
 
 

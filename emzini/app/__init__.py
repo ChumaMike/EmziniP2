@@ -35,6 +35,10 @@ def create_app():
     os.makedirs(bounty_upload_dir, exist_ok=True)
     app.config['BOUNTY_UPLOAD_DIR'] = bounty_upload_dir
 
+    bounty_proof_dir = os.path.join(app.instance_path, 'uploads', 'bounty_proofs')
+    os.makedirs(bounty_proof_dir, exist_ok=True)
+    app.config['BOUNTY_PROOF_DIR'] = bounty_proof_dir
+
     # Extensions
     db.init_app(app)
     login_manager.init_app(app)
@@ -109,6 +113,9 @@ def _migrate(db):
         _add_col(conn, 'runner_jobs',     'job_type',         'VARCHAR(20) DEFAULT "general"')
         _add_col(conn, 'runner_jobs',     'payment_method',   'VARCHAR(20) DEFAULT "wallet"')
         _add_col(conn, 'direct_messages', 'recipient_id',     'INTEGER')
+        _add_col(conn, 'bounties', 'proof_photo',    'VARCHAR(500)')
+        _add_col(conn, 'bounties', 'ai_verified',    'BOOLEAN')
+        _add_col(conn, 'bounties', 'ai_verdict_msg', 'TEXT')
         conn.commit()
 
 

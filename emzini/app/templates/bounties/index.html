@@ -32,15 +32,39 @@
       <span class="text-red-400 font-bold font-mono text-lg">R{{ '%.2f'|format(bounty.reward) }}</span>
     </div>
     <h3 class="text-white font-bold text-base mb-2">{{ bounty.title }}</h3>
-    <p class="text-zinc-400 text-sm flex-1 mb-4">{{ bounty.description[:120] }}{% if bounty.description|length > 120 %}...{% endif %}</p>
+    <p class="text-zinc-400 text-sm flex-1 mb-3">{{ bounty.description[:120] }}{% if bounty.description|length > 120 %}...{% endif %}</p>
+
+    {% if bounty.proof_photo %}
+    <div class="mb-3">
+      <p class="text-[10px] font-mono text-slate-500 mb-1.5">FINDER'S PROOF</p>
+      <img src="/bounties/proofs/{{ bounty.proof_photo }}" alt="Proof"
+           class="w-full h-28 object-cover rounded-lg border border-zinc-700"/>
+    </div>
+    {% endif %}
+
+    {% if bounty.ai_verdict_msg %}
+    <div class="rounded-lg px-3 py-2 mb-3 text-xs
+      {% if bounty.ai_verified == true %}bg-teal-950 border border-teal-800
+      {% elif bounty.ai_verified == false %}bg-red-950 border border-red-900
+      {% else %}bg-zinc-900 border border-zinc-700{% endif %}">
+      <p class="font-mono text-[10px] uppercase tracking-wider mb-0.5
+        {% if bounty.ai_verified == true %}text-teal-400
+        {% elif bounty.ai_verified == false %}text-red-400
+        {% else %}text-slate-500{% endif %}">
+        <i class="fas fa-robot mr-1"></i>AI Verdict
+      </p>
+      <p class="{% if bounty.ai_verified == true %}text-teal-300{% elif bounty.ai_verified == false %}text-red-300{% else %}text-slate-400{% endif %}">
+        {{ bounty.ai_verdict_msg }}
+      </p>
+    </div>
+    {% endif %}
+
     <div class="border-t border-zinc-800 pt-3 mt-auto">
       <div class="flex items-center justify-between">
         <span class="font-mono text-[10px] text-zinc-600">BY {{ bounty.poster.username|upper }}</span>
         <div class="flex gap-2">
           {% if bounty.status == 'open' and bounty.poster_id != current_user.id %}
-          <form method="POST" action="/bounties/{{ bounty.id }}/claim">
-            <button type="submit" class="btn-primary text-xs px-3 py-1.5">CLAIM</button>
-          </form>
+          <a href="/bounties/{{ bounty.id }}/claim" class="btn-primary text-xs px-3 py-1.5">CLAIM</a>
           {% endif %}
           {% if bounty.status == 'claimed' and (bounty.poster_id == current_user.id or current_user.is_admin) %}
           <form method="POST" action="/bounties/{{ bounty.id }}/verify">

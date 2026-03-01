@@ -1,0 +1,66 @@
+{% extends 'base.html' %}
+{% block title %}Claim Bounty — Emzini{% endblock %}
+{% block content %}
+<div class="max-w-xl mx-auto">
+
+  <div class="mb-6">
+    <a href="/bounties" class="text-xs font-mono text-slate-500 hover:text-slate-300 transition flex items-center gap-1.5">
+      <i class="fas fa-arrow-left text-[10px]"></i> Back to Bounties
+    </a>
+    <h1 class="text-2xl font-bold text-white mt-4">
+      <i class="fas fa-crosshairs text-red-500 mr-2"></i>Claim Bounty
+    </h1>
+    <p class="text-slate-400 text-sm mt-1">Submit proof you found it. Our AI will verify your photo against the description.</p>
+  </div>
+
+  <!-- Bounty Summary -->
+  <div class="card p-5 mb-5" style="border-color:rgba(239,68,68,0.3);">
+    <div class="flex items-start justify-between gap-4 mb-3">
+      <h2 class="text-white font-bold text-lg">{{ bounty.title }}</h2>
+      <span class="text-red-400 font-bold font-mono text-xl flex-shrink-0">R{{ '%.2f'|format(bounty.reward) }}</span>
+    </div>
+    <p class="text-slate-400 text-sm leading-relaxed mb-3">{{ bounty.description }}</p>
+    {% if bounty.photo_url %}
+    <img src="/bounties/photos/{{ bounty.photo_url }}" alt="Original photo"
+         class="w-full h-40 object-cover rounded-lg border border-zinc-700"/>
+    <p class="text-[10px] font-mono text-slate-600 mt-1">Original photo posted by owner</p>
+    {% endif %}
+    <p class="text-[11px] font-mono text-slate-600 mt-2">Posted by @{{ bounty.poster.username }}</p>
+  </div>
+
+  <!-- Claim Form -->
+  <div class="card p-6 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px" style="background:linear-gradient(90deg,transparent,#ef4444,transparent);"></div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
+          Proof Photo <span class="text-red-400">*</span>
+        </label>
+        <input type="file" name="proof_photo" accept="image/*" required
+               class="w-full text-sm text-slate-400 file:mr-3 file:py-2 file:px-4 file:rounded file:border-0 file:font-mono file:text-xs file:bg-zinc-800 file:text-zinc-300 hover:file:bg-zinc-700 cursor-pointer"/>
+        <p class="font-mono text-[10px] text-slate-600 mt-1.5">
+          <i class="fas fa-robot mr-1" style="color:var(--teal-lt);"></i>
+          Emzini AI will scan your photo against the description before notifying the poster.
+        </p>
+      </div>
+
+      <!-- AI verification info box -->
+      <div class="rounded-lg p-4 text-xs" style="background:rgba(13,148,136,0.06);border:1px solid rgba(13,148,136,0.2);">
+        <p class="font-mono text-[10px] uppercase tracking-wider mb-2" style="color:var(--teal-lt);">How AI Verification Works</p>
+        <ul class="space-y-1 text-slate-400">
+          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>You upload a clear photo of the found item</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>Gemini AI compares it against the original description</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>The AI verdict is shown to the poster alongside your proof</li>
+          <li><i class="fas fa-check text-[10px] mr-1.5" style="color:var(--teal-lt);"></i>Poster makes the final call — then escrow releases R{{ '%.2f'|format(bounty.reward) }} to you</li>
+        </ul>
+      </div>
+
+      <button type="submit" class="btn-primary w-full justify-center py-3">
+        <i class="fas fa-upload mr-2"></i>Submit Proof & Claim
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

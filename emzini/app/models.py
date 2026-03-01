@@ -78,6 +78,9 @@ class Bounty(db.Model):
     reward = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), default='open')  # open, claimed, verified, closed
     photo_url = db.Column(db.String(500), nullable=True)
+    proof_photo = db.Column(db.String(500), nullable=True)   # finder's proof image filename
+    ai_verified = db.Column(db.Boolean, nullable=True)       # None=unchecked True=match False=no match
+    ai_verdict_msg = db.Column(db.Text, nullable=True)       # AI explanation
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     poster = db.relationship('User', backref='posted_bounties', foreign_keys=[poster_id])
