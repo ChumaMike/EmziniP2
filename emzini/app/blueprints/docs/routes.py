@@ -1,6 +1,7 @@
 import json
-import anthropic
 from datetime import datetime
+from google import genai
+from google.genai import types as genai_types
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app.extensions import db
@@ -154,7 +155,7 @@ def delete(doc_id):
 @docs_bp.route('/docs/ai-draft', methods=['POST'])
 @login_required
 def ai_draft():
-    api_key = current_app.config.get('ANTHROPIC_API_KEY', '')
+    api_key = current_app.config.get('GEMINI_API_KEY', '')
     if not api_key:
         return jsonify({'error': 'AI not configured.'}), 503
 
@@ -176,14 +177,13 @@ def ai_draft():
     )
 
     try:
-        client = anthropic.Anthropic(api_key=api_key)
-        response = client.messages.create(
-            model='claude-haiku-4-5-20251001',
-            max_tokens=2048,
-            system=system_prompt,
-            messages=[{'role': 'user', 'content': user_prompt}],
+        client = genai.Client(api_key=api_key)
+        response = client.models.generate_content(
+            model='gemini-2.5-flash',
+            config=genai_types.GenerateContentConfig(system_instruction=system_prompt),
+            contents=user_prompt,
         )
-        raw = response.content[0].text.strip()
+        raw = response.text.strip()
         # Strip markdown code fences if present
         if raw.startswith('```'):
             raw = raw.split('```')[1]
