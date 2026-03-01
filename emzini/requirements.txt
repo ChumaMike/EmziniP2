@@ -10,3 +10,4 @@ werkzeug
 pillow
 requests
 psycopg2-binary
+anthropic
