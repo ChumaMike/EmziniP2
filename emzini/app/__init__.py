@@ -54,6 +54,7 @@ def create_app():
     from app.blueprints.docs.routes import docs_bp
     from app.blueprints.runner.routes import runner_bp
     from app.blueprints.messages.routes import messages_bp
+    from app.blueprints.about.routes import about_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -70,6 +71,7 @@ def create_app():
     app.register_blueprint(docs_bp)
     app.register_blueprint(runner_bp)
     app.register_blueprint(messages_bp)
+    app.register_blueprint(about_bp)
 
     with app.app_context():
         db.create_all()

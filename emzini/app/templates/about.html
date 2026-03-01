@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% block title %}About — Emzini{% endblock %}
+{% block content %}
+
+<!-- Hero -->
+<div class="text-center mb-14">
+  <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-5" style="background:var(--teal);">
+    <i class="fas fa-house text-white text-2xl"></i>
+  </div>
+  <p class="font-mono text-[11px] text-slate-500 uppercase tracking-widest mb-2">EMZINI // RESIDENCE SUPER APP</p>
+  <h1 class="text-4xl font-bold text-white mb-3">Built for the people <span style="color:var(--teal-lt);">in the building.</span></h1>
+  <p class="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
+    Emzini ("home" in Zulu) is a micro-economy platform that connects residents of the same complex — community, commerce, and convenience in one place.
+  </p>
+</div>
+
+<!-- Creator card -->
+<div class="card p-8 mb-10 relative overflow-hidden">
+  <div class="absolute top-0 left-10 right-10 h-px" style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+  <div class="flex flex-col md:flex-row items-start gap-8">
+
+    <!-- Avatar -->
+    <div class="flex-shrink-0">
+      <div class="w-24 h-24 rounded-2xl flex items-center justify-center text-3xl font-bold font-mono"
+           style="background:linear-gradient(135deg,var(--teal-dim),var(--teal));color:#fff;">
+        CM
+      </div>
+    </div>
+
+    <!-- Info -->
+    <div class="flex-1">
+      <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">Creator & Developer</p>
+      <h2 class="text-2xl font-bold text-white mb-1">Chuma Mike</h2>
+      <p class="text-slate-400 mb-4 leading-relaxed max-w-xl">
+        Full-stack developer and resident-focused builder. Emzini was born from the frustration of living in a complex with zero digital infrastructure — no way to report issues, no local marketplace, no coordination. So I built one.
+      </p>
+
+      <!-- Contact links -->
+      <div class="flex flex-wrap gap-3">
+        <a href="https://linkedin.com/in/chuma-mike" target="_blank" rel="noopener"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);color:#a5b4fc;"
+           onmouseover="this.style.background='rgba(99,102,241,0.22)'"
+           onmouseout="this.style.background='rgba(99,102,241,0.12)'">
+          <i class="fab fa-linkedin"></i> linkedin.com/in/chuma-mike
+        </a>
+        <a href="https://github.com/ChumaMike" target="_blank" rel="noopener"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(148,163,184,0.1);border:1px solid rgba(148,163,184,0.2);color:#94a3b8;"
+           onmouseover="this.style.background='rgba(148,163,184,0.18)'"
+           onmouseout="this.style.background='rgba(148,163,184,0.1)'">
+          <i class="fab fa-github"></i> github.com/ChumaMike
+        </a>
+        <a href="mailto:nmeyiswa@gmail.com"
+           class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-mono transition"
+           style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.25);color:var(--teal-lt);"
+           onmouseover="this.style.background='rgba(13,148,136,0.2)'"
+           onmouseout="this.style.background='rgba(13,148,136,0.1)'">
+          <i class="fas fa-envelope"></i> nmeyiswa@gmail.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Features grid -->
+<div class="mb-14">
+  <div class="text-center mb-8">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">WHAT'S INSIDE</p>
+    <h2 class="text-2xl font-bold text-white">App Features</h2>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    {% set features = [
+      ('fa-gauge-high',           'var(--teal-lt)',  'Dashboard',
+       'Your personal hub. Live community stats, urgent civic issues, active goals with progress bars, upcoming network reminders, and the AI assistant — all at a glance.'),
+      ('fa-triangle-exclamation', '#fb923c',         'Community Board',
+       'Report infrastructure issues — burst pipes, power outages, potholes, safety hazards. Residents upvote reports to signal urgency. Admins track and resolve them.'),
+      ('fa-shop',                 '#34d399',         'Resident Market',
+       'Peer-to-peer marketplace for buying and selling within the complex. Post items with photos, set your price, receive payment via the in-app wallet. Stock tracking and delivery options included.'),
+      ('fa-person-running',       '#fbbf24',         'Runner Jobs',
+       'Need something fetched, delivered, or done? Post a runner job with a reward. Runners claim jobs, complete them, and earn. Reward is held in escrow so runners are always paid.'),
+      ('fa-trophy',               '#a5b4fc',         'Bounties',
+       'Lost something in the complex? Post a bounty reward. The resident who finds it claims the reward — held in escrow for guaranteed payout.'),
+      ('fa-wallet',               'var(--teal-lt)',  'Wallet',
+       'Every resident has an in-app wallet. New users start with R50 credit. Fund jobs, pay for market items, post bounties — all within the Emzini economy.'),
+      ('fa-bullseye',             '#f472b6',         'Goal Tracker',
+       'Set personal goals across six categories — Career, Health, Financial, Education, and more. Break goals into milestones and track progress visually. Completing goals earns reputation.'),
+      ('fa-address-book',         '#67e8f9',         'Network',
+       'A professional contact manager built into your daily life. Save contacts, add notes, and set follow-up reminders that surface on your dashboard so you never lose a connection.'),
+      ('fa-file-lines',           '#86efac',         'Documents',
+       'AI-powered document creator. Generate CVs, cover letters, formal emails, and business letters using Gemini AI — then save, edit, and download them for real use.'),
+      ('fa-comments',             '#c4b5fd',         'Connect / Messaging',
+       'Community channels (Community, Runners, Providers) for public discussion, plus private 1:1 chat for buyer-seller and runner-poster conversations tied to specific jobs or listings.'),
+    ] %}
+
+    {% for icon, color, title, desc in features %}
+    <div class="card p-5 flex gap-4 items-start">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background:rgba(13,148,136,0.1);border:1px solid var(--border-2);">
+        <i class="fas {{ icon }}" style="color:{{ color }};"></i>
+      </div>
+      <div>
+        <h3 class="text-white font-semibold mb-1">{{ title }}</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">{{ desc }}</p>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- How to use -->
+<div class="card p-8 mb-10">
+  <div class="text-center mb-8">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">GETTING STARTED</p>
+    <h2 class="text-2xl font-bold text-white">How to Use Emzini</h2>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    {% set steps = [
+      ('1', 'fa-user-plus',   'Create your account',
+       'Register with a username, email, and password. You\'ll receive R50 in your wallet as a welcome credit to get started immediately.'),
+      ('2', 'fa-gauge-high',  'Check the Dashboard',
+       'Your dashboard surfaces urgent community issues, your goals, upcoming reminders, and quick actions. The AI assistant is available bottom-right to help you do anything hands-free.'),
+      ('3', 'fa-shop',        'Buy or sell on the Market',
+       'Head to Market to browse listings or post your own item — add a photo, set a price and stock quantity, and choose whether to offer runner delivery (+R15).'),
+      ('4', 'fa-person-running', 'Post or claim a Runner Job',
+       'Need an errand done? Post a job with a reward — the money is held in escrow immediately. To earn, enable Runner Mode in your profile and claim open jobs from the jobs board.'),
+      ('5', 'fa-triangle-exclamation', 'Report community issues',
+       'Spot a problem in the complex? Report it on the Community Board. Set the severity, describe the issue, and other residents can upvote it to push it up the priority list.'),
+      ('6', 'fa-comments',    'Chat privately or in channels',
+       'Use Connect for public community channels, or message sellers/runners privately from within a listing or job page. Context is kept so you always know what the chat is about.'),
+    ] %}
+
+    {% for num, icon, title, desc in steps %}
+    <div class="flex gap-4">
+      <div class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold font-mono"
+           style="background:var(--teal);color:#fff;">{{ num }}</div>
+      <div>
+        <h4 class="text-white font-semibold mb-1 flex items-center gap-2">
+          <i class="fas {{ icon }} text-xs" style="color:var(--teal-lt);"></i> {{ title }}
+        </h4>
+        <p class="text-slate-400 text-sm leading-relaxed">{{ desc }}</p>
+      </div>
+    </div>
+    {% endfor %}
+
+  </div>
+</div>
+
+<!-- Future innovations -->
+<div class="mb-14">
+  <div class="text-center mb-8">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">ROADMAP</p>
+    <h2 class="text-2xl font-bold text-white">Future Innovations</h2>
+    <p class="text-slate-500 text-sm mt-1">Where Emzini is heading next</p>
+  </div>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% set roadmap = [
+      ('fa-mobile-screen',      'Mobile App',
+       'Native iOS and Android apps with push notifications for new jobs, messages, and community alerts — so residents stay connected even away from the complex.'),
+      ('fa-credit-card',        'Real Payment Gateway',
+       'Integrate PayFast or Peach Payments so residents can top up their Emzini wallets with real ZAR via card, EFT, or instant payment — bridging the in-app economy to real money.'),
+      ('fa-id-card',            'Digital Resident ID',
+       'Verified resident profiles with building management integration — proof of residency unlocks trusted seller badges and higher wallet limits.'),
+      ('fa-calendar-days',      'Events Board',
+       'Building event calendar — complex meetings, braais, sports days, gym bookings, laundry schedules. Residents RSVP and get reminders automatically.'),
+      ('fa-wrench',             'Maintenance Requests',
+       'Formal maintenance ticketing system integrated with building management. Residents log requests, track status, and get notified when work is scheduled or completed.'),
+      ('fa-robot',              'Smarter AI Agent',
+       'The Emzini AI evolving from text commands to voice input and proactive suggestions — reminding you to follow up on a runner job, alerting you when a market item you want is back in stock.'),
+    ] %}
+
+    {% for icon, title, desc in roadmap %}
+    <div class="card p-5 relative overflow-hidden" style="border-color:var(--border-2);">
+      <div class="flex items-center gap-3 mb-3">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center"
+             style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);">
+          <i class="fas {{ icon }}" style="color:var(--teal-lt);"></i>
+        </div>
+        <h3 class="text-white font-semibold text-sm">{{ title }}</h3>
+        <span class="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded"
+              style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+          PLANNED
+        </span>
+      </div>
+      <p class="text-slate-400 text-sm leading-relaxed">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Suggestion form -->
+<div id="suggest" class="card p-8 relative overflow-hidden">
+  <div class="absolute top-0 left-10 right-10 h-px" style="background:linear-gradient(90deg,transparent,var(--teal),transparent);"></div>
+
+  <div class="text-center mb-6">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">HAVE AN IDEA?</p>
+    <h2 class="text-2xl font-bold text-white">Leave a Suggestion</h2>
+    <p class="text-slate-500 text-sm mt-1">Every suggestion is read personally. Shape what Emzini becomes.</p>
+  </div>
+
+  <form method="POST" action="/about#suggest" class="max-w-xl mx-auto space-y-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Your name <span class="text-slate-600">(optional)</span></label>
+        <input type="text" name="name" placeholder="Anonymous" autocomplete="off"/>
+      </div>
+      <div>
+        <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Email <span class="text-slate-600">(optional)</span></label>
+        <input type="email" name="email" placeholder="for a reply" autocomplete="off"/>
+      </div>
+    </div>
+    <div>
+      <label class="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-1.5">Your suggestion <span class="text-red-400">*</span></label>
+      <textarea name="message" rows="4" placeholder="I think Emzini should..." required></textarea>
+    </div>
+    <button type="submit" class="btn-primary w-full justify-center py-3">
+      <i class="fas fa-paper-plane mr-2"></i> Send Suggestion
+    </button>
+  </form>
+</div>
+
+{% endblock %}

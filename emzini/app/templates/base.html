@@ -207,6 +207,10 @@
            class="nav-link {% if 'messages' in request.endpoint %}active{% endif %}">
           <i class="fas fa-comments"></i> Connect
         </a>
+        <a href="/about"
+           class="nav-link {% if request.endpoint == 'about.index' %}active{% endif %}">
+          <i class="fas fa-circle-info"></i> About
+        </a>
         {% if current_user.is_admin %}
         <a href="/admin"
            class="nav-link {% if 'admin' in request.endpoint %}active{% endif %}"
@@ -264,6 +268,9 @@
   <a href="/messages" class="nav-link flex-shrink-0 {% if 'messages' in request.endpoint %}active{% endif %}">
     <i class="fas fa-comments"></i> Connect
   </a>
+  <a href="/about" class="nav-link flex-shrink-0 {% if request.endpoint == 'about.index' %}active{% endif %}">
+    <i class="fas fa-circle-info"></i> About
+  </a>
   {% if current_user.is_admin %}
   <a href="/admin" class="nav-link flex-shrink-0" style="color:#f43f5e;">
     <i class="fas fa-shield-halved"></i> Admin
@@ -304,7 +311,10 @@
       <span class="font-bold text-white text-sm">Emzini</span>
       <span class="text-slate-600 text-xs">Residential Super App</span>
     </div>
-    <span class="font-mono text-[10px] text-slate-700">© 2026 EMZINI · ALL RESIDENTS</span>
+    <div class="flex items-center gap-3">
+      <span class="font-mono text-[10px] text-slate-700">© 2026 EMZINI · Built by Chuma Mike</span>
+      <a href="/about" class="font-mono text-[10px] text-slate-600 hover:text-teal-500 transition">About</a>
+    </div>
   </div>
 </footer>
 
