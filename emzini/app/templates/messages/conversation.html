@@ -50,49 +50,59 @@
   <div class="lg:col-span-2 flex flex-col card" style="max-height:calc(100vh - 180px);">
 
     <!-- Header -->
-    <div class="flex items-center gap-3 p-4 border-b flex-shrink-0" style="border-color:var(--border-2);">
-      <div class="w-10 h-10 rounded-xl flex items-center justify-center text-xs font-bold font-mono"
-           style="background:var(--teal);color:#fff;">
+    <div class="flex items-center gap-3 px-5 py-4 border-b flex-shrink-0" style="border-color:var(--border-2);">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center text-sm font-bold font-mono flex-shrink-0"
+           style="background:var(--teal);color:#fff;box-shadow:0 0 12px rgba(13,148,136,0.35);">
         {{ other.username[:2].upper() }}
       </div>
       <div class="flex-1 min-w-0">
-        <p class="text-white font-semibold text-sm">@{{ other.username }}</p>
-        {% if context_label %}
-        <p class="font-mono text-[10px] text-zinc-500 flex items-center gap-1 mt-0.5">
+        <p class="text-white font-semibold">Chat with <span style="color:var(--teal-lt);">@{{ other.username }}</span></p>
+        <p class="font-mono text-[10px] text-zinc-500 flex items-center gap-1.5 mt-0.5">
+          {% if context_label %}
           <i class="fas fa-link text-[8px]"></i>{{ context_label }}
+          {% else %}
+          <i class="fas fa-comment-dots text-[8px]"></i>Private conversation
+          {% endif %}
         </p>
-        {% endif %}
       </div>
       {% if other.is_runner and other.runner_active %}
-      <span class="flex items-center gap-1.5 font-mono text-[11px]" style="color:var(--teal-lt);">
+      <span class="flex items-center gap-1.5 font-mono text-[11px] px-2 py-1 rounded-full flex-shrink-0"
+            style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
         <span class="w-1.5 h-1.5 rounded-full pulse-dot bg-teal-400"></span>
-        Active runner
+        Active
       </span>
       {% endif %}
     </div>
 
     <!-- Message history -->
-    <div id="conv-history" class="flex-1 overflow-y-auto p-4 space-y-3">
+    <div id="conv-history" class="flex-1 overflow-y-auto px-5 py-4 space-y-3"
+         style="background:rgba(0,0,0,0.15);">
       {% for msg in conv.messages %}
       {% include 'messages/_conv_message.html' %}
       {% else %}
-      <p class="text-center text-zinc-700 text-xs font-mono py-8">
-        Start of your conversation with @{{ other.username }}
-      </p>
+      <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-3"
+             style="background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.14);">
+          <i class="fas fa-comment-dots text-xl" style="color:var(--teal-lt);opacity:0.5;"></i>
+        </div>
+        <p class="text-zinc-600 text-xs font-mono">Start your conversation with @{{ other.username }}</p>
+      </div>
       {% endfor %}
     </div>
 
     <!-- Send form -->
-    <div class="p-4 border-t flex-shrink-0" style="border-color:var(--border-2);">
+    <div class="px-4 py-3 border-t flex-shrink-0" style="border-color:var(--border-2);">
       <form hx-post="{{ url_for('messages.send_in_conversation', conv_id=conv.id) }}"
             hx-target="#conv-history"
             hx-swap="beforeend"
-            class="flex gap-2"
+            class="flex gap-2 items-center"
             id="conv-form">
         <input type="text" name="content"
                placeholder="Message @{{ other.username }}…"
-               class="flex-1 text-sm" required autocomplete="off"/>
-        <button type="submit" class="btn-primary px-4 flex-shrink-0">
+               class="flex-1 text-sm rounded-xl" required autocomplete="off"
+               style="border-radius:0.75rem;"/>
+        <button type="submit" class="btn-primary px-4 flex-shrink-0 rounded-xl"
+                style="border-radius:0.75rem;">
           <i class="fas fa-paper-plane"></i>
         </button>
       </form>
@@ -121,15 +131,15 @@ socket.on('conv_{{ conv.id }}', function(d) {
   var div = document.createElement('div');
   div.className = 'flex gap-2 items-end';
   div.innerHTML =
-    '<div class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.18);color:var(--teal-lt);">' +
+    '<div class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono" style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.22);color:#2dd4bf;">' +
       escHtml(d.sender).substring(0,2).toUpperCase() +
     '</div>' +
-    '<div style="max-width:70%;">' +
-      '<p class="text-[10px] font-mono mb-1" style="color:var(--teal-lt);">@' + escHtml(d.sender) + '</p>' +
-      '<div class="rounded-2xl rounded-bl-sm px-3 py-2 text-sm" style="background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;">' +
+    '<div style="max-width:75%;">' +
+      '<p class="text-[10px] font-mono mb-1 font-semibold" style="color:#2dd4bf;">@' + escHtml(d.sender) + '</p>' +
+      '<div class="rounded-2xl rounded-bl-sm px-3.5 py-2.5 text-sm" style="background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;">' +
         escHtml(d.content) +
       '</div>' +
-      '<p class="text-[10px] font-mono text-zinc-600 mt-1">' + d.time + '</p>' +
+      '<p class="text-[10px] font-mono text-slate-500 mt-1">' + d.time + '</p>' +
     '</div>';
   if (hist) { hist.appendChild(div); hist.scrollTop = hist.scrollHeight; }
 });

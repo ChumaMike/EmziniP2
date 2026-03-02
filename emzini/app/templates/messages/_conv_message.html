@@ -1,20 +1,20 @@
 {% set is_me = msg.sender_id == current_user.id %}
 <div class="flex gap-2 items-end {{ 'flex-row-reverse' if is_me else '' }}">
   {% if not is_me %}
-  <div class="w-6 h-6 rounded flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono"
-       style="background:var(--border-2);color:var(--teal-lt);">
+  <div class="w-7 h-7 rounded-lg flex-shrink-0 flex items-center justify-center text-[9px] font-bold font-mono"
+       style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.22);color:var(--teal-lt);">
     {{ msg.sender.username[:2].upper() }}
   </div>
   {% endif %}
-  <div style="max-width:70%;">
+  <div style="max-width:75%;">
     {% if not is_me %}
-    <p class="text-[10px] font-mono mb-1" style="color:var(--teal-lt);">@{{ msg.sender.username }}</p>
+    <p class="text-[10px] font-mono mb-1 font-semibold" style="color:#2dd4bf;">@{{ msg.sender.username }}</p>
     {% endif %}
-    <div class="rounded-2xl px-3 py-2 text-sm {{ 'rounded-br-sm' if is_me else 'rounded-bl-sm' }}"
-         style="{{ 'background:var(--teal);color:#fff;' if is_me else 'background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;' }}">
+    <div class="rounded-2xl px-3.5 py-2.5 text-sm {{ 'rounded-br-sm' if is_me else 'rounded-bl-sm' }}"
+         style="{{ 'background:#0f766e;color:#f0fdfa;' if is_me else 'background:var(--card);border:1px solid var(--border-2);color:#cbd5e1;' }}">
       {{ msg.content | e }}
     </div>
-    <p class="text-[10px] font-mono text-slate-600 mt-1 {{ 'text-right' if is_me else '' }}">
+    <p class="text-[10px] font-mono text-slate-500 mt-1 {{ 'text-right' if is_me else '' }}">
       {{ msg.created_at.strftime('%H:%M') }}
     </p>
   </div>

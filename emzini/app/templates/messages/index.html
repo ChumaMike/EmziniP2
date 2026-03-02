@@ -19,7 +19,7 @@
 </div>
 
 <!-- Tab bar -->
-<div class="flex gap-1 mb-6 p-1 rounded-xl" style="background:var(--card);border:1px solid var(--border-2);">
+<div class="flex mb-6 border-b" style="border-color:var(--border-2);">
   {% for t, icon, label in [
       ('community', 'fa-people-group',   'Community'),
       ('runners',   'fa-person-running', 'Runners'),
@@ -27,10 +27,18 @@
       ('chats',     'fa-lock',           'My Chats'),
   ] %}
   <a href="{{ url_for('messages.index', tab=t) }}"
-     class="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-mono font-medium transition-all"
-     style="{{ 'background:var(--teal);color:#fff;' if tab == t else 'color:#64748b;' }}">
+     class="relative flex items-center gap-1.5 px-3 sm:px-4 py-2.5 text-xs font-medium transition-all"
+     style="{{ 'color:#fff;' if tab == t else 'color:#64748b;' }}">
     <i class="fas {{ icon }} text-[11px]"></i>
     <span class="hidden sm:inline">{{ label }}</span>
+    {% if t == 'chats' and unread_msg_count > 0 %}
+    <span class="w-4 h-4 rounded-full bg-red-500 text-white text-[9px] flex items-center justify-center font-mono font-bold leading-none">
+      {{ unread_msg_count if unread_msg_count < 10 else '9+' }}
+    </span>
+    {% endif %}
+    {% if tab == t %}
+    <span class="absolute bottom-0 left-0 right-0 h-0.5 rounded-t-full" style="background:var(--teal);"></span>
+    {% endif %}
   </a>
   {% endfor %}
 </div>
@@ -79,7 +87,7 @@
   <!-- Posts feed -->
   <div class="lg:col-span-2 space-y-3" id="posts-feed">
     {% for post in posts %}
-    <div class="card p-4 hover:border-teal-800/40 transition">
+    <div class="card p-4 hover:border-teal-800/50 hover:-translate-y-px transition-all">
       <div class="flex items-center gap-2.5 mb-2.5">
         <div class="w-8 h-8 rounded-xl flex items-center justify-center text-[11px] font-bold font-mono flex-shrink-0"
              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
@@ -87,7 +95,7 @@
         </div>
         <div class="flex-1 min-w-0">
           <div class="flex items-center gap-1.5">
-            <span class="font-mono text-xs" style="color:var(--teal-lt);">@{{ post.user.username }}</span>
+            <span class="font-mono text-xs font-semibold" style="color:var(--teal-lt);">@{{ post.user.username }}</span>
             {% if post.user.is_runner and post.user.runner_active %}
             <span class="w-1.5 h-1.5 rounded-full pulse-dot flex-shrink-0 bg-teal-400"></span>
             {% endif %}
@@ -97,11 +105,14 @@
           {{ post.created_at.strftime('%d %b · %H:%M') }}
         </span>
       </div>
-      <p class="text-zinc-300 text-sm leading-relaxed">{{ post.content | e }}</p>
+      <p class="text-zinc-300 text-sm leading-relaxed mb-2.5">{{ post.content | e }}</p>
       {% if post.user_id != current_user.id %}
-      <form method="POST" action="{{ url_for('messages.start_conversation') }}" class="mt-2.5">
+      <form method="POST" action="{{ url_for('messages.start_conversation') }}">
         <input type="hidden" name="other_user_id" value="{{ post.user_id }}"/>
-        <button class="font-mono text-[10px] text-zinc-600 hover:text-teal-400 transition flex items-center gap-1">
+        <button class="inline-flex items-center gap-1 font-mono text-[10px] px-2 py-1 rounded-full transition-all"
+                style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);"
+                onmouseover="this.style.background='rgba(13,148,136,0.18)'"
+                onmouseout="this.style.background='rgba(13,148,136,0.08)'">
           <i class="fas fa-comment text-[9px]"></i>Message @{{ post.user.username }}
         </button>
       </form>

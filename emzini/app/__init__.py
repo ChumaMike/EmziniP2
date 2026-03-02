@@ -52,6 +52,21 @@ def create_app():
         from app.models import User
         return User.query.get(int(user_id))
 
+    @app.context_processor
+    def inject_unread():
+        from flask_login import current_user
+        if current_user.is_authenticated:
+            from app.models import Conversation, ConversationMessage
+            from sqlalchemy import or_
+            count = ConversationMessage.query.join(Conversation).filter(
+                or_(Conversation.initiator_id == current_user.id,
+                    Conversation.recipient_id == current_user.id),
+                ConversationMessage.sender_id != current_user.id,
+                ConversationMessage.is_read == False
+            ).count()
+            return {'unread_msg_count': count}
+        return {'unread_msg_count': 0}
+
     # Register blueprints
     from app.blueprints.auth.routes import auth_bp
     from app.blueprints.dashboard.routes import dashboard_bp

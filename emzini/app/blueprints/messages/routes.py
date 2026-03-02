@@ -21,6 +21,15 @@ def index():
     if tab not in CHANNELS and tab != 'chats':
         tab = 'community'
 
+    if tab == 'chats':
+        latest = (Conversation.query
+                  .filter(or_(Conversation.initiator_id == current_user.id,
+                              Conversation.recipient_id == current_user.id))
+                  .order_by(Conversation.updated_at.desc())
+                  .first())
+        if latest:
+            return redirect(url_for('messages.conversation', conv_id=latest.id))
+
     posts = []
     if tab in CHANNELS:
         posts = (CommunityPost.query
