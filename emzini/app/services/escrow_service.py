@@ -19,6 +19,7 @@ def lock_escrow(user_id: int, amount: float, reference: str):
 def release_escrow(to_user_id: int, amount: float, reference: str):
     user = User.query.get(to_user_id)
     user.wallet_balance += amount
+    user.rep_runner += 5
     user.reputation += 5
     tx = WalletTx(user_id=to_user_id, amount=amount, tx_type='escrow_release', reference=reference)
     db.session.add(tx)

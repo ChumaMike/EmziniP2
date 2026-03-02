@@ -235,6 +235,24 @@
       </div>
     </div>
 
+    <!-- Personal Rep Card -->
+    <div class="card p-5 relative overflow-hidden">
+      <div class="absolute top-0 left-0 right-0 h-px"
+           style="background:linear-gradient(90deg,transparent,#a78bfa,transparent);opacity:0.5;"></div>
+      <div class="flex items-center justify-between mb-3">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-seedling text-xs" style="color:#a78bfa;"></i>
+          <p class="text-[10px] font-mono uppercase tracking-widest text-slate-500">Your Rep</p>
+        </div>
+        <a href="/wallet" class="text-[11px] font-mono" style="color:var(--teal-lt);">Details →</a>
+      </div>
+      <p class="text-3xl font-bold font-mono mb-0.5" style="color:#a78bfa;">{{ current_user.rep_personal }}</p>
+      <p class="text-[10px] font-mono text-slate-600">Personal score — built by completing goals and staying engaged.</p>
+      <div class="h-0.5 rounded-full mt-3 overflow-hidden" style="background:var(--border-2);">
+        <div class="h-full rounded-full" style="width:{{ [current_user.rep_personal * 2, 100]|min }}%;background:#a78bfa;opacity:0.6;"></div>
+      </div>
+    </div>
+
     <!-- Active Goals -->
     {% if active_goals %}
     <div class="card p-5">

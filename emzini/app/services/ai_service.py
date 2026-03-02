@@ -586,6 +586,7 @@ def execute_tool(tool_name: str, tool_input: dict, user) -> str:
             goal.progress = 100
             for m in goal.milestones:
                 m.is_completed = True
+            user.rep_personal += 10
             user.reputation += 10
             db.session.commit()
             return f'Goal "{goal.title}" completed! +10 reputation. Sharp!'

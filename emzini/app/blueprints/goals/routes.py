@@ -95,6 +95,7 @@ def complete(goal_id):
     goal.progress = 100
     for m in goal.milestones:
         m.is_completed = True
+    current_user.rep_personal += 10
     current_user.reputation += 10
     db.session.commit()
     log_action('goal_completed', f'{current_user.username} completed goal "{goal.title}"', current_user.id)

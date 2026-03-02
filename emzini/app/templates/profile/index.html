@@ -64,12 +64,66 @@
       <h3 class="text-2xl font-bold" style="color:var(--teal-lt);">R{{ '%.2f'|format(current_user.wallet_balance) }}</h3>
     </div>
     <div class="card p-5">
-      <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-2">Reputation</p>
+      <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-2">Overall Reputation</p>
       <h3 class="text-2xl font-bold text-amber-400">
         {{ current_user.reputation }}
         <span class="text-sm font-normal text-slate-500">pts</span>
       </h3>
+      {% set rep = current_user.reputation %}
+      <p class="font-mono text-[10px] mt-1
+        {% if rep >= 500 %}text-amber-300
+        {% elif rep >= 300 %}text-teal-400
+        {% elif rep >= 150 %}text-slate-300
+        {% elif rep >= 50 %}text-slate-400
+        {% else %}text-slate-600{% endif %}">
+        {% if rep >= 500 %}PILLAR OF COMMUNITY
+        {% elif rep >= 300 %}TRUSTED RESIDENT
+        {% elif rep >= 150 %}COMMUNITY MEMBER
+        {% elif rep >= 50 %}RESIDENT
+        {% else %}NEWCOMER{% endif %}
+      </p>
     </div>
+  </div>
+
+  <!-- Reputation Breakdown -->
+  {% set total_sub = current_user.rep_personal + current_user.rep_runner + current_user.rep_provider + current_user.rep_civic %}
+  <div class="card p-6 mb-5 relative overflow-hidden">
+    <div class="absolute top-0 left-8 right-8 h-px"
+         style="background:linear-gradient(90deg,transparent,rgba(251,191,36,0.4),transparent);"></div>
+    <p class="text-xs font-mono text-slate-500 uppercase tracking-wider mb-4">Reputation Breakdown</p>
+
+    {% set categories = [
+      ('Personal', 'fa-user-check', current_user.rep_personal, 'Goals & app engagement', '#14b8a6'),
+      ('Runner',   'fa-person-running', current_user.rep_runner, 'Completed runner jobs', '#818cf8'),
+      ('Marketplace', 'fa-shop', current_user.rep_provider, 'Items & services sold', '#34d399'),
+      ('Civic',    'fa-triangle-exclamation', current_user.rep_civic, 'Community reports filed', '#f97316'),
+    ] %}
+
+    <div class="space-y-4">
+      {% for label, icon, pts, desc, color in categories %}
+      {% set pct = ((pts / total_sub * 100) | int) if total_sub > 0 else 0 %}
+      <div>
+        <div class="flex items-center justify-between mb-1.5">
+          <div class="flex items-center gap-2">
+            <i class="fas {{ icon }} text-[11px] w-4 text-center" style="color:{{ color }};"></i>
+            <span class="text-sm text-slate-300 font-medium">{{ label }}</span>
+            <span class="text-[10px] text-slate-600">{{ desc }}</span>
+          </div>
+          <span class="font-mono text-sm font-semibold" style="color:{{ color }};">{{ pts }} pts</span>
+        </div>
+        <div class="h-1.5 rounded-full overflow-hidden" style="background:var(--border);">
+          <div class="h-full rounded-full transition-all"
+               style="width:{{ pct }}%;background:{{ color }};opacity:0.8;"></div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if total_sub == 0 %}
+    <p class="text-slate-600 text-xs text-center mt-4">
+      Start earning — complete jobs, report issues, or sell items.
+    </p>
+    {% endif %}
   </div>
 
   <!-- Runner Mode card -->

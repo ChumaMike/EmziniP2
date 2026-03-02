@@ -13,7 +13,13 @@ class User(UserMixin, db.Model):
     is_runner = db.Column(db.Boolean, default=False)
     runner_active = db.Column(db.Boolean, default=False)
     reputation = db.Column(db.Integer, default=0)
+    rep_personal = db.Column(db.Integer, default=0)   # goals, app engagement
+    rep_runner   = db.Column(db.Integer, default=0)   # completed runner jobs
+    rep_provider = db.Column(db.Integer, default=0)   # items/services sold
+    rep_civic    = db.Column(db.Integer, default=0)   # civic reports submitted
     wallet_balance = db.Column(db.Float, default=0.0)
+    real_balance   = db.Column(db.Float, default=0.0)  # admin-verified ZAR
+    cash_float     = db.Column(db.Float, default=0.0)  # cash held by runner
     is_admin = db.Column(db.Boolean, default=False)
     chat_session_id = db.Column(db.String(36), nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)

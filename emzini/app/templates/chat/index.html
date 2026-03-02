@@ -1,85 +1,120 @@
 {% extends 'base.html' %}
-{% block title %}EMZINI AI — EMZINI.SYS{% endblock %}
+{% block title %}Emzini AI{% endblock %}
 {% block content %}
 
-<div class="mb-4">
-  <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI // LAZY OS</p>
-  <h1 class="text-2xl font-bold text-white mt-1"><i class="fas fa-robot text-purple-500 mr-2"></i>EMZINI AI</h1>
-  <p class="text-zinc-500 text-sm mt-1">Your personal assistant. Just tell me what you need — I'll do it.</p>
+<!-- Header -->
+<div class="flex items-center justify-between mb-4">
+  <div>
+    <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI // LAZY OS</p>
+    <h1 class="text-2xl font-bold text-white mt-1">
+      <i class="fas fa-robot text-teal-400 mr-2"></i>Emzini AI
+    </h1>
+    <p class="text-zinc-500 text-sm mt-0.5">Tell me what you need — I'll handle it.</p>
+  </div>
+  <div class="hidden md:flex items-center gap-2 text-[10px] font-mono text-zinc-600 border border-zinc-800 rounded-lg px-3 py-2">
+    <span class="w-1.5 h-1.5 bg-teal-400 rounded-full pulse-dot"></span>
+    Gemini 2.5 Flash
+  </div>
 </div>
 
 <!-- Suggestion pills -->
 <div class="flex gap-2 flex-wrap mb-4">
-  <button onclick="setPrompt('What\'s my wallet balance?')"            class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">Wallet balance</button>
-  <button onclick="setPrompt('Show me open runner jobs')"              class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">Open jobs</button>
-  <button onclick="setPrompt('Show my marketplace listings')"          class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">My listings</button>
-  <button onclick="setPrompt('Show my civic reports')"                 class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">My reports</button>
-  <button onclick="setPrompt('Show open bounties')"                    class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">Bounties</button>
-  <button onclick="setPrompt('Show my active goals')"                  class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">My goals</button>
-  <button onclick="setPrompt('Go active as a runner')"                 class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">Go active runner</button>
-  <button onclick="setPrompt('Post a runner job to buy bread at the corner store, paying R30')" class="font-mono text-[10px] bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded text-zinc-400 hover:border-purple-600 hover:text-purple-400 transition">Post bread errand</button>
+  {% for label, prompt in [
+    ('Wallet balance',   "What's my wallet balance?"),
+    ('Open jobs',        'Show me open runner jobs'),
+    ('My listings',      'Show my marketplace listings'),
+    ('Bounties',         'Show open bounties'),
+    ('Post errand',      'Post a runner job to buy bread at the corner store, paying R30'),
+    ('Go active',        'Go active as a runner'),
+    ('Civic reports',    'Show my civic reports'),
+  ] %}
+  <button onclick="setPrompt('{{ prompt }}')"
+          class="font-mono text-[10px] px-3 py-1.5 rounded-full border border-zinc-800 text-zinc-500
+                 hover:border-teal-700/60 hover:text-teal-400 hover:bg-teal-950/30 transition">
+    {{ label }}
+  </button>
+  {% endfor %}
 </div>
 
-<!-- Chat Window -->
-<div class="card flex flex-col" style="height: calc(100vh - 340px); min-height: 400px;">
-  <div class="flex-1 overflow-y-auto p-4 space-y-4" id="chat-messages">
-    <!-- Welcome message -->
-    <div class="flex gap-3">
-      <div class="w-8 h-8 bg-red-600 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white font-bold font-mono">EM</div>
-      <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg rounded-tl-none max-w-[85%] text-zinc-300 text-sm">
-        Howzit! I'm Emzini AI — your residential OS assistant. I can post jobs, list items, report civic issues, check your wallet, and more. What do you need?
+<!-- Chat window -->
+<div class="card flex flex-col overflow-hidden p-0" style="height:calc(100vh - 310px);min-height:420px;">
+
+  <!-- Messages area -->
+  <div class="flex-1 overflow-y-auto p-5 space-y-5" id="chat-messages">
+
+    <!-- Welcome -->
+    <div class="flex gap-3 items-end">
+      <div class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center"
+           style="background:linear-gradient(135deg,var(--teal),rgba(99,102,241,0.7));">
+        <i class="fas fa-robot text-white text-[11px]"></i>
+      </div>
+      <div class="text-sm text-zinc-300 leading-relaxed px-4 py-3 rounded-2xl rounded-bl-sm max-w-[80%]"
+           style="background:var(--card);border:1px solid var(--border-2);">
+        Howzit! I'm Emzini AI — your residential assistant. I can post jobs, list items, report civic issues, check your wallet, and more. What do you need?
       </div>
     </div>
 
-    <!-- History -->
+    <!-- Session history -->
     {% for msg in history %}
     {% if msg.role == 'user' %}
-    <div class="flex gap-3 flex-row-reverse">
-      <div class="w-8 h-8 bg-zinc-700 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white font-bold font-mono">
+    <div class="flex gap-3 flex-row-reverse items-end">
+      <div class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center text-xs font-bold font-mono"
+           style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
         {{ current_user.username[:2]|upper }}
       </div>
-      <div class="bg-zinc-800 border border-zinc-700 p-3 rounded-lg rounded-tr-none max-w-[85%] text-white text-sm">{{ msg.content }}</div>
+      <div class="text-sm text-white leading-relaxed px-4 py-3 rounded-2xl rounded-br-sm max-w-[80%]"
+           style="background:var(--teal);">
+        {{ msg.content | e }}
+      </div>
     </div>
     {% else %}
-    <div class="flex gap-3">
-      <div class="w-8 h-8 bg-red-600 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white font-bold font-mono">EM</div>
-      <div class="bg-zinc-900 border border-zinc-800 p-3 rounded-lg rounded-tl-none max-w-[85%] text-zinc-300 text-sm whitespace-pre-wrap">{{ msg.content }}</div>
+    <div class="flex gap-3 items-end">
+      <div class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center"
+           style="background:linear-gradient(135deg,var(--teal),rgba(99,102,241,0.7));">
+        <i class="fas fa-robot text-white text-[11px]"></i>
+      </div>
+      <div class="text-sm text-zinc-300 leading-relaxed px-4 py-3 rounded-2xl rounded-bl-sm max-w-[80%] whitespace-pre-wrap"
+           style="background:var(--card);border:1px solid var(--border-2);">
+        {{ msg.content | e }}
+      </div>
     </div>
     {% endif %}
     {% endfor %}
 
-    <!-- HTMX target for new messages -->
+    <!-- HTMX injection target -->
     <div id="new-messages"></div>
   </div>
 
   <!-- Typing indicator -->
-  <div id="typing-indicator" class="hidden px-4 pb-2">
-    <div class="flex gap-3">
-      <div class="w-8 h-8 bg-red-600 rounded-lg flex-shrink-0 flex items-center justify-center text-xs text-white font-bold font-mono">EM</div>
-      <div class="bg-zinc-900 border border-zinc-800 px-4 py-3 rounded-lg rounded-tl-none">
-        <span class="flex gap-1">
-          <span class="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
-          <span class="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
-          <span class="w-2 h-2 bg-zinc-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
+  <div id="typing-indicator" class="hidden px-5 pb-3">
+    <div class="flex gap-3 items-end">
+      <div class="w-8 h-8 rounded-xl flex-shrink-0 flex items-center justify-center"
+           style="background:linear-gradient(135deg,var(--teal),rgba(99,102,241,0.7));">
+        <i class="fas fa-robot text-white text-[11px]"></i>
+      </div>
+      <div class="px-4 py-3 rounded-2xl rounded-bl-sm" style="background:var(--card);border:1px solid var(--border-2);">
+        <span class="flex gap-1.5 items-center">
+          <span class="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style="animation-delay:0ms"></span>
+          <span class="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style="animation-delay:150ms"></span>
+          <span class="w-1.5 h-1.5 bg-teal-500 rounded-full animate-bounce" style="animation-delay:300ms"></span>
         </span>
       </div>
     </div>
   </div>
 
-  <!-- Input -->
-  <div class="border-t border-zinc-800 p-4">
+  <!-- Input bar -->
+  <div class="border-t p-4 flex-shrink-0" style="border-color:var(--border-2);">
     <form id="chat-form"
-      hx-post="/chat/send"
-      hx-target="#new-messages"
-      hx-swap="beforeend"
-      hx-on::before-request="showTyping()"
-      hx-on::after-request="hideTyping(); scrollDown(); clearInput()">
+          hx-post="/chat/send"
+          hx-target="#new-messages"
+          hx-swap="beforeend"
+          hx-on::before-request="showTyping()"
+          hx-on::after-request="hideTyping(); scrollDown(); clearInput()">
       <div class="flex gap-2">
         <input type="text" name="message" id="message-input"
-          placeholder="Tell me what you need..."
-          class="flex-1"
-          autocomplete="off"
-          required/>
+               placeholder="Tell me what you need…"
+               class="flex-1 text-sm"
+               autocomplete="off" required/>
         <button type="submit" class="btn-primary px-5 flex-shrink-0">
           <i class="fas fa-paper-plane"></i>
         </button>
@@ -92,25 +127,25 @@
 
 {% block scripts %}
 <script>
-  function scrollDown() {
-    const msgs = document.getElementById('chat-messages');
-    msgs.scrollTop = msgs.scrollHeight;
-  }
-  function showTyping() {
-    document.getElementById('typing-indicator').classList.remove('hidden');
-    scrollDown();
-  }
-  function hideTyping() {
-    document.getElementById('typing-indicator').classList.add('hidden');
-  }
-  function clearInput() {
-    document.getElementById('message-input').value = '';
-  }
-  function setPrompt(text) {
-    document.getElementById('message-input').value = text;
-    document.getElementById('message-input').focus();
-  }
-  // Scroll to bottom on load
+function scrollDown() {
+  var msgs = document.getElementById('chat-messages');
+  if (msgs) msgs.scrollTop = msgs.scrollHeight;
+}
+function showTyping() {
+  document.getElementById('typing-indicator').classList.remove('hidden');
   scrollDown();
+}
+function hideTyping() {
+  document.getElementById('typing-indicator').classList.add('hidden');
+}
+function clearInput() {
+  document.getElementById('message-input').value = '';
+}
+function setPrompt(text) {
+  var inp = document.getElementById('message-input');
+  inp.value = text;
+  inp.focus();
+}
+scrollDown();
 </script>
 {% endblock %}

@@ -6,6 +6,11 @@ from app.models import CivicReport, User, Goal, NetworkAlert, NetworkContact, Ch
 dashboard_bp = Blueprint('dashboard', __name__)
 
 
+@dashboard_bp.route('/offline')
+def offline():
+    return render_template('offline.html')
+
+
 @dashboard_bp.route('/')
 @login_required
 def index():

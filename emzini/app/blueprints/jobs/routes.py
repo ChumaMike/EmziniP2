@@ -163,7 +163,15 @@ def complete_job(job_id):
         if profile:
             profile.total_deliveries += 1
             profile.total_earned += net
-            db.session.commit()
+        # If cash payment, runner physically holds item price — track as cash float
+        if job.payment_method == 'cash' and job.item_id:
+            from app.models import MarketItem, User as UserModel
+            item = MarketItem.query.get(job.item_id)
+            runner = UserModel.query.get(job.runner_id)
+            if item and runner:
+                runner.cash_float = (runner.cash_float or 0.0) + item.price
+                log_action('cash_float_added', f'R{item.price:.2f} cash float added for runner @{runner.username} (job #{job.id})', job.runner_id)
+        db.session.commit()
         log_action('platform_fee', f'R{fee:.2f} retained on delivery job #{job.id}', None)
         log_action('job_completed', f'Delivery #{job.id} done — R{net:.2f} released to runner', job.runner_id)
         flash(f'Delivery done! R{net:.2f} released to runner (R{fee:.2f} platform fee retained).', 'success')

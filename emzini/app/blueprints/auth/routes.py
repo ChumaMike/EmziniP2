@@ -4,7 +4,7 @@ import smtplib
 from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app, session
 from flask_login import login_user, logout_user, login_required, current_user
 from app.extensions import db
 from app.models import User, PasswordResetToken
@@ -74,6 +74,7 @@ def register():
         db.session.commit()
         log_action('register', f'New user registered: {username}', user.id)
         login_user(user)
+        session['pwa_prompt'] = True
         flash(f'Welcome to Emzini, {username}! R50 starter credit added.', 'success')
         return redirect(url_for('dashboard.index'))
 
@@ -99,6 +100,7 @@ def login():
         db.session.commit()
 
         login_user(user, remember=True)
+        session['pwa_prompt'] = True
         log_action('login', f'{username} logged in', user.id)
         return redirect(request.args.get('next') or url_for('dashboard.index'))
 

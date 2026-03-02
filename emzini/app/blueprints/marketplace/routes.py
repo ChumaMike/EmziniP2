@@ -193,6 +193,10 @@ def buy_item(item_id):
         try:
             debit_wallet(current_user.id, item.price, f'Purchase: {item.title}')
             credit_wallet(item.seller_id, item.price, f'Sale: {item.title}')
+            seller = User.query.get(item.seller_id)
+            seller.rep_provider += 2
+            seller.reputation += 2
+            db.session.commit()
         except InsufficientFundsError as e:
             flash(str(e), 'danger')
             return redirect(url_for('marketplace.item_detail', item_id=item_id))

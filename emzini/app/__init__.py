@@ -116,6 +116,12 @@ def _migrate(db):
         _add_col(conn, 'bounties', 'proof_photo',    'VARCHAR(500)')
         _add_col(conn, 'bounties', 'ai_verified',    'BOOLEAN')
         _add_col(conn, 'bounties', 'ai_verdict_msg', 'TEXT')
+        _add_col(conn, 'users', 'rep_personal', 'INTEGER DEFAULT 0')
+        _add_col(conn, 'users', 'rep_runner',   'INTEGER DEFAULT 0')
+        _add_col(conn, 'users', 'rep_provider', 'INTEGER DEFAULT 0')
+        _add_col(conn, 'users', 'rep_civic',    'INTEGER DEFAULT 0')
+        _add_col(conn, 'users', 'real_balance', 'REAL DEFAULT 0.0')
+        _add_col(conn, 'users', 'cash_float',   'REAL DEFAULT 0.0')
         conn.commit()
 
 

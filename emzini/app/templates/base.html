@@ -24,6 +24,14 @@
   <!-- Socket.IO -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 
+  <!-- PWA -->
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#0d9488">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Emzini">
+  <link rel="apple-touch-icon" href="/static/icons/icon.svg">
+
   <style>
     :root {
       --teal:     #0d9488;
@@ -230,8 +238,9 @@
            style="background:rgba(34,197,94,0.08);color:#4ade80;border:1px solid rgba(34,197,94,0.2);"
            onmouseover="this.style.borderColor='rgba(34,197,94,0.5)';this.style.color='#86efac'"
            onmouseout="this.style.borderColor='rgba(34,197,94,0.2)';this.style.color='#4ade80'">
-          <i class="fas fa-wallet text-[10px]"></i>
+          <i class="fas fa-coins text-[10px]"></i>
           R{{ '%.2f'|format(current_user.wallet_balance) }}
+          <span class="text-[9px] opacity-60">credits</span>
         </a>
         <a href="/profile" class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs transition-all"
            style="background:var(--border);color:#94a3b8;border:1px solid var(--border-2);"
@@ -261,35 +270,28 @@
   </div>
 </header>
 
-<!-- Mobile nav bar -->
+<!-- Mobile bottom tab bar -->
 {% if current_user.is_authenticated %}
-<nav class="md:hidden flex gap-1 px-4 py-2 border-b overflow-x-auto" style="background:var(--card);border-color:var(--border);">
-  <a href="/"      class="nav-link flex-shrink-0 {% if request.endpoint == 'dashboard.index' %}active{% endif %}">
-    <i class="fas fa-gauge-high"></i> Dashboard
+<nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t"
+     style="background:rgba(6,12,11,0.97);border-color:var(--border);backdrop-filter:blur(12px);padding-bottom:env(safe-area-inset-bottom);">
+  {% set tabs = [
+    ('/', 'fa-gauge-high', 'Home',      request.endpoint == 'dashboard.index'),
+    ('/market', 'fa-shop', 'Market',    'marketplace' in (request.endpoint or '')),
+    ('/messages', 'fa-comments', 'Connect', 'messages' in (request.endpoint or '')),
+    ('/runner/dashboard', 'fa-person-running', 'Runner', 'runner' in (request.endpoint or '')),
+    ('/civic', 'fa-triangle-exclamation', 'Community', 'civic' in (request.endpoint or ''))
+  ] %}
+  {% for href, icon, label, is_active in tabs %}
+  <a href="{{ href }}"
+     class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors"
+     style="color:{{ '#14b8a6' if is_active else '#71717a' }};">
+    <i class="fas {{ icon }} text-base"></i>
+    <span>{{ label }}</span>
+    {% if is_active %}
+    <span class="w-1 h-1 rounded-full mt-0.5" style="background:#14b8a6;"></span>
+    {% endif %}
   </a>
-  <a href="/civic" class="nav-link flex-shrink-0 {% if 'civic' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-triangle-exclamation"></i> Community
-  </a>
-  <a href="/docs" class="nav-link flex-shrink-0 {% if 'docs' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-file-lines"></i> Documents
-  </a>
-  <a href="/market" class="nav-link flex-shrink-0 {% if 'marketplace' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-shop"></i> Market
-  </a>
-  <a href="/messages" class="nav-link flex-shrink-0 {% if 'messages' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-comments"></i> Connect
-  </a>
-  <a href="/runner/dashboard" class="nav-link flex-shrink-0 {% if 'runner' in request.endpoint %}active{% endif %}">
-    <i class="fas fa-person-running"></i> Runner
-  </a>
-  <a href="/about" class="nav-link flex-shrink-0 {% if request.endpoint == 'about.index' %}active{% endif %}">
-    <i class="fas fa-circle-info"></i> About
-  </a>
-  {% if current_user.is_admin %}
-  <a href="/admin" class="nav-link flex-shrink-0" style="color:#f43f5e;">
-    <i class="fas fa-shield-halved"></i> Admin
-  </a>
-  {% endif %}
+  {% endfor %}
 </nav>
 {% endif %}
 
@@ -311,7 +313,7 @@
 {% endwith %}
 
 <!-- Main -->
-<main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-5 py-5 sm:py-7">
+<main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-5 py-5 sm:py-7 pb-20 md:pb-7">
   {% block content %}{% endblock %}
 </main>
 
@@ -337,6 +339,90 @@
   const socket = io();
   socket.on('connect', () => console.log('[Emzini] Live connection established'));
 </script>
+
+<!-- Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js');
+  }
+</script>
 {% block scripts %}{% endblock %}
+
+{% if current_user.is_authenticated %}
+<!-- PWA Install Banner -->
+<div id="pwa-banner"
+     data-show="{{ '1' if session.pop('pwa_prompt', None) else '' }}"
+     style="display:none;position:fixed;left:0;right:0;z-index:60;bottom:60px;"
+     class="md:!bottom-0">
+  <div style="background:var(--card);border-top:1px solid var(--border-2);padding:1rem 1.25rem;max-width:480px;margin:0 auto;border-radius:1rem 1rem 0 0;">
+    <div class="flex items-start gap-3 mb-3">
+      <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--teal);">
+        <i class="fas fa-house text-white text-sm"></i>
+      </div>
+      <div class="flex-1">
+        <p class="font-semibold text-white text-sm">Add Emzini to your home screen</p>
+        <p class="text-slate-400 text-xs mt-0.5">Quick access, no browser needed.</p>
+      </div>
+      <button class="pwa-dismiss opacity-40 hover:opacity-80 text-lg leading-none text-white">&times;</button>
+    </div>
+    <!-- iOS variant -->
+    <div class="pwa-ios" style="display:none;">
+      <p class="text-slate-300 text-xs mb-3">
+        Tap <i class="fas fa-arrow-up-from-bracket" style="color:var(--teal-lt);"></i> <strong>Share</strong>,
+        then <strong>"Add to Home Screen"</strong>
+      </p>
+      <button class="pwa-dismiss btn-secondary text-xs py-1.5 px-4">Got it</button>
+    </div>
+    <!-- Android / desktop variant -->
+    <div class="pwa-android" style="display:none;">
+      <div class="flex gap-2">
+        <button id="pwa-install-btn" class="btn-primary text-xs py-1.5 px-4">
+          <i class="fas fa-download"></i> Install App
+        </button>
+        <button class="pwa-dismiss btn-secondary text-xs py-1.5 px-4">Not now</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  if (window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches) return;
+  if (localStorage.getItem('emzini_pwa_seen')) return;
+  var banner = document.getElementById('pwa-banner');
+  if (!banner || !banner.dataset.show) return;
+
+  var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  var deferredPrompt = null;
+
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferredPrompt = e;
+  });
+
+  banner.querySelector(isIOS ? '.pwa-ios' : '.pwa-android').style.display = 'block';
+  banner.style.display = 'block';
+
+  var installBtn = banner.querySelector('#pwa-install-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', async function () {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+      }
+      dismiss();
+    });
+  }
+
+  banner.querySelectorAll('.pwa-dismiss').forEach(function (b) {
+    b.addEventListener('click', dismiss);
+  });
+
+  function dismiss() {
+    localStorage.setItem('emzini_pwa_seen', '1');
+    banner.style.display = 'none';
+  }
+})();
+</script>
+{% endif %}
 </body>
 </html>

@@ -46,6 +46,7 @@ def new_report():
             severity=severity if severity in SEVERITIES else 'medium',
         )
         db.session.add(report)
+        current_user.rep_civic += 2
         current_user.reputation += 2
         db.session.commit()
         log_action('civic_report', f'{current_user.username} reported "{title}"', current_user.id)

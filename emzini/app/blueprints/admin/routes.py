@@ -145,6 +145,40 @@ def set_wallet(uid):
     return redirect(url_for('admin.users'))
 
 
+@admin_bp.route('/admin/users/<int:uid>/inject-real', methods=['POST'])
+@login_required
+@admin_required
+def inject_real(uid):
+    """Credit real ZAR to a user's real_balance (admin-verified deposit)."""
+    user = User.query.get_or_404(uid)
+    try:
+        amount = float(request.form.get('amount', 0))
+        if amount <= 0:
+            flash('Enter a positive amount.', 'danger')
+            return redirect(url_for('admin.users'))
+        user.real_balance = (user.real_balance or 0.0) + amount
+        db.session.commit()
+        log_action('admin_inject_real', f'Injected R{amount:.2f} real ZAR for {user.username}', current_user.id)
+        flash(f'R{amount:.2f} Real ZAR credited to {user.username}.', 'success')
+    except (ValueError, TypeError):
+        flash('Invalid amount.', 'danger')
+    return redirect(url_for('admin.users'))
+
+
+@admin_bp.route('/admin/users/<int:uid>/clear-cash-float', methods=['POST'])
+@login_required
+@admin_required
+def clear_cash_float(uid):
+    """Mark runner's cash float as collected — resets to 0."""
+    user = User.query.get_or_404(uid)
+    cleared = user.cash_float or 0.0
+    user.cash_float = 0.0
+    db.session.commit()
+    log_action('admin_clear_float', f'Cleared R{cleared:.2f} cash float for {user.username}', current_user.id)
+    flash(f'Cash float of R{cleared:.2f} cleared for {user.username}.', 'success')
+    return redirect(url_for('admin.users'))
+
+
 @admin_bp.route('/admin/users/<int:uid>/delete', methods=['POST'])
 @login_required
 @admin_required

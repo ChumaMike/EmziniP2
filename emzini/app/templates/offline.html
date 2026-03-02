@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Offline — Emzini</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    body { font-family: 'Inter', sans-serif; background: #060c0b; color: #e2e8f0; }
+    .font-mono { font-family: 'DM Mono', monospace; }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center px-6">
+  <div class="text-center max-w-sm">
+    <!-- Icon -->
+    <div class="mx-auto mb-6 w-20 h-20 rounded-2xl flex items-center justify-center"
+         style="background:#0c1714;border:1px solid #162e28;">
+      <svg viewBox="0 0 512 512" class="w-10 h-10">
+        <rect width="512" height="512" rx="96" fill="#060c0b"/>
+        <rect x="148" y="272" width="216" height="160" rx="8" fill="#0d9488"/>
+        <rect x="220" y="352" width="72" height="80" rx="6" fill="#060c0b"/>
+        <polygon points="256,96 108,272 404,272" fill="#14b8a6"/>
+        <rect x="318" y="152" width="36" height="72" rx="4" fill="#0d9488"/>
+      </svg>
+    </div>
+
+    <h1 class="text-2xl font-bold text-white mb-2">You're offline</h1>
+    <p class="text-slate-400 text-sm leading-relaxed mb-8">
+      Open Emzini again when you're back online — your home is waiting.
+    </p>
+
+    <button onclick="window.location.reload()"
+            class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold text-white transition-all"
+            style="background:#0d9488;">
+      Try again
+    </button>
+
+    <p class="font-mono text-[10px] text-slate-700 mt-10">EMZINI RESIDENCE</p>
+  </div>
+</body>
+</html>
