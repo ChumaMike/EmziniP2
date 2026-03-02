@@ -4,6 +4,7 @@ from app.extensions import db, socketio
 from app.models import RunnerJob, JobNegotiation, RunnerProfile
 from app.services.escrow_service import lock_escrow, release_escrow, credit_wallet, InsufficientFundsError
 from app.services.logger_service import log_action
+from app.services.notif_service import notify
 
 jobs_bp = Blueprint('jobs', __name__)
 
@@ -117,6 +118,9 @@ def claim_job(job_id):
     current_user.is_runner = True
     db.session.commit()
     log_action('job_claimed', f'{current_user.username} claimed job #{job.id}', current_user.id)
+    notify(job.poster_id, 'job_claimed',
+           f'@{current_user.username} claimed your job',
+           body=job.title, link='/jobs/mine')
     flash(f'Job claimed! Go get it done — R{job.reward:.2f} awaits.', 'success')
     return redirect(url_for('jobs.index'))
 
@@ -136,6 +140,9 @@ def mark_done(job_id):
     db.session.commit()
     log_action('job_mark_done', f'Runner @{current_user.username} marked job #{job.id} done — awaiting poster confirmation', current_user.id)
     socketio.emit('job_pending_confirmation', {'id': job.id, 'runner': current_user.username})
+    notify(job.poster_id, 'job_done',
+           f'@{current_user.username} marked your job done',
+           body=f'{job.title} — please confirm to release payment', link='/jobs/mine')
     flash('Job marked as done. Waiting for the poster to confirm.', 'success')
     return redirect(url_for('jobs.index'))
 
@@ -176,6 +183,9 @@ def complete_job(job_id):
     db.session.commit()
     log_action('platform_fee', f'R{fee:.2f} platform fee retained on job #{job.id}', None)
     log_action('job_completed', f'Job #{job.id} done — R{net:.2f} released to runner', job.runner_id)
+    notify(job.runner_id, 'job_completed',
+           f'Payment released — R{net:.2f} credited',
+           body=f'{job.title} confirmed complete', link='/wallet')
     flash(f'Job done! R{net:.2f} released to runner (R{fee:.2f} platform fee retained).', 'success')
 
     return redirect(url_for('jobs.index'))
@@ -192,12 +202,17 @@ def cancel_job(job_id):
         flash('Cannot cancel this job.', 'danger')
         return redirect(url_for('jobs.index'))
 
+    runner_id = job.runner_id
     job.status = 'cancelled'
     db.session.commit()
     from app.services.escrow_service import credit_wallet
     if job.escrow_locked:
         credit_wallet(job.poster_id, job.reward, f'Job cancelled refund: {job.title}')
     log_action('job_cancelled', f'Job #{job.id} cancelled — refunded R{job.reward:.2f}', current_user.id)
+    if runner_id:
+        notify(runner_id, 'job_cancelled',
+               'A job you claimed was cancelled',
+               body=job.title, link='/jobs')
     flash(f'Job cancelled. R{job.reward:.2f} refunded.', 'success')
     return redirect(url_for('jobs.index'))
 
@@ -240,6 +255,9 @@ def negotiate(job_id):
     })
 
     log_action('job_negotiation', f'{current_user.username} offered R{proposed_reward:.2f} on job #{job.id}', current_user.id)
+    notify(job.poster_id, 'offer_received',
+           f'@{current_user.username} made an offer on your job',
+           body=f'{job.title} — R{proposed_reward:.2f} offered', link='/jobs/mine')
     flash(f'Offer of R{proposed_reward:.2f} submitted to the poster.', 'success')
     return redirect(url_for('jobs.index'))
 
@@ -284,6 +302,9 @@ def accept_offer(job_id, nid):
     log_action('offer_accepted',
                f'Poster accepted R{neg.proposed_reward:.2f} from @{neg.runner.username} on job #{job.id}',
                current_user.id)
+    notify(neg.runner_id, 'offer_accepted',
+           'Your offer was accepted!',
+           body=f'{job.title} — R{neg.proposed_reward:.2f}', link='/jobs')
     flash(f'Offer accepted! @{neg.runner.username} is now your runner at R{neg.proposed_reward:.2f}.', 'success')
     return redirect(url_for('jobs.index'))
 
@@ -303,6 +324,9 @@ def reject_offer(job_id, nid):
     log_action('offer_rejected',
                f'Poster rejected offer from @{neg.runner.username} on job #{job.id}',
                current_user.id)
+    notify(neg.runner_id, 'offer_rejected',
+           'Your offer was not accepted',
+           body=f'{job.title}', link='/jobs')
     flash('Offer rejected.', 'info')
     return redirect(url_for('jobs.index'))
 

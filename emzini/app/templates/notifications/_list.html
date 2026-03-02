@@ -1,0 +1,40 @@
+{% set icons = {
+  'job_claimed':    'fa-person-running',
+  'job_done':       'fa-hourglass-half',
+  'job_completed':  'fa-coins',
+  'job_cancelled':  'fa-ban',
+  'offer_received': 'fa-hand-holding-dollar',
+  'offer_accepted': 'fa-circle-check',
+  'offer_rejected': 'fa-circle-xmark',
+  'bounty_claimed': 'fa-trophy',
+  'bounty_verified':'fa-coins',
+  'civic_update':   'fa-triangle-exclamation',
+  'new_message':    'fa-comment',
+} %}
+{% if notifs %}
+{% for n in notifs %}
+<a href="{{ n.link or '#' }}"
+   class="flex items-start gap-3 px-4 py-3 border-b transition hover:bg-white/5"
+   style="border-color:var(--border);{{ 'background:rgba(13,148,136,0.04);' if not n.is_read else '' }}">
+  <div class="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+       style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);">
+    <i class="fas {{ icons.get(n.notif_type, 'fa-bell') }} text-[11px]" style="color:var(--teal-lt);"></i>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="text-xs text-white font-medium leading-snug">{{ n.title }}</p>
+    {% if n.body %}
+    <p class="text-[11px] text-zinc-500 mt-0.5 leading-snug truncate">{{ n.body }}</p>
+    {% endif %}
+    <p class="text-[10px] font-mono text-zinc-700 mt-1">{{ n.created_at.strftime('%d %b · %H:%M') }}</p>
+  </div>
+  {% if not n.is_read %}
+  <span class="w-1.5 h-1.5 rounded-full bg-teal-400 flex-shrink-0 mt-1.5"></span>
+  {% endif %}
+</a>
+{% endfor %}
+{% else %}
+<div class="px-4 py-8 text-center">
+  <i class="fas fa-bell-slash text-2xl text-zinc-700 block mb-2"></i>
+  <p class="text-zinc-600 text-xs font-mono">No notifications yet</p>
+</div>
+{% endif %}

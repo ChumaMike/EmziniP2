@@ -3,6 +3,7 @@ from flask_login import login_required, current_user
 from app.extensions import db
 from app.models import CivicReport, CivicUpvote
 from app.services.logger_service import log_action
+from app.services.notif_service import notify
 
 civic_bp = Blueprint('civic', __name__)
 
@@ -83,5 +84,9 @@ def update_status(report_id):
     if new_status in ('open', 'in_progress', 'resolved'):
         report.status = new_status
         db.session.commit()
+        labels = {'open': 'reopened', 'in_progress': 'in progress', 'resolved': 'resolved'}
+        notify(report.reporter_id, 'civic_update',
+               f'Your report has been marked {labels[new_status]}',
+               body=report.title, link='/civic')
         flash(f'Report status updated to {new_status}.', 'success')
     return redirect(url_for('civic.index'))

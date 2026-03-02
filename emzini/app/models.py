@@ -365,6 +365,20 @@ class PasswordResetToken(db.Model):
     user = db.relationship('User', backref='reset_tokens')
 
 
+class Notification(db.Model):
+    __tablename__ = 'notifications'
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    notif_type = db.Column(db.String(40), nullable=False)
+    title      = db.Column(db.String(200), nullable=False)
+    body       = db.Column(db.String(500), nullable=True)
+    link       = db.Column(db.String(200), nullable=True)
+    is_read    = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='notifications')
+
+
 class Suggestion(db.Model):
     """User-submitted suggestions from the About page."""
     __tablename__ = 'suggestions'

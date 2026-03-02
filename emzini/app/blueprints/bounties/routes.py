@@ -7,6 +7,7 @@ from app.extensions import db
 from app.models import Bounty
 from app.services.escrow_service import lock_escrow, release_escrow, InsufficientFundsError
 from app.services.logger_service import log_action
+from app.services.notif_service import notify
 
 bounties_bp = Blueprint('bounties', __name__)
 
@@ -144,6 +145,9 @@ def claim_bounty(bounty_id):
     db.session.commit()
 
     log_action('bounty_claimed', f'{current_user.username} claimed bounty #{bounty.id}', current_user.id)
+    notify(bounty.poster_id, 'bounty_claimed',
+           f'@{current_user.username} claimed your bounty',
+           body=f'{bounty.title} — proof submitted, please verify', link='/bounties')
 
     if verdict['match'] is True:
         flash(f'Proof submitted! AI verified: looks like a match. Waiting for poster to confirm.', 'success')
@@ -170,5 +174,8 @@ def verify_bounty(bounty_id):
     db.session.commit()
     release_escrow(bounty.claimer_id, bounty.reward, f'Bounty verified: {bounty.title}')
     log_action('bounty_verified', f'Bounty #{bounty.id} verified — R{bounty.reward:.2f} paid', current_user.id)
+    notify(bounty.claimer_id, 'bounty_verified',
+           f'Bounty verified — R{bounty.reward:.2f} credited to your wallet',
+           body=bounty.title, link='/wallet')
     flash(f'Bounty verified! R{bounty.reward:.2f} paid out. +5 rep to finder!', 'success')
     return redirect(url_for('bounties.index'))

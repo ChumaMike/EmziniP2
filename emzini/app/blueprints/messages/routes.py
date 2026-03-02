@@ -6,6 +6,7 @@ from app.extensions import db, socketio
 from app.models import (CommunityPost, Conversation, ConversationMessage,
                         User, RunnerJob, MarketItem)
 from app.services.logger_service import log_action
+from app.services.notif_service import notify
 
 messages_bp = Blueprint('messages', __name__)
 
@@ -208,5 +209,8 @@ def send_in_conversation(conv_id):
         'content': content,
         'time': msg.created_at.strftime('%H:%M'),
     })
+    notify(other_id, 'new_message',
+           f'New message from @{current_user.username}',
+           body=content[:80], link=f'/messages/conversation/{conv_id}')
 
     return render_template('messages/_conv_message.html', msg=msg)

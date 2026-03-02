@@ -56,16 +56,19 @@ def create_app():
     def inject_unread():
         from flask_login import current_user
         if current_user.is_authenticated:
-            from app.models import Conversation, ConversationMessage
+            from app.models import Conversation, ConversationMessage, Notification
             from sqlalchemy import or_
-            count = ConversationMessage.query.join(Conversation).filter(
+            msg_count = ConversationMessage.query.join(Conversation).filter(
                 or_(Conversation.initiator_id == current_user.id,
                     Conversation.recipient_id == current_user.id),
                 ConversationMessage.sender_id != current_user.id,
                 ConversationMessage.is_read == False
             ).count()
-            return {'unread_msg_count': count}
-        return {'unread_msg_count': 0}
+            notif_count = Notification.query.filter_by(
+                user_id=current_user.id, is_read=False
+            ).count()
+            return {'unread_msg_count': msg_count, 'unread_notif_count': notif_count}
+        return {'unread_msg_count': 0, 'unread_notif_count': 0}
 
     # Register blueprints
     from app.blueprints.auth.routes import auth_bp
@@ -84,6 +87,7 @@ def create_app():
     from app.blueprints.runner.routes import runner_bp
     from app.blueprints.messages.routes import messages_bp
     from app.blueprints.about.routes import about_bp
+    from app.blueprints.notifications.routes import notifications_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -101,6 +105,7 @@ def create_app():
     app.register_blueprint(runner_bp)
     app.register_blueprint(messages_bp)
     app.register_blueprint(about_bp)
+    app.register_blueprint(notifications_bp)
 
     with app.app_context():
         db.create_all()
@@ -137,6 +142,7 @@ def _migrate(db):
         _add_col(conn, 'users', 'rep_civic',    'INTEGER DEFAULT 0')
         _add_col(conn, 'users', 'real_balance', 'REAL DEFAULT 0.0')
         _add_col(conn, 'users', 'cash_float',   'REAL DEFAULT 0.0')
+        # notifications table is created by db.create_all(); no extra columns needed
         conn.commit()
 
 
