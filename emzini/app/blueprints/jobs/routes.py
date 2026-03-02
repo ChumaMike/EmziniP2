@@ -365,9 +365,3 @@ def edit_job(job_id):
 
     return render_template('jobs/edit.html', job=job)
 
-
-# Legacy toggle route — now redirects to runner blueprint
-@jobs_bp.route('/runner/toggle', methods=['POST'])
-@login_required
-def toggle_runner():
-    return redirect(url_for('runner.toggle'), code=307)
