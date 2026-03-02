@@ -278,8 +278,8 @@
     ('/', 'fa-gauge-high', 'Home',      request.endpoint == 'dashboard.index'),
     ('/market', 'fa-shop', 'Market',    'marketplace' in (request.endpoint or '')),
     ('/messages', 'fa-comments', 'Connect', 'messages' in (request.endpoint or '')),
-    ('/runner/dashboard', 'fa-person-running', 'Runner', 'runner' in (request.endpoint or '')),
-    ('/civic', 'fa-triangle-exclamation', 'Community', 'civic' in (request.endpoint or ''))
+    ('/civic', 'fa-triangle-exclamation', 'Community', 'civic' in (request.endpoint or '')),
+    ('/about', 'fa-circle-info', 'About', request.endpoint == 'about.index')
   ] %}
   {% for href, icon, label, is_active in tabs %}
   <a href="{{ href }}"
@@ -292,7 +292,80 @@
     {% endif %}
   </a>
   {% endfor %}
+  <!-- More button -->
+  <button onclick="document.getElementById('mobile-more-sheet').classList.remove('translate-y-full')"
+          class="flex-1 flex flex-col items-center justify-center gap-0.5 py-2 text-[10px] font-medium transition-colors"
+          style="color:#71717a;">
+    <i class="fas fa-ellipsis text-base"></i>
+    <span>More</span>
+  </button>
 </nav>
+
+<!-- More sheet backdrop -->
+<div id="mobile-more-backdrop"
+     onclick="document.getElementById('mobile-more-sheet').classList.add('translate-y-full')"
+     class="md:hidden fixed inset-0 z-[55] bg-black/60 hidden"
+     style="display:none;"></div>
+
+<!-- More slide-up sheet -->
+<div id="mobile-more-sheet"
+     class="md:hidden fixed bottom-0 left-0 right-0 z-[60] translate-y-full transition-transform duration-300"
+     style="padding-bottom:env(safe-area-inset-bottom);">
+  <div style="background:var(--card);border-top:1px solid var(--border-2);border-radius:1.25rem 1.25rem 0 0;max-height:80vh;overflow-y:auto;">
+    <!-- Handle -->
+    <div class="flex justify-center pt-3 pb-1">
+      <div class="w-10 h-1 rounded-full" style="background:var(--border-2);"></div>
+    </div>
+    <div class="px-5 pb-2 pt-1 flex items-center justify-between">
+      <span class="text-sm font-semibold text-white">All Pages</span>
+      <button onclick="document.getElementById('mobile-more-sheet').classList.add('translate-y-full')"
+              class="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-white"
+              style="background:var(--surface);">&times;</button>
+    </div>
+    <div class="px-4 pb-6 grid grid-cols-2 gap-2">
+      {% set more_links = [
+        ('/','fa-gauge-high','Dashboard','Home hub'),
+        ('/market','fa-shop','Market','Browse & buy items'),
+        ('/messages','fa-comments','Connect','Community chat'),
+        ('/civic','fa-triangle-exclamation','Community','Report issues'),
+        ('/about','fa-circle-info','About','About Emzini'),
+        ('/wallet','fa-wallet','Wallet','Your balance'),
+        ('/jobs','fa-briefcase','Jobs','Task board'),
+        ('/jobs/mine','fa-list-check','My Jobs','Jobs you posted'),
+        ('/bounties','fa-trophy','Bounties','Earn rewards'),
+        ('/runner/dashboard','fa-person-running','Runner','Runner hub'),
+        ('/profile','fa-user','Profile','Your profile'),
+        ('/network','fa-share-nodes','Network','Resident network')
+      ] %}
+      {% for href, icon, label, desc in more_links %}
+      <a href="{{ href }}"
+         onclick="document.getElementById('mobile-more-sheet').classList.add('translate-y-full')"
+         class="flex items-center gap-3 px-3 py-3 rounded-xl transition-colors hover:bg-white/5"
+         style="background:var(--surface);border:1px solid var(--border);">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0" style="background:rgba(13,148,136,0.15);">
+          <i class="fas {{ icon }} text-sm" style="color:var(--teal);"></i>
+        </div>
+        <div class="min-w-0">
+          <div class="text-xs font-semibold text-white truncate">{{ label }}</div>
+          <div class="text-[10px] text-slate-500 truncate">{{ desc }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var sheet = document.getElementById('mobile-more-sheet');
+  // Show backdrop when sheet is open
+  var observer = new MutationObserver(function(){
+    var isOpen = !sheet.classList.contains('translate-y-full');
+    document.getElementById('mobile-more-backdrop').style.display = isOpen ? 'block' : 'none';
+  });
+  observer.observe(sheet, {attributes:true, attributeFilter:['class']});
+})();
+</script>
 {% endif %}
 
 <!-- Flash messages -->
