@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}Search — Emzini{% endblock %}
+{% block content %}
+
+<!-- Header -->
+<div class="mb-6">
+  <p class="font-mono text-[10px] text-zinc-600 uppercase tracking-widest">EMZINI // SEARCH</p>
+  <h1 class="text-2xl font-bold text-white mt-1">
+    <i class="fas fa-magnifying-glass" style="color:var(--teal-lt);"></i>
+    {% if q %}Results for "{{ q }}"{% else %}Search{% endif %}
+  </h1>
+  {% if q and total is defined %}
+  <p class="text-zinc-500 text-sm mt-0.5">{{ total }} result{{ 's' if total != 1 else '' }} across {{ groups|length }} categor{{ 'ies' if groups|length != 1 else 'y' }}</p>
+  {% endif %}
+</div>
+
+<!-- Search bar -->
+<form method="get" action="/search" class="mb-8">
+  <div class="flex gap-2">
+    <div class="flex-1 relative">
+      <i class="fas fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none"></i>
+      <input type="text" name="q" value="{{ q }}" autofocus
+             placeholder="Search market, jobs, bounties, community…"
+             class="w-full pl-10 py-3 text-sm rounded-xl"
+             style="background:var(--card);border:1px solid var(--border-2);color:#fff;"/>
+    </div>
+    <button type="submit" class="btn-primary px-5 text-sm rounded-xl">Search</button>
+  </div>
+</form>
+
+<!-- Results -->
+{% if q %}
+  {% if groups %}
+  <div class="space-y-8">
+    {% for label, icon, color_cls, items, link_fn in groups %}
+    <div>
+      <!-- Category header -->
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fas {{ icon }} text-sm {{ color_cls }}"></i>
+        <h2 class="font-mono text-xs text-zinc-400 uppercase tracking-wider">{{ label }}</h2>
+        <span class="font-mono text-[10px] px-2 py-0.5 rounded-full"
+              style="background:rgba(255,255,255,0.04);border:1px solid var(--border);color:#52525b;">
+          {{ items|length }}
+        </span>
+      </div>
+
+      <!-- Cards -->
+      <div class="space-y-2">
+        {% for r in items %}
+        {% set href = link_fn(r) %}
+        <a href="{{ href }}"
+           class="card p-4 flex items-start gap-3 hover:border-zinc-600 transition group block">
+
+          <!-- Icon -->
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
+               style="background:rgba(13,148,136,0.08);border:1px solid rgba(13,148,136,0.15);">
+            <i class="fas {{ icon }} text-xs {{ color_cls }}"></i>
+          </div>
+
+          <!-- Content -->
+          <div class="flex-1 min-w-0">
+            {# Title / content snippet #}
+            {% if r.__class__.__name__ == 'CommunityPost' %}
+              <p class="text-white text-sm font-medium leading-snug group-hover:text-teal-300 transition line-clamp-2">
+                {{ r.content }}
+              </p>
+              <p class="font-mono text-[10px] text-zinc-600 mt-1">
+                <span style="color:var(--teal-lt);">@{{ r.user.username }}</span> · {{ r.channel }} channel · {{ r.created_at.strftime('%d %b %Y') }}
+              </p>
+            {% elif r.__class__.__name__ == 'User' %}
+              <p class="text-white text-sm font-semibold group-hover:text-teal-300 transition">@{{ r.username }}</p>
+              <p class="font-mono text-[10px] text-zinc-600 mt-0.5">{{ r.reputation }} rep</p>
+            {% elif r.__class__.__name__ == 'MarketItem' %}
+              <p class="text-white text-sm font-semibold group-hover:text-teal-300 transition">{{ r.title }}</p>
+              <p class="text-zinc-400 text-xs mt-0.5 line-clamp-1">{{ r.description }}</p>
+              <p class="font-mono text-[10px] text-zinc-600 mt-1">
+                <span class="text-green-400 font-bold">R{{ '%.2f'|format(r.price) }}</span>
+                · {{ r.category }} · @{{ r.seller.username }}
+              </p>
+            {% elif r.__class__.__name__ in ['RunnerJob', 'Bounty'] %}
+              <p class="text-white text-sm font-semibold group-hover:text-teal-300 transition">{{ r.title }}</p>
+              <p class="text-zinc-400 text-xs mt-0.5 line-clamp-1">{{ r.description }}</p>
+              <p class="font-mono text-[10px] text-zinc-600 mt-1">
+                <span class="text-green-400 font-bold">R{{ '%.2f'|format(r.reward) }}</span>
+                · @{{ r.poster.username }} · {{ r.created_at.strftime('%d %b %Y') }}
+              </p>
+            {% elif r.__class__.__name__ == 'CivicReport' %}
+              <p class="text-white text-sm font-semibold group-hover:text-teal-300 transition">{{ r.title }}</p>
+              <p class="text-zinc-400 text-xs mt-0.5 line-clamp-1">{{ r.description }}</p>
+              <p class="font-mono text-[10px] text-zinc-600 mt-1">
+                {{ r.category }} · {{ r.severity }} · {{ r.status }} · {{ r.upvotes }} upvotes
+              </p>
+            {% endif %}
+          </div>
+
+          <!-- Arrow -->
+          <i class="fas fa-chevron-right text-[10px] text-zinc-700 group-hover:text-teal-500 transition mt-1 flex-shrink-0"></i>
+        </a>
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- No results -->
+  <div class="card p-16 text-center rounded-2xl">
+    <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+         style="background:rgba(13,148,136,0.06);border:1px solid rgba(13,148,136,0.12);">
+      <i class="fas fa-magnifying-glass text-2xl text-zinc-600"></i>
+    </div>
+    <p class="text-zinc-500 font-mono text-sm mb-1">No results for "{{ q }}"</p>
+    <p class="text-zinc-700 font-mono text-xs">Try a different keyword — search covers market, jobs, bounties, civic reports, and community posts</p>
+  </div>
+  {% endif %}
+
+{% else %}
+<!-- Prompt -->
+<div class="card p-16 text-center rounded-2xl">
+  <div class="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4"
+       style="background:rgba(13,148,136,0.06);border:1px solid rgba(13,148,136,0.12);">
+    <i class="fas fa-magnifying-glass text-2xl" style="color:var(--teal-lt);"></i>
+  </div>
+  <p class="text-zinc-400 font-mono text-sm mb-1">Search Emzini</p>
+  <p class="text-zinc-600 font-mono text-xs">Search across market items, runner jobs, bounties, civic reports, community posts, and residents</p>
+</div>
+{% endif %}
+
+{% endblock %}

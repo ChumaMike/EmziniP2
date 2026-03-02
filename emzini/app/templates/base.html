@@ -237,6 +237,14 @@
         {% endif %}
       </nav>
 
+      <!-- Search toggle (desktop) -->
+      <button onclick="toggleSearchBar()" title="Search"
+              class="hidden md:flex w-8 h-8 items-center justify-center rounded-lg transition-colors"
+              style="background:var(--border);color:#94a3b8;"
+              onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#94a3b8'">
+        <i class="fas fa-magnifying-glass text-sm pointer-events-none"></i>
+      </button>
+
       <!-- Bell notifications -->
       <div class="relative hidden md:block" id="notif-wrapper">
         <button onclick="toggleNotifs()" id="notif-btn"
@@ -306,6 +314,22 @@
   </div>
 </header>
 
+<!-- Desktop search bar (slide down) -->
+{% if current_user.is_authenticated %}
+<div id="search-bar" class="hidden border-b z-40 relative" style="background:rgba(6,12,11,0.97);border-color:var(--border-2);">
+  <form method="get" action="/search" class="max-w-6xl mx-auto px-5 py-2.5 flex items-center gap-2">
+    <i class="fas fa-magnifying-glass text-zinc-500 text-sm flex-shrink-0"></i>
+    <input type="text" name="q" id="search-input" autofocus
+           placeholder="Search market, jobs, bounties, community…"
+           class="flex-1 bg-transparent border-none outline-none text-sm text-white placeholder-zinc-600"
+           style="box-shadow:none;padding:0.25rem 0;"/>
+    <button type="submit" class="font-mono text-[10px] text-teal-500 hover:text-teal-300 transition">Search</button>
+    <button type="button" onclick="toggleSearchBar()"
+            class="font-mono text-[10px] text-zinc-600 hover:text-zinc-300 transition ml-1">&times;</button>
+  </form>
+</div>
+{% endif %}
+
 <!-- Mobile bottom tab bar -->
 {% if current_user.is_authenticated %}
 <nav class="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch border-t"
@@ -374,6 +398,7 @@
     </div>
     <div class="px-4 pb-6 grid grid-cols-2 gap-2">
       {% set more_links = [
+        ('/search','fa-magnifying-glass','Search','Find anything'),
         ('/','fa-gauge-high','Dashboard','Home hub'),
         ('/market','fa-shop','Market','Browse & buy items'),
         ('/messages','fa-comments','Connect','Community chat'),
@@ -461,6 +486,25 @@
 <script>
   const socket = io();
   socket.on('connect', () => console.log('[Emzini] Live connection established'));
+</script>
+
+<!-- Search bar toggle -->
+<script>
+(function () {
+  var bar = document.getElementById('search-bar');
+  var inp = document.getElementById('search-input');
+  window.toggleSearchBar = function () {
+    if (!bar) return;
+    var opening = bar.classList.toggle('hidden');
+    if (!bar.classList.contains('hidden') && inp) inp.focus();
+  };
+  // Close on Escape
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && bar && !bar.classList.contains('hidden')) {
+      bar.classList.add('hidden');
+    }
+  });
+})();
 </script>
 
 <!-- Notifications -->

@@ -88,6 +88,7 @@ def create_app():
     from app.blueprints.messages.routes import messages_bp
     from app.blueprints.about.routes import about_bp
     from app.blueprints.notifications.routes import notifications_bp
+    from app.blueprints.search.routes import search_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(dashboard_bp)
@@ -106,6 +107,7 @@ def create_app():
     app.register_blueprint(messages_bp)
     app.register_blueprint(about_bp)
     app.register_blueprint(notifications_bp)
+    app.register_blueprint(search_bp)
 
     with app.app_context():
         db.create_all()
