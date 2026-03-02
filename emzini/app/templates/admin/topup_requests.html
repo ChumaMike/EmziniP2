@@ -1,0 +1,112 @@
+{% extends 'admin/layout.html' %}
+{% block admin_content %}
+
+<!-- Summary + filter bar -->
+<div class="flex flex-wrap items-center gap-3 mb-6">
+  <div class="flex items-center gap-2 px-3 py-2 rounded-lg" style="background:rgba(234,179,8,0.08);border:1px solid rgba(234,179,8,0.2);">
+    <i class="fas fa-clock text-amber-400 text-sm"></i>
+    <span class="font-mono text-sm text-amber-300 font-bold">{{ pending_count }}</span>
+    <span class="font-mono text-[11px] text-amber-500">pending</span>
+  </div>
+
+  <form method="get" class="flex gap-2 items-center ml-auto">
+    {% for s, label in [('pending','Pending'),('approved','Approved'),('rejected','Rejected')] %}
+    <a href="?status={{ s }}"
+       class="font-mono text-[11px] px-3 py-1.5 rounded-lg border transition
+              {{ 'text-white' if status_f == s else 'text-slate-500 hover:text-slate-300' }}"
+       style="{{ 'background:rgba(13,148,136,0.12);border-color:rgba(13,148,136,0.3);' if status_f == s else 'border-color:var(--border);' }}">
+      {{ label }}
+    </a>
+    {% endfor %}
+  </form>
+</div>
+
+<!-- Requests list -->
+<div class="space-y-3">
+  {% for r in reqs %}
+  {% set is_pending  = r.status == 'pending' %}
+  {% set is_approved = r.status == 'approved' %}
+  <div class="card p-0 overflow-hidden">
+    <div class="h-[3px] w-full
+      {% if is_pending %}bg-amber-600/40
+      {% elif is_approved %}bg-green-600/40
+      {% else %}bg-red-700/40{% endif %}"></div>
+
+    <div class="p-5 flex flex-wrap gap-4 items-start">
+
+      <!-- User avatar -->
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold font-mono text-sm flex-shrink-0"
+           style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
+        {{ r.user.username[:2].upper() }}
+      </div>
+
+      <!-- Info -->
+      <div class="flex-1 min-w-0">
+        <div class="flex flex-wrap items-center gap-2 mb-1">
+          <p class="text-white font-semibold text-sm">@{{ r.user.username }}</p>
+          <span class="font-mono text-[9px] px-1.5 py-0.5 rounded
+            {% if is_pending %}text-amber-400
+            {% elif is_approved %}text-green-400
+            {% else %}text-red-400{% endif %}"
+            style="{% if is_pending %}background:rgba(234,179,8,0.1);border:1px solid rgba(234,179,8,0.2);
+            {% elif is_approved %}background:rgba(34,197,94,0.08);border:1px solid rgba(34,197,94,0.2);
+            {% else %}background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);{% endif %}">
+            {{ r.status.upper() }}
+          </span>
+        </div>
+        <p class="font-mono text-[10px] text-slate-500 mb-2">
+          Submitted {{ r.created_at.strftime('%d %b %Y · %H:%M') }} · Request #{{ r.id }}
+        </p>
+        {% if r.reference %}
+        <div class="p-2.5 rounded-lg mb-2" style="background:rgba(255,255,255,0.025);border:1px solid var(--border);">
+          <p class="font-mono text-[10px] text-slate-400 uppercase tracking-wider mb-1">Payment Reference / Proof</p>
+          <p class="text-sm text-white">{{ r.reference }}</p>
+        </div>
+        {% endif %}
+        {% if r.admin_note %}
+        <p class="font-mono text-[10px] text-slate-500">
+          <i class="fas fa-comment-dots mr-1"></i>{{ r.admin_note }}
+        </p>
+        {% endif %}
+      </div>
+
+      <!-- Amount + actions -->
+      <div class="flex-shrink-0 flex flex-col items-end gap-2 min-w-[120px]">
+        <p class="font-mono text-2xl font-bold text-green-400">R{{ '%.2f'|format(r.amount) }}</p>
+        <p class="font-mono text-[10px] text-slate-600">Real ZAR deposit</p>
+
+        {% if is_pending %}
+        <!-- Approve form -->
+        <form method="POST" action="/admin/topup-requests/{{ r.id }}/approve"
+              class="w-full space-y-1.5">
+          <input type="text" name="admin_note" placeholder="Admin note (optional)"
+                 class="text-xs w-full" style="padding:0.35rem 0.6rem;"/>
+          <button type="submit"
+                  class="btn-primary text-xs px-3 py-1.5 w-full justify-center">
+            <i class="fas fa-check mr-1"></i>Approve
+          </button>
+        </form>
+        <!-- Reject form -->
+        <form method="POST" action="/admin/topup-requests/{{ r.id }}/reject"
+              class="w-full">
+          <input type="hidden" name="admin_note" value="Rejected — payment not confirmed"/>
+          <button type="submit"
+                  onclick="return confirm('Reject this deposit request?')"
+                  class="font-mono text-[10px] text-zinc-600 hover:text-red-400 transition py-1 w-full text-right">
+            <i class="fas fa-xmark mr-0.5"></i>Reject
+          </button>
+        </form>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-12 text-center rounded-2xl">
+    <i class="fas fa-money-bill-wave text-3xl text-zinc-700 block mb-3"></i>
+    <p class="text-zinc-500 font-mono text-sm">No {{ status_f }} deposit requests</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% endblock %}

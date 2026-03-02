@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.models import (ActionLog, User, RunnerJob, MarketItem, Bounty, CivicReport,
                          WalletTx, ChatMessage, Goal, Milestone,
-                         NetworkContact, NetworkAlert, Document, RunnerProfile)
+                         NetworkContact, NetworkAlert, Document, RunnerProfile, TopupRequest)
 from app.extensions import db
 from app.services.logger_service import log_action
 
@@ -360,6 +360,69 @@ def wallet_txs():
         total_liquidity=total_liquidity, total_credits=total_credits,
         total_debits=total_debits, total_escrow=total_escrow,
     )
+
+
+# ── Deposit (Topup) Requests ──────────────────────────────────────────────────
+
+@admin_bp.route('/admin/topup-requests')
+@login_required
+@admin_required
+def topup_requests():
+    status_f = request.args.get('status', 'pending')
+    query = TopupRequest.query
+    if status_f in ('pending', 'approved', 'rejected'):
+        query = query.filter_by(status=status_f)
+    reqs          = query.order_by(TopupRequest.created_at.desc()).all()
+    pending_count = TopupRequest.query.filter_by(status='pending').count()
+    return render_template('admin/topup_requests.html',
+                           reqs=reqs, status_f=status_f, pending_count=pending_count)
+
+
+@admin_bp.route('/admin/topup-requests/<int:rid>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_topup(rid):
+    req = TopupRequest.query.get_or_404(rid)
+    if req.status != 'pending':
+        flash('Already processed.', 'danger')
+        return redirect(url_for('admin.topup_requests'))
+    note = request.form.get('admin_note', '').strip()
+    req.status     = 'approved'
+    req.admin_note = note or f'Approved by {current_user.username}'
+    req.user.real_balance = (req.user.real_balance or 0.0) + req.amount
+    db.session.commit()
+    from app.services.notif_service import notify
+    notify(req.user_id, 'topup_approved',
+           f'Deposit of R{req.amount:.2f} approved!',
+           body='Funds added to your Real ZAR balance. Convert to App Credits to spend.',
+           link='/wallet')
+    log_action('topup_approved',
+               f'Approved R{req.amount:.2f} deposit for {req.user.username}', current_user.id)
+    flash(f'R{req.amount:.2f} credited to {req.user.username}.', 'success')
+    return redirect(url_for('admin.topup_requests'))
+
+
+@admin_bp.route('/admin/topup-requests/<int:rid>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_topup(rid):
+    req = TopupRequest.query.get_or_404(rid)
+    if req.status != 'pending':
+        flash('Already processed.', 'danger')
+        return redirect(url_for('admin.topup_requests'))
+    note = request.form.get('admin_note', '').strip()
+    req.status     = 'rejected'
+    req.admin_note = note or f'Rejected by {current_user.username}'
+    db.session.commit()
+    from app.services.notif_service import notify
+    notify(req.user_id, 'topup_rejected',
+           f'Deposit request of R{req.amount:.2f} not approved',
+           body=note or 'Contact admin for details.',
+           link='/wallet')
+    log_action('topup_rejected',
+               f'Rejected R{req.amount:.2f} deposit for {req.user.username}', current_user.id)
+    flash('Request rejected.', 'success')
+    return redirect(url_for('admin.topup_requests'))
 
 
 # ── AI Chat Log ───────────────────────────────────────────────────────────────

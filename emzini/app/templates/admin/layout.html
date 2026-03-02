@@ -27,10 +27,11 @@
       ('admin.marketplace', 'fa-store',               'Market'),
       ('admin.jobs',        'fa-person-running',      'Jobs'),
       ('admin.bounties',    'fa-trophy',              'Bounties'),
-      ('admin.wallet_txs',  'fa-wallet',              'Wallet'),
-      ('admin.chat_log',    'fa-robot',               'AI Chat'),
-      ('admin.runners',     'fa-id-card',             'Runners'),
-      ('admin.logs',        'fa-list-ul',             'Logs'),
+      ('admin.wallet_txs',     'fa-wallet',              'Wallet'),
+      ('admin.topup_requests', 'fa-money-bill-wave',     'Deposits'),
+      ('admin.chat_log',       'fa-robot',               'AI Chat'),
+      ('admin.runners',        'fa-id-card',             'Runners'),
+      ('admin.logs',           'fa-list-ul',             'Logs'),
     ] %}
     {% for ep, icon, label in _tabs %}
     {% set active = request.endpoint == ep %}

@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.models import WalletTx, User
+from app.models import WalletTx, User, TopupRequest
 from app.services.escrow_service import credit_wallet
 from app.services.logger_service import log_action
 from app.extensions import db
@@ -51,6 +51,13 @@ def index():
     else:
         tier_pct = 100
 
+    pending_request = TopupRequest.query.filter_by(
+        user_id=current_user.id, status='pending').first()
+    recent_requests = (TopupRequest.query
+                       .filter_by(user_id=current_user.id)
+                       .order_by(TopupRequest.created_at.desc())
+                       .limit(5).all())
+
     return render_template('wallet/index.html',
                            txs=txs,
                            total_in=total_in,
@@ -60,7 +67,9 @@ def index():
                            tier_icon=tier_icon,
                            tier_color=tier_color,
                            tier_pct=tier_pct,
-                           tier_max=tier_max)
+                           tier_max=tier_max,
+                           pending_request=pending_request,
+                           recent_requests=recent_requests)
 
 
 @wallet_bp.route('/wallet/topup', methods=['POST'])
@@ -75,6 +84,32 @@ def topup():
         credit_wallet(current_user.id, amount, 'Starter Credits top-up')
         log_action('wallet_topup', f'{current_user.username} topped up R{amount:.2f} App Credits', current_user.id)
         flash(f'R{amount:.2f} App Credits added. These are simulated — not real money.', 'success')
+    except ValueError:
+        flash('Invalid amount.', 'danger')
+    return redirect(url_for('wallet.index'))
+
+
+@wallet_bp.route('/wallet/request-topup', methods=['POST'])
+@login_required
+def request_topup():
+    """Submit a deposit request for admin to verify and approve."""
+    amount_str = request.form.get('amount', '0')
+    reference  = request.form.get('reference', '').strip()
+    try:
+        amount = float(amount_str)
+        if amount <= 0 or amount > 50000:
+            flash('Enter an amount between R1 and R50,000.', 'danger')
+            return redirect(url_for('wallet.index'))
+        existing = TopupRequest.query.filter_by(user_id=current_user.id, status='pending').first()
+        if existing:
+            flash('You already have a pending deposit request — wait for admin approval.', 'danger')
+            return redirect(url_for('wallet.index'))
+        req = TopupRequest(user_id=current_user.id, amount=amount, reference=reference or None)
+        db.session.add(req)
+        db.session.commit()
+        log_action('topup_request',
+                   f'{current_user.username} requested R{amount:.2f} deposit', current_user.id)
+        flash(f'Deposit request for R{amount:.2f} submitted. Admin will verify and credit your Real ZAR balance.', 'success')
     except ValueError:
         flash('Invalid amount.', 'danger')
     return redirect(url_for('wallet.index'))

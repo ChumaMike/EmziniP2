@@ -29,7 +29,7 @@
     <p class="font-mono text-[10px] text-zinc-600 mt-1 mb-3">Physical deposit on file with admin</p>
 
     {% if (current_user.real_balance or 0) > 0 %}
-    <form method="POST" action="/wallet/convert" class="flex gap-2 items-center">
+    <form method="POST" action="/wallet/convert" class="flex gap-2 items-center mb-2">
       <input type="number" name="amount" min="1" step="0.01"
              placeholder="Amount" max="{{ current_user.real_balance or 0 }}"
              class="flex-1 text-sm py-2"/>
@@ -37,11 +37,41 @@
         Convert →
       </button>
     </form>
-    <p class="font-mono text-[10px] text-zinc-700 mt-1.5">Converts 1:1 to App Credits</p>
+    <p class="font-mono text-[10px] text-zinc-700 mb-3">Converts 1:1 to App Credits</p>
+    {% endif %}
+
+    {% if pending_request %}
+    <!-- Pending request badge -->
+    <div class="flex items-center gap-2 p-2.5 rounded-lg"
+         style="background:rgba(234,179,8,0.07);border:1px solid rgba(234,179,8,0.2);">
+      <i class="fas fa-clock text-amber-400 text-xs flex-shrink-0"></i>
+      <div class="min-w-0">
+        <p class="font-mono text-[10px] text-amber-400 font-semibold">Deposit pending approval</p>
+        <p class="font-mono text-[10px] text-amber-600">R{{ '%.2f'|format(pending_request.amount) }} · Awaiting admin</p>
+      </div>
+    </div>
     {% else %}
-    <p class="font-mono text-[10px] text-zinc-700">
-      Deposit real cash with the admin to see funds here.
-    </p>
+    <!-- Request deposit form -->
+    <div>
+      <button type="button" onclick="toggleDepositForm()"
+              class="font-mono text-[10px] text-teal-500 hover:text-teal-300 transition flex items-center gap-1.5 mb-2">
+        <i class="fas fa-plus-circle text-[9px]"></i>Request a deposit
+      </button>
+      <div id="deposit-form" class="hidden">
+        <form method="POST" action="/wallet/request-topup" class="space-y-2">
+          <input type="number" name="amount" min="1" max="50000" step="0.01"
+                 placeholder="Amount (R)" required class="w-full text-sm"/>
+          <input type="text" name="reference" placeholder="EFT reference / payment proof (optional)"
+                 class="w-full text-sm"/>
+          <button type="submit" class="btn-primary text-xs w-full justify-center">
+            <i class="fas fa-paper-plane mr-1.5"></i>Submit Request
+          </button>
+          <p class="font-mono text-[10px] text-zinc-700">
+            Admin will verify your payment and credit your Real ZAR balance.
+          </p>
+        </form>
+      </div>
+    </div>
     {% endif %}
   </div>
 
@@ -176,6 +206,34 @@
       {% endif %}
     </div>
 
+    <!-- Deposit requests history -->
+    {% if recent_requests %}
+    <div class="card p-5">
+      <p class="font-mono text-[10px] text-zinc-500 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <i class="fas fa-money-bill-wave text-teal-600 text-xs"></i>Deposit Requests
+      </p>
+      <div class="space-y-2">
+        {% for r in recent_requests %}
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="font-mono text-xs text-white font-semibold">R{{ '%.2f'|format(r.amount) }}</p>
+            <p class="font-mono text-[10px] text-zinc-600">{{ r.created_at.strftime('%d %b · %H:%M') }}</p>
+          </div>
+          <span class="font-mono text-[9px] px-1.5 py-0.5 rounded
+            {% if r.status == 'pending' %}text-amber-400
+            {% elif r.status == 'approved' %}text-green-400
+            {% else %}text-red-400{% endif %}"
+            style="{% if r.status == 'pending' %}background:rgba(234,179,8,0.1);
+            {% elif r.status == 'approved' %}background:rgba(34,197,94,0.08);
+            {% else %}background:rgba(239,68,68,0.08);{% endif %}">
+            {{ r.status.upper() }}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <!-- Escrow card -->
     {% if in_escrow > 0 %}
     <div class="card p-5" style="border-color:rgba(234,179,8,0.3);">
@@ -282,6 +340,10 @@
 function setAmount(v) {
   var inp = document.querySelector('input[name="amount"]');
   if (inp) inp.value = v;
+}
+function toggleDepositForm() {
+  var el = document.getElementById('deposit-form');
+  if (el) el.classList.toggle('hidden');
 }
 </script>
 {% endblock %}

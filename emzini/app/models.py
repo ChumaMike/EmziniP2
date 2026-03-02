@@ -395,6 +395,20 @@ class Notification(db.Model):
     user = db.relationship('User', backref='notifications')
 
 
+class TopupRequest(db.Model):
+    """User-submitted deposit request awaiting admin approval."""
+    __tablename__ = 'topup_requests'
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    amount     = db.Column(db.Float, nullable=False)
+    reference  = db.Column(db.String(300), nullable=True)   # EFT ref / proof note
+    status     = db.Column(db.String(20), default='pending')  # pending/approved/rejected
+    admin_note = db.Column(db.String(300), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    user = db.relationship('User', backref='topup_requests')
+
+
 class Suggestion(db.Model):
     """User-submitted suggestions from the About page."""
     __tablename__ = 'suggestions'
