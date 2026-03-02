@@ -18,8 +18,8 @@
     <a href="/docs/{{ doc.id }}/edit" class="btn-secondary text-xs">
       <i class="fas fa-pen"></i> Edit
     </a>
-    <button onclick="downloadPdf()" class="btn-primary text-xs">
-      <i class="fas fa-download"></i> Download PDF
+    <button onclick="chargeAndDownload()" id="dl-btn" class="btn-primary text-xs">
+      <i class="fas fa-download"></i> Download PDF <span class="opacity-60 font-mono text-[10px]">R2</span>
     </button>
   </div>
 </div>
@@ -156,7 +156,7 @@
 <div class="flex gap-3">
   <a href="/docs" class="btn-secondary text-xs"><i class="fas fa-arrow-left"></i> All Documents</a>
   <a href="/docs/{{ doc.id }}/edit" class="btn-secondary text-xs"><i class="fas fa-pen"></i> Edit</a>
-  <button onclick="downloadPdf()" class="btn-primary text-xs"><i class="fas fa-download"></i> Download PDF</button>
+  <button onclick="chargeAndDownload()" class="btn-primary text-xs"><i class="fas fa-download"></i> Download PDF <span class="opacity-60 font-mono text-[10px]">R2</span></button>
 </div>
 
 {% endblock %}
@@ -174,6 +174,42 @@ function downloadPdf() {
     jsPDF:      { unit: 'mm', format: 'a4', orientation: 'portrait' },
   };
   html2pdf().set(opt).from(el).save();
+}
+
+function chargeAndDownload() {
+  var btn = document.getElementById('dl-btn') || event.currentTarget;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing…';
+
+  fetch('/docs/{{ doc.id }}/download', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest'},
+  })
+  .then(function(r) { return r.json().then(function(d) { return {ok: r.ok, data: d}; }); })
+  .then(function(res) {
+    if (res.ok) {
+      // Update wallet display if visible
+      var walletEl = document.querySelector('a[href="/wallet"] .font-mono');
+      if (walletEl && res.data.new_balance != null) {
+        walletEl.textContent = 'R' + res.data.new_balance.toFixed(2);
+      }
+      btn.innerHTML = '<i class="fas fa-download"></i> Downloading…';
+      downloadPdf();
+      setTimeout(function() {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-download"></i> Download PDF <span class="opacity-60 font-mono text-[10px]">R2</span>';
+      }, 3000);
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-download"></i> Download PDF <span class="opacity-60 font-mono text-[10px]">R2</span>';
+      alert(res.data.error || 'Download failed. Please try again.');
+    }
+  })
+  .catch(function() {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-download"></i> Download PDF <span class="opacity-60 font-mono text-[10px]">R2</span>';
+    alert('Network error. Please try again.');
+  });
 }
 </script>
 {% endblock %}

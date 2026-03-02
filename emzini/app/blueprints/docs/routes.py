@@ -137,6 +137,23 @@ def preview(doc_id):
     return render_template('docs/preview.html', doc=doc, schema=schema, content=content)
 
 
+DOWNLOAD_FEE = 2.0  # R2 per PDF download
+
+
+# ── Download (charges fee) ───────────────────────────────────────────────────────
+
+@docs_bp.route('/docs/<int:doc_id>/download', methods=['POST'])
+@login_required
+def download(doc_id):
+    Document.query.filter_by(id=doc_id, user_id=current_user.id).first_or_404()
+    if current_user.wallet_balance < DOWNLOAD_FEE:
+        return jsonify({'error': f'Insufficient wallet balance. Download costs R{DOWNLOAD_FEE:.0f}.'}), 402
+    current_user.wallet_balance -= DOWNLOAD_FEE
+    db.session.commit()
+    log_action('doc_download_fee', f'R{DOWNLOAD_FEE:.0f} charged to @{current_user.username} for document #{doc_id}', current_user.id)
+    return jsonify({'ok': True, 'new_balance': current_user.wallet_balance})
+
+
 # ── Delete ──────────────────────────────────────────────────────────────────────
 
 @docs_bp.route('/docs/<int:doc_id>/delete', methods=['POST'])

@@ -7,7 +7,7 @@ from app.services.logger_service import log_action
 
 jobs_bp = Blueprint('jobs', __name__)
 
-PLATFORM_FEE_PCT = 0.01
+PLATFORM_FEE_PCT = 0.10
 
 
 @jobs_bp.route('/jobs')
@@ -154,10 +154,11 @@ def complete_job(job_id):
     job.status = 'completed'
     db.session.commit()
 
+    fee = job.reward * PLATFORM_FEE_PCT
+    net = job.reward - fee
+    release_escrow(job.runner_id, net, f'Job completed: {job.title} (net of {int(PLATFORM_FEE_PCT*100)}% platform fee)')
+
     if job.job_type == 'delivery':
-        fee = job.reward * PLATFORM_FEE_PCT
-        net = job.reward - fee
-        release_escrow(job.runner_id, net, f'Delivery completed: {job.title} (net of {int(PLATFORM_FEE_PCT*100)}% platform fee)')
         # Update runner profile stats
         profile = RunnerProfile.query.filter_by(user_id=job.runner_id).first()
         if profile:
@@ -171,14 +172,11 @@ def complete_job(job_id):
             if item and runner:
                 runner.cash_float = (runner.cash_float or 0.0) + item.price
                 log_action('cash_float_added', f'R{item.price:.2f} cash float added for runner @{runner.username} (job #{job.id})', job.runner_id)
-        db.session.commit()
-        log_action('platform_fee', f'R{fee:.2f} retained on delivery job #{job.id}', None)
-        log_action('job_completed', f'Delivery #{job.id} done — R{net:.2f} released to runner', job.runner_id)
-        flash(f'Delivery done! R{net:.2f} released to runner (R{fee:.2f} platform fee retained).', 'success')
-    else:
-        release_escrow(job.runner_id, job.reward, f'Job completed: {job.title}')
-        log_action('job_completed', f'Job #{job.id} completed — R{job.reward:.2f} released to runner', job.runner_id)
-        flash(f'Job done! R{job.reward:.2f} released to runner.', 'success')
+
+    db.session.commit()
+    log_action('platform_fee', f'R{fee:.2f} platform fee retained on job #{job.id}', None)
+    log_action('job_completed', f'Job #{job.id} done — R{net:.2f} released to runner', job.runner_id)
+    flash(f'Job done! R{net:.2f} released to runner (R{fee:.2f} platform fee retained).', 'success')
 
     return redirect(url_for('jobs.index'))
 
