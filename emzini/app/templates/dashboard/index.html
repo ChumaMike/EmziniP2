@@ -349,16 +349,17 @@
 </div>
 
 <!-- ── FAB: AI Chat ────────────────────────────────────────────────────────────── -->
-<button id="chat-toggle" onclick="toggleChat()"
-  class="fixed bottom-6 right-6 w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center z-50 transition-all duration-200 hover:scale-110"
-  style="background:var(--teal);" title="Chat with Emzini AI">
-  <i class="fas fa-robot text-lg"></i>
+<button id="chat-toggle"
+  class="fixed w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center z-50"
+  style="background:var(--teal);bottom:24px;right:24px;cursor:grab;touch-action:none;user-select:none;"
+  title="Chat with Emzini AI — drag to move">
+  <i class="fas fa-robot text-lg pointer-events-none"></i>
 </button>
 
 <!-- ── Chat Drawer ────────────────────────────────────────────────────────────── -->
 <div id="chat-panel"
-     class="fixed bottom-0 right-0 sm:right-6 w-full sm:w-96 z-40 transition-transform duration-300 translate-y-full"
-     style="height:520px;">
+     class="fixed z-40 transition-transform duration-300 translate-y-full"
+     style="height:520px;bottom:88px;right:24px;width:min(384px,100vw);">
   <div class="h-full flex flex-col overflow-hidden shadow-2xl"
        style="background:#0c1714;border:1px solid var(--teal);border-bottom:none;border-radius:0.875rem 0.875rem 0 0;">
     <div class="flex items-center justify-between px-4 py-3 flex-shrink-0" style="background:var(--teal);">
@@ -438,6 +439,7 @@
     : fetchWeather(LAT, LON, 'Johannesburg');
 }());
 
+// ── Chat toggle ────────────────────────────────────────────────────────────────
 var chatOpen = false;
 function toggleChat() {
   var panel = document.getElementById('chat-panel');
@@ -462,5 +464,92 @@ window.addEventListener('load', () => {
   var il = document.getElementById('inline-chat-messages');
   if (il) il.scrollTop = il.scrollHeight;
 });
+
+// ── Draggable FAB ──────────────────────────────────────────────────────────────
+(function () {
+  var fab   = document.getElementById('chat-toggle');
+  var panel = document.getElementById('chat-panel');
+  if (!fab || !panel) return;
+
+  var FAB_W = 56, FAB_H = 56, GAP = 8;
+  var DRAG_THRESHOLD = 5;
+
+  // Restore saved position
+  var saved = null;
+  try { saved = JSON.parse(localStorage.getItem('emzini_ai_fab')); } catch(e) {}
+  var posR = (saved && saved.r != null) ? saved.r : 24;
+  var posB = (saved && saved.b != null) ? saved.b : 24;
+
+  function clamp(val, lo, hi) { return Math.max(lo, Math.min(val, hi)); }
+
+  function applyPos(r, b) {
+    posR = clamp(r, 4, window.innerWidth  - FAB_W - 4);
+    posB = clamp(b, 4, window.innerHeight - FAB_H - 4);
+    fab.style.right  = posR + 'px';
+    fab.style.bottom = posB + 'px';
+    // Anchor panel above FAB
+    panel.style.bottom = (posB + FAB_H + GAP) + 'px';
+    var panelW = Math.min(384, window.innerWidth);
+    panel.style.right  = clamp(posR, 0, window.innerWidth - panelW) + 'px';
+  }
+  applyPos(posR, posB);
+
+  // Drag state
+  var dragging = false, dragMoved = false;
+  var startCX, startCY, startR, startB;
+
+  function dragStart(cx, cy) {
+    dragging = true; dragMoved = false;
+    startCX = cx; startCY = cy;
+    startR = posR; startB = posB;
+    fab.style.transition = 'none';
+    fab.style.cursor = 'grabbing';
+  }
+  function dragMove(cx, cy) {
+    if (!dragging) return;
+    var dx = cx - startCX, dy = cy - startCY;
+    if (!dragMoved && (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD))
+      dragMoved = true;
+    if (dragMoved) applyPos(startR - dx, startB - dy);
+  }
+  function dragEnd() {
+    if (!dragging) return;
+    dragging = false;
+    fab.style.transition = '';
+    fab.style.cursor = 'grab';
+    if (dragMoved)
+      try { localStorage.setItem('emzini_ai_fab', JSON.stringify({r: posR, b: posB})); } catch(e) {}
+  }
+
+  // Mouse
+  fab.addEventListener('mousedown', function(e) {
+    if (e.button !== 0) return;
+    dragStart(e.clientX, e.clientY);
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', function(e) { dragMove(e.clientX, e.clientY); });
+  document.addEventListener('mouseup',   function()  { dragEnd(); });
+
+  // Touch
+  fab.addEventListener('touchstart', function(e) {
+    var t = e.touches[0];
+    dragStart(t.clientX, t.clientY);
+  }, {passive: true});
+  document.addEventListener('touchmove', function(e) {
+    if (!dragging) return;
+    dragMove(e.touches[0].clientX, e.touches[0].clientY);
+    if (dragMoved) e.preventDefault();
+  }, {passive: false});
+  document.addEventListener('touchend', function() { dragEnd(); });
+
+  // Click — only fires toggleChat when not a drag
+  fab.addEventListener('click', function() {
+    if (dragMoved) { dragMoved = false; return; }
+    toggleChat();
+  });
+
+  // Re-clamp on resize
+  window.addEventListener('resize', function() { applyPos(posR, posB); });
+}());
 </script>
 {% endblock %}
