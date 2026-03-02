@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.extensions import db, socketio
-from app.models import RunnerJob, JobNegotiation, RunnerProfile
+from app.models import RunnerJob, JobNegotiation, RunnerProfile, JobRating, User
 from app.services.escrow_service import lock_escrow, release_escrow, credit_wallet, InsufficientFundsError
 from app.services.logger_service import log_action
 from app.services.notif_service import notify
@@ -34,8 +34,11 @@ def index():
         RunnerJob.runner_id.isnot(None),
     ).all()
 
+    rated_job_ids = {r.job_id for r in JobRating.query.filter_by(rater_id=current_user.id).all()}
+
     return render_template('jobs/index.html', jobs=jobs, status_filter=status_filter,
-                           needs_confirmation=needs_confirmation, mine_only=mine_only)
+                           needs_confirmation=needs_confirmation, mine_only=mine_only,
+                           rated_job_ids=rated_job_ids)
 
 
 @jobs_bp.route('/jobs/mine')
@@ -51,7 +54,10 @@ def mine():
         RunnerJob.status.in_(['completed', 'cancelled']),
     ).order_by(RunnerJob.created_at.desc()).all()
 
-    return render_template('jobs/mine.html', active=active, history=history)
+    rated_job_ids = {r.job_id for r in JobRating.query.filter_by(rater_id=current_user.id).all()}
+
+    return render_template('jobs/mine.html', active=active, history=history,
+                           rated_job_ids=rated_job_ids)
 
 
 @jobs_bp.route('/jobs/new', methods=['GET', 'POST'])
@@ -329,6 +335,59 @@ def reject_offer(job_id, nid):
            body=f'{job.title}', link='/jobs')
     flash('Offer rejected.', 'info')
     return redirect(url_for('jobs.index'))
+
+
+@jobs_bp.route('/jobs/<int:job_id>/rate', methods=['POST'])
+@login_required
+def rate_job(job_id):
+    job = RunnerJob.query.get_or_404(job_id)
+    if job.status != 'completed':
+        flash('Can only rate completed jobs.', 'danger')
+        return redirect(url_for('jobs.mine'))
+    if current_user.id not in (job.poster_id, job.runner_id):
+        abort(403)
+
+    existing = JobRating.query.filter_by(job_id=job_id, rater_id=current_user.id).first()
+    if existing:
+        flash('You have already rated this job.', 'info')
+        return redirect(url_for('jobs.mine'))
+
+    try:
+        score = max(1, min(5, int(request.form.get('score', 0))))
+    except (ValueError, TypeError):
+        flash('Please select a star rating.', 'danger')
+        return redirect(url_for('jobs.mine'))
+    if score == 0:
+        flash('Please select a star rating.', 'danger')
+        return redirect(url_for('jobs.mine'))
+
+    comment = request.form.get('comment', '').strip()[:300] or None
+    ratee_id = job.runner_id if current_user.id == job.poster_id else job.poster_id
+
+    rating = JobRating(job_id=job_id, rater_id=current_user.id,
+                       ratee_id=ratee_id, score=score, comment=comment)
+    db.session.add(rating)
+
+    # Adjust reputation
+    ratee = User.query.get(ratee_id)
+    if ratee:
+        delta = score - 3  # 5→+2, 4→+1, 3→0, 2→-1, 1→-2
+        if current_user.id == job.poster_id:
+            ratee.rep_runner = max(0, (ratee.rep_runner or 0) + delta)
+        else:
+            ratee.rep_personal = max(0, (ratee.rep_personal or 0) + delta)
+        ratee.reputation = max(0, (ratee.reputation or 0) + max(0, delta))
+
+    db.session.commit()
+    log_action('job_rated', f'@{current_user.username} gave {score}★ on job #{job_id}', current_user.id)
+
+    stars = '★' * score + '☆' * (5 - score)
+    notify(ratee_id, 'new_rating',
+           f'You received a {score}★ rating',
+           body=f'{stars}  {comment[:60] if comment else job.title}',
+           link='/jobs')
+    flash(f'Thanks for your {score}★ rating!', 'success')
+    return redirect(url_for('jobs.mine'))
 
 
 @jobs_bp.route('/jobs/<int:job_id>/edit', methods=['GET', 'POST'])

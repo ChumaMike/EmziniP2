@@ -365,6 +365,22 @@ class PasswordResetToken(db.Model):
     user = db.relationship('User', backref='reset_tokens')
 
 
+class JobRating(db.Model):
+    __tablename__ = 'job_ratings'
+    id         = db.Column(db.Integer, primary_key=True)
+    job_id     = db.Column(db.Integer, db.ForeignKey('runner_jobs.id'), nullable=False)
+    rater_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    ratee_id   = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    score      = db.Column(db.Integer, nullable=False)   # 1–5
+    comment    = db.Column(db.String(300), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    rater = db.relationship('User', backref='ratings_given',    foreign_keys=[rater_id])
+    ratee = db.relationship('User', backref='ratings_received', foreign_keys=[ratee_id])
+    job   = db.relationship('RunnerJob', backref='ratings')
+    __table_args__ = (db.UniqueConstraint('job_id', 'rater_id'),)
+
+
 class Notification(db.Model):
     __tablename__ = 'notifications'
     id         = db.Column(db.Integer, primary_key=True)

@@ -257,6 +257,53 @@
       </div>
       {% endif %}
 
+      <!-- Rate (completed jobs, poster or runner, not yet rated) -->
+      {% if job.status == 'completed' and job.id not in rated_job_ids
+            and (job.poster_id == current_user.id or job.runner_id == current_user.id) %}
+      {% set rate_other = job.runner if job.poster_id == current_user.id else job.poster %}
+      {% if rate_other %}
+      <div class="mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <button type="button" onclick="toggleRateForm('rate-{{ job.id }}')"
+                class="font-mono text-[10px] flex items-center gap-1.5 transition"
+                style="color:var(--teal-lt);">
+          <i class="fas fa-star text-[9px]"></i>
+          Rate @{{ rate_other.username }}
+        </button>
+        <div id="rate-{{ job.id }}" class="hidden mt-3">
+          <form method="POST" action="/jobs/{{ job.id }}/rate"
+                class="p-3 rounded-xl flex flex-col gap-3"
+                style="background:rgba(13,148,136,0.04);border:1px solid rgba(13,148,136,0.15);">
+            <p class="font-mono text-[10px] text-zinc-400 uppercase tracking-wider">
+              Rate @{{ rate_other.username }}
+            </p>
+            <div class="star-group flex items-center gap-1" data-selected="0">
+              {% for i in [1,2,3,4,5] %}
+              <button type="button" class="star-btn text-2xl leading-none transition"
+                      style="color:#52525b;" data-val="{{ i }}"
+                      onclick="selectStar(this)"
+                      onmouseover="hoverStar(this)"
+                      onmouseout="unhoverStar(this)">★</button>
+              {% endfor %}
+              <input type="hidden" name="score" class="star-val" value="0"/>
+            </div>
+            <input type="text" name="comment" placeholder="Optional comment (max 300 chars)" class="text-xs"/>
+            <div class="flex gap-2">
+              <button type="submit" class="btn-primary text-xs px-4 py-1.5">Submit Rating</button>
+              <button type="button" onclick="toggleRateForm('rate-{{ job.id }}')"
+                      class="btn-secondary text-xs px-4 py-1.5">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      {% endif %}
+      {% elif job.status == 'completed' and job.id in rated_job_ids %}
+      <div class="mt-3 pt-3 border-t" style="border-color:var(--border);">
+        <p class="font-mono text-[10px] text-zinc-600 flex items-center gap-1.5">
+          <i class="fas fa-circle-check text-[9px] text-green-600"></i>You rated this job
+        </p>
+      </div>
+      {% endif %}
+
       <!-- Counter-offer (open jobs, non-poster) -->
       {% if job.status == 'open' and job.poster_id != current_user.id %}
       <div class="mt-3 pt-3 border-t flex items-center gap-4" style="border-color:var(--border);">
@@ -357,6 +404,30 @@ const currentUserId = {{ current_user.id }};
 function toggleOffer(id) {
   var el = document.getElementById(id);
   if (el) el.classList.toggle('hidden');
+}
+function toggleRateForm(id) {
+  var el = document.getElementById(id);
+  if (el) el.classList.toggle('hidden');
+}
+function selectStar(btn) {
+  var group = btn.closest('.star-group');
+  group.dataset.selected = btn.dataset.val;
+  group.querySelector('.star-val').value = btn.dataset.val;
+  _paintStars(group, parseInt(btn.dataset.val), true);
+}
+function hoverStar(btn) {
+  _paintStars(btn.closest('.star-group'), parseInt(btn.dataset.val), false);
+}
+function unhoverStar(btn) {
+  var group = btn.closest('.star-group');
+  _paintStars(group, parseInt(group.dataset.selected) || 0, true);
+}
+function _paintStars(group, upTo, selected) {
+  group.querySelectorAll('.star-btn').forEach(function(b) {
+    b.style.color = parseInt(b.dataset.val) <= upTo
+      ? (selected ? '#f59e0b' : '#fcd34d')
+      : '#52525b';
+  });
 }
 
 socket.on('job_pending_confirmation', function(d) {
