@@ -10,8 +10,14 @@
   <p class="font-mono text-[11px] text-slate-500 uppercase tracking-widest mb-2">EMZINI // RESIDENCE SUPER APP</p>
   <h1 class="text-4xl font-bold text-white mb-3">Built for the people <span style="color:var(--teal-lt);">in the building.</span></h1>
   <p class="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed">
-    Emzini ("home" in Zulu) is a micro-economy platform that connects residents of the same complex — community, commerce, and convenience in one place.
+    Emzini ("home" in Zulu) is a residential micro-economy platform — community, commerce, and convenience wired together for people who share the same complex.
   </p>
+  <!-- PWA live badge -->
+  <div class="inline-flex items-center gap-2 mt-5 px-4 py-2 rounded-full font-mono text-xs"
+       style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.3);color:var(--teal-lt);">
+    <span class="w-1.5 h-1.5 rounded-full pulse-dot" style="background:var(--teal-lt);"></span>
+    Live PWA — install from your browser, works like a native app
+  </div>
 </div>
 
 <!-- Features grid -->
@@ -24,26 +30,30 @@
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
 
     {% set features = [
-      ('fa-gauge-high',           'var(--teal-lt)',  'Dashboard',
-       'Your personal hub. Live community stats, urgent civic issues, active goals with progress bars, upcoming network reminders, and the AI assistant — all at a glance.'),
-      ('fa-triangle-exclamation', '#fb923c',         'Community Board',
-       'Report infrastructure issues — burst pipes, power outages, potholes, safety hazards. Residents upvote reports to signal urgency. Admins track and resolve them.'),
-      ('fa-shop',                 '#34d399',         'Resident Market',
-       'Peer-to-peer marketplace for buying and selling within the complex. Post items with photos, set your price, receive payment via the in-app wallet. Stock tracking and delivery options included.'),
-      ('fa-person-running',       '#fbbf24',         'Runner Jobs',
-       'Need something fetched, delivered, or done? Post a runner job with a reward. Runners claim jobs, complete them, and earn. Reward is held in escrow so runners are always paid.'),
-      ('fa-trophy',               '#a5b4fc',         'Bounties',
-       'Lost something in the complex? Post a bounty reward. The resident who finds it claims the reward — held in escrow for guaranteed payout.'),
-      ('fa-wallet',               'var(--teal-lt)',  'Wallet',
-       'Every resident has an in-app wallet. New users start with R50 credit. Fund jobs, pay for market items, post bounties — all within the Emzini economy.'),
-      ('fa-bullseye',             '#f472b6',         'Goal Tracker',
-       'Set personal goals across six categories — Career, Health, Financial, Education, and more. Break goals into milestones and track progress visually. Completing goals earns reputation.'),
-      ('fa-address-book',         '#67e8f9',         'Network',
-       'A professional contact manager built into your daily life. Save contacts, add notes, and set follow-up reminders that surface on your dashboard so you never lose a connection.'),
-      ('fa-file-lines',           '#86efac',         'Documents',
-       'AI-powered document creator. Generate CVs, cover letters, formal emails, and business letters using Gemini AI — then save, edit, and download them for real use.'),
-      ('fa-comments',             '#c4b5fd',         'Connect / Messaging',
-       'Community channels (Community, Runners, Providers) for public discussion, plus private 1:1 chat for buyer-seller and runner-poster conversations tied to specific jobs or listings.'),
+      ('fa-gauge-high', 'var(--teal-lt)', 'Dashboard',
+       'Your personal hub. Live community stats, urgent civic issues, active goals, upcoming network reminders, weather, and the Emzini AI assistant — all at a glance.'),
+      ('fa-triangle-exclamation', '#fb923c', 'Community Board',
+       'Report infrastructure issues — burst pipes, power outages, potholes, safety hazards. Residents upvote reports to signal urgency. Admins track status and mark them resolved.'),
+      ('fa-shop', '#34d399', 'Resident Market',
+       'Peer-to-peer marketplace within the complex. Post items with photos, set a price and stock quantity, offer runner delivery. Buy directly from a listing detail page.'),
+      ('fa-person-running', '#fbbf24', 'Runner System',
+       'Register as a runner, get approved by admin, then go active to claim jobs. Runners negotiate rates, complete deliveries, and earn. Platform fee (10%) deducted at completion. Escrow protects both sides.'),
+      ('fa-trophy', '#a5b4fc', 'Bounties',
+       'Lost something in the complex? Post a bounty reward. The resident who finds it and claims the bounty gets paid out — reward held securely in escrow.'),
+      ('fa-wallet', 'var(--teal-lt)', 'Three-Layer Wallet',
+       'Real ZAR (admin-verified cash deposits), App Credits (spendable in-app currency, converts 1:1 from Real ZAR), and Cash Float (cash collected by runners on delivery). All visible on your wallet page.'),
+      ('fa-bullseye', '#f472b6', 'Goal Tracker',
+       'Set personal goals across Career, Health, Financial, Education, and more. Break them into milestones, track progress visually. Completing goals earns Personal reputation points.'),
+      ('fa-address-book', '#67e8f9', 'Network',
+       'A professional contact manager built into your daily life. Save contacts, add notes, set follow-up reminders that surface on your dashboard — never lose a connection.'),
+      ('fa-file-lines', '#86efac', 'Documents',
+       'AI-powered document creator. Generate CVs, cover letters, formal emails, and business letters using Gemini AI — then save, edit, and download for real use.'),
+      ('fa-comments', '#c4b5fd', 'Connect / Messaging',
+       'Community, Runners, and Providers public channels for open discussion, plus private 1:1 chat between buyers & sellers or job posters & runners — context-linked to specific listings or jobs.'),
+      ('fa-shield-halved', '#f87171', 'Admin Console',
+       '13-tab admin dashboard: manage users, market items, jobs, bounties, runner applications, civic reports, wallet balances, transactions, and full action logs — all in one place.'),
+      ('fa-mobile-screen', 'var(--teal-lt)', 'Installable PWA',
+       'Emzini runs as a Progressive Web App. Add it to your home screen from Safari (iOS) or Chrome (Android) — it launches fullscreen, works offline via service worker, no app store needed.'),
     ] %}
 
     {% for icon, color, title, desc in features %}
@@ -62,6 +72,54 @@
   </div>
 </div>
 
+<!-- Wallet types explainer -->
+<div class="card p-8 mb-14 relative overflow-hidden">
+  <div class="absolute top-0 left-10 right-10 h-px"
+       style="background:linear-gradient(90deg,transparent,rgba(20,184,166,0.5),transparent);"></div>
+  <div class="text-center mb-7">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">HOW MONEY WORKS</p>
+    <h2 class="text-2xl font-bold text-white">The Three Balances</h2>
+    <p class="text-slate-500 text-sm mt-1">Emzini has three distinct balance types — here's what each one means.</p>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+
+    <div class="rounded-xl p-5" style="background:rgba(34,197,94,0.06);border:1px solid rgba(34,197,94,0.25);">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fas fa-circle-check text-green-400"></i>
+        <span class="font-mono text-xs text-green-400 uppercase tracking-wider">Real ZAR</span>
+      </div>
+      <p class="text-white font-semibold text-sm mb-2">Verified cash deposit</p>
+      <p class="text-slate-400 text-sm leading-relaxed">
+        Physical cash you've handed to the admin is recorded here. It doesn't leave this balance until you convert it to App Credits (1:1). It's your on-record proof of real money in the system.
+      </p>
+    </div>
+
+    <div class="rounded-xl p-5" style="background:rgba(20,184,166,0.06);border:1px solid rgba(20,184,166,0.25);">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fas fa-coins" style="color:var(--teal-lt);"></i>
+        <span class="font-mono text-xs uppercase tracking-wider" style="color:var(--teal-lt);">App Credits</span>
+      </div>
+      <p class="text-white font-semibold text-sm mb-2">Spendable in-app currency</p>
+      <p class="text-slate-400 text-sm leading-relaxed">
+        Used to post runner jobs, buy market items, fund bounties, and cover platform fees. New users start with R50 free. You can also add simulated credits to explore the app. Converts 1:1 from Real ZAR.
+      </p>
+    </div>
+
+    <div class="rounded-xl p-5" style="background:rgba(234,179,8,0.06);border:1px solid rgba(234,179,8,0.25);">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="fas fa-hand-holding-dollar text-yellow-400"></i>
+        <span class="font-mono text-xs text-yellow-400 uppercase tracking-wider">Cash Float</span>
+      </div>
+      <p class="text-white font-semibold text-sm mb-2">Runner cash on hand</p>
+      <p class="text-slate-400 text-sm leading-relaxed">
+        When a runner collects cash from a delivery customer, that amount is logged here as a float — money the runner is holding on behalf of the platform. It's cleared when the runner hands the cash to admin.
+      </p>
+    </div>
+
+  </div>
+</div>
+
 <!-- How to use -->
 <div class="card p-8 mb-10">
   <div class="text-center mb-8">
@@ -72,18 +130,18 @@
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
     {% set steps = [
-      ('1', 'fa-user-plus',   'Create your account',
-       'Register with a username, email, and password. You\'ll receive R50 in your wallet as a welcome credit to get started immediately.'),
-      ('2', 'fa-gauge-high',  'Check the Dashboard',
-       'Your dashboard surfaces urgent community issues, your goals, upcoming reminders, and quick actions. The AI assistant is available bottom-right to help you do anything hands-free.'),
-      ('3', 'fa-shop',        'Buy or sell on the Market',
-       'Head to Market to browse listings or post your own item — add a photo, set a price and stock quantity, and choose whether to offer runner delivery (+R15).'),
-      ('4', 'fa-person-running', 'Post or claim a Runner Job',
-       'Need an errand done? Post a job with a reward — the money is held in escrow immediately. To earn, enable Runner Mode in your profile and claim open jobs from the jobs board.'),
-      ('5', 'fa-triangle-exclamation', 'Report community issues',
-       'Spot a problem in the complex? Report it on the Community Board. Set the severity, describe the issue, and other residents can upvote it to push it up the priority list.'),
-      ('6', 'fa-comments',    'Chat privately or in channels',
-       'Use Connect for public community channels, or message sellers/runners privately from within a listing or job page. Context is kept so you always know what the chat is about.'),
+      ('1', 'fa-user-plus', 'Create your account',
+       'Register with a username, email, and password. You get R50 App Credits as a welcome balance — enough to post a job or browse the market immediately.'),
+      ('2', 'fa-mobile-screen', 'Install to your home screen',
+       'On iOS: tap Share → "Add to Home Screen". On Android Chrome: tap the install prompt. The app runs fullscreen without a browser bar — feels native.'),
+      ('3', 'fa-gauge-high', 'Check the Dashboard',
+       'Your dashboard shows urgent community issues, wallet balances by type, open jobs, your goal progress, network reminders, and live weather. AI assistant is available to act on commands.'),
+      ('4', 'fa-shop', 'Buy or sell on the Market',
+       'Browse listings or post your own item — add a photo, set a price and stock quantity, and choose whether to offer runner delivery. Purchases flow through the wallet.'),
+      ('5', 'fa-person-running', 'Post or claim a Runner Job',
+       'Post a job with a reward — funds lock into escrow immediately. To earn as a runner, apply at /runner/register, wait for admin approval, go active, and claim open jobs from the board.'),
+      ('6', 'fa-triangle-exclamation', 'Report community issues',
+       'Spot a problem? Report it on the Community Board. Set the severity and describe the issue — other residents upvote to push it up the priority list. Admins update status when resolved.'),
     ] %}
 
     {% for num, icon, title, desc in steps %}
@@ -102,41 +160,87 @@
   </div>
 </div>
 
-<!-- Future innovations -->
+<!-- Reputation system explainer -->
+<div class="mb-14">
+  <div class="text-center mb-8">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">REPUTATION</p>
+    <h2 class="text-2xl font-bold text-white">How Reputation Works</h2>
+    <p class="text-slate-500 text-sm mt-1">Your standing in the Emzini community, broken into four tracks.</p>
+  </div>
+
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    {% set rep_types = [
+      ('fa-user-check', '#14b8a6', 'Personal', 'Earned from completing personal goals and engaging with the app.'),
+      ('fa-person-running', '#818cf8', 'Runner', 'Earned from successfully completing runner and delivery jobs.'),
+      ('fa-shop', '#34d399', 'Marketplace', 'Earned from selling items and services to other residents.'),
+      ('fa-triangle-exclamation', '#f97316', 'Civic', 'Earned from reporting and following up on community issues.'),
+    ] %}
+    {% for icon, color, label, desc in rep_types %}
+    <div class="card p-5">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+           style="background:{{ color }}18;border:1px solid {{ color }}33;">
+        <i class="fas {{ icon }} text-sm" style="color:{{ color }};"></i>
+      </div>
+      <p class="text-white font-semibold text-sm mb-1">{{ label }}</p>
+      <p class="text-slate-400 text-xs leading-relaxed">{{ desc }}</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="mt-4 card p-5">
+    <p class="font-mono text-[10px] text-slate-500 uppercase tracking-wider mb-3">Rank Tiers</p>
+    <div class="flex flex-wrap gap-3">
+      {% for pts, label, color in [
+        ('0–49',   'Newcomer',              '#64748b'),
+        ('50–149', 'Resident',              '#94a3b8'),
+        ('150–299','Community Member',      '#e2e8f0'),
+        ('300–499','Trusted Resident',      '#2dd4bf'),
+        ('500+',   'Pillar of Community',   '#fbbf24'),
+      ] %}
+      <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg font-mono text-xs"
+            style="background:{{ color }}18;border:1px solid {{ color }}33;color:{{ color }};">
+        <span class="font-bold">{{ pts }}</span> {{ label }}
+      </span>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Roadmap -->
 <div class="mb-14">
   <div class="text-center mb-8">
     <p class="font-mono text-[10px] text-slate-500 uppercase tracking-widest mb-1">ROADMAP</p>
-    <h2 class="text-2xl font-bold text-white">Future Innovations</h2>
+    <h2 class="text-2xl font-bold text-white">What's Next</h2>
     <p class="text-slate-500 text-sm mt-1">Where Emzini is heading next</p>
   </div>
 
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
     {% set roadmap = [
-      ('fa-mobile-screen',      'Mobile App',
-       'Native iOS and Android apps with push notifications for new jobs, messages, and community alerts — so residents stay connected even away from the complex.'),
-      ('fa-credit-card',        'Real Payment Gateway',
-       'Integrate PayFast or Peach Payments so residents can top up their Emzini wallets with real ZAR via card, EFT, or instant payment — bridging the in-app economy to real money.'),
-      ('fa-id-card',            'Digital Resident ID',
+      ('fa-credit-card', 'Real Payment Gateway', 'PLANNED',
+       'Integrate PayFast or Peach Payments so residents can top up wallets with real ZAR via card, EFT, or instant EFT — bridging the in-app economy to real money without admin hand-offs.'),
+      ('fa-id-card', 'Digital Resident ID', 'PLANNED',
        'Verified resident profiles with building management integration — proof of residency unlocks trusted seller badges and higher wallet limits.'),
-      ('fa-calendar-days',      'Events Board',
+      ('fa-calendar-days', 'Events Board', 'PLANNED',
        'Building event calendar — complex meetings, braais, sports days, gym bookings, laundry schedules. Residents RSVP and get reminders automatically.'),
-      ('fa-wrench',             'Maintenance Requests',
-       'Formal maintenance ticketing system integrated with building management. Residents log requests, track status, and get notified when work is scheduled or completed.'),
-      ('fa-robot',              'Smarter AI Agent',
-       'The Emzini AI evolving from text commands to voice input and proactive suggestions — reminding you to follow up on a runner job, alerting you when a market item you want is back in stock.'),
+      ('fa-wrench', 'Maintenance Requests', 'PLANNED',
+       'Formal maintenance ticketing integrated with building management. Residents log requests, track status, and get notified when work is scheduled or completed.'),
+      ('fa-star', 'Ratings & Reviews', 'PLANNED',
+       'Rate runners after job completion and sellers after a purchase. Ratings feed into reputation scores and build trust across the marketplace.'),
+      ('fa-robot', 'Smarter AI Agent', 'PLANNED',
+       'The Emzini AI evolving toward voice input and proactive suggestions — alerting you when a runner is nearby, or when a market item you want is back in stock.'),
     ] %}
 
-    {% for icon, title, desc in roadmap %}
+    {% for icon, title, status, desc in roadmap %}
     <div class="card p-5 relative overflow-hidden" style="border-color:var(--border-2);">
       <div class="flex items-center gap-3 mb-3">
         <div class="w-9 h-9 rounded-lg flex items-center justify-center"
              style="background:rgba(13,148,136,0.12);border:1px solid rgba(13,148,136,0.2);">
           <i class="fas {{ icon }}" style="color:var(--teal-lt);"></i>
         </div>
-        <h3 class="text-white font-semibold text-sm">{{ title }}</h3>
-        <span class="ml-auto text-[9px] font-mono px-1.5 py-0.5 rounded"
+        <h3 class="text-white font-semibold text-sm flex-1">{{ title }}</h3>
+        <span class="text-[9px] font-mono px-1.5 py-0.5 rounded flex-shrink-0"
               style="background:rgba(13,148,136,0.1);border:1px solid rgba(13,148,136,0.2);color:var(--teal-lt);">
-          PLANNED
+          {{ status }}
         </span>
       </div>
       <p class="text-slate-400 text-sm leading-relaxed">{{ desc }}</p>
